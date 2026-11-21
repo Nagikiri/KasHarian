@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'theme/app_theme.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/transaksi_screen.dart';
 import 'screens/wishlist_screen.dart';
@@ -36,6 +37,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF14532D)),
         useMaterial3: true,
+        fontFamily: 'PlusJakartaSans',
       ),
       home: const MainNavigation(),
     );
@@ -51,8 +53,6 @@ class MainNavigation extends StatefulWidget {
 
 class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
-  final Color primaryGreen = const Color(0xFF14532D);
-
   final List<Widget> _pages = [
     const DashboardScreen(),
     const TransaksiScreen(),
@@ -73,6 +73,7 @@ class _MainNavigationState extends State<MainNavigation> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 250),
         child: _pages[_selectedIndex],
@@ -95,11 +96,21 @@ class _MainNavigationState extends State<MainNavigation> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _navItem(Icons.home, 'Beranda', 0),
-              _navItem(Icons.receipt_long, 'Transaksi', 1),
+              _navItem(Icons.home_outlined, Icons.home, 'Beranda', 0),
+              _navItem(
+                Icons.receipt_long_outlined,
+                Icons.receipt_long,
+                'Transaksi',
+                1,
+              ),
               const SizedBox(width: 48),
-              _navItem(Icons.account_balance_wallet_outlined, 'Wishlist', 2),
-              _navItem(Icons.pie_chart_outline, 'Ringkasan', 3),
+              _navItem(Icons.favorite_border, Icons.favorite, 'Wishlist', 2),
+              _navItem(
+                Icons.pie_chart_outline,
+                Icons.pie_chart,
+                'Ringkasan',
+                3,
+              ),
             ],
           ),
         ),
@@ -107,7 +118,12 @@ class _MainNavigationState extends State<MainNavigation> {
     );
   }
 
-  Widget _navItem(IconData icon, String label, int index) {
+  Widget _navItem(
+    IconData inactiveIcon,
+    IconData activeIcon,
+    String label,
+    int index,
+  ) {
     bool isActive = _selectedIndex == index;
     return InkWell(
       onTap: () => setState(() => _selectedIndex = index),
@@ -115,17 +131,20 @@ class _MainNavigationState extends State<MainNavigation> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            icon,
+            isActive ? activeIcon : inactiveIcon,
             color: isActive ? primaryGreen : Colors.grey.shade500,
             size: 24,
           ),
           const SizedBox(height: 2),
-          Text(
-            label,
-            style: TextStyle(
-              color: isActive ? primaryGreen : Colors.grey.shade500,
-              fontSize: 10,
-              fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              label,
+              style: TextStyle(
+                color: isActive ? primaryGreen : Colors.grey.shade500,
+                fontSize: 10,
+                fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+              ),
             ),
           ),
         ],

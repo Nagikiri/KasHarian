@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../models/app_data.dart';
+import '../services/api_service.dart';
+import '../theme/app_theme.dart';
 
 class WishlistScreen extends StatefulWidget {
   const WishlistScreen({super.key});
@@ -10,9 +12,6 @@ class WishlistScreen extends StatefulWidget {
 }
 
 class _WishlistScreenState extends State<WishlistScreen> {
-  final Color primaryGreen = const Color(0xFF14532D);
-  final Color bgGray = const Color(0xFFF1F5F9);
-
   String _mataUang = 'USD';
   final TextEditingController _inputValasCtrl = TextEditingController(
     text: '100',
@@ -26,17 +25,44 @@ class _WishlistScreenState extends State<WishlistScreen> {
     'EUR': 16950,
   };
 
-  BoxDecoration get _cardDeco => BoxDecoration(
-    color: Colors.white,
-    borderRadius: BorderRadius.circular(16),
-    boxShadow: [
-      BoxShadow(
-        color: Colors.black.withValues(alpha: 0.04),
-        blurRadius: 10,
-        offset: const Offset(0, 4),
-      ),
-    ],
-  );
+  // Status API
+  final ApiService _apiService = ApiService();
+  bool _sedangMemuat = false;
+  bool _kursLive = false;
+  String _infoKurs = 'Memakai kurs cadangan';
+
+  @override
+  void initState() {
+    super.initState();
+    _ambilKurs(); 
+  }
+
+  Future<void> _ambilKurs() async {
+    setState(() => _sedangMemuat = true);
+
+    try {
+      final kurs = await _apiService.getKursIdr();
+
+      for (String kode in _kursKeIdr.keys.toList()) {
+        int nilai = kurs.keRupiah(kode);
+        if (nilai > 0) _kursKeIdr[kode] = nilai;
+      }
+
+      if (!mounted) return; // halaman sudah ditutup, jangan setState
+      setState(() {
+        _kursLive = true;
+        _infoKurs = 'Kurs live • ${kurs.waktuUpdate.substring(0, 16)}';
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _kursLive = false;
+        _infoKurs = 'Gagal ambil kurs, memakai kurs cadangan';
+      });
+    } finally {
+      if (mounted) setState(() => _sedangMemuat = false);
+    }
+  }
 
   int get _hasilKonversi {
     int nominal = int.tryParse(_inputValasCtrl.text.replaceAll('.', '')) ?? 0;
@@ -150,7 +176,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
 
     return ValueListenableBuilder<int>(
       valueListenable: AppData.refreshNotifier,
-      builder: (context, _, __) {
+      builder: (context, _, _) {
         return Scaffold(
           backgroundColor: bgGray,
           body: SafeArea(
@@ -219,7 +245,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
   Widget _buildKonverterCard() {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: _cardDeco,
+      decoration: cardDecoration,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -251,9 +277,36 @@ class _WishlistScreenState extends State<WishlistScreen> {
                   ),
                 ],
               ),
+              const Spacer(),
+              // Tombol untuk memanggil ulang API kurs
+              _sedangMemuat
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : IconButton(
+                      onPressed: _ambilKurs,
+                      icon: const Icon(Icons.refresh, size: 20),
+                      color: Colors.blue,
+                      tooltip: 'Perbarui kurs',
+                    ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
+          Text(
+            '$_infoKurs  •  1 $_mataUang = Rp ${formatTitik(_kursKeIdr[_mataUang] ?? 0)}',
+            style: TextStyle(
+              fontSize: 11,
+              color: _kursLive ? primaryGreen : Colors.orange.shade800,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const Text(
+            'Rates By Exchange Rate API',
+            style: TextStyle(fontSize: 9, color: Colors.grey),
+          ),
+          const SizedBox(height: 12),
           Row(
             children: [
               Expanded(
@@ -424,7 +477,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(16),
-      decoration: _cardDeco,
+      decoration: cardDecoration,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

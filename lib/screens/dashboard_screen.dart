@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../main.dart';
 import '../models/app_data.dart';
+import '../theme/app_theme.dart';
 import 'budget_screen.dart';
 import 'utang_screen.dart';
 
@@ -13,21 +14,80 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  final Color primaryGreen = const Color(0xFF14532D);
-  final Color bgGray = const Color(0xFFF1F5F9);
   int _offsetHari = 0;
+  bool _saldoDisembunyikan = false;
 
-  final BoxDecoration cardDecoration = BoxDecoration(
-    color: Colors.white,
-    borderRadius: BorderRadius.circular(16),
-    boxShadow: [
-      BoxShadow(
-        color: Colors.black.withValues(alpha: 0.04),
-        blurRadius: 10,
-        offset: const Offset(0, 4),
-      ),
-    ],
-  );
+  final List<_KantongData> _daftarKantong = [
+    _KantongData(
+      Icons.restaurant_outlined,
+      'Makan & Jajan',
+      '1.250.000',
+      '2.500.000',
+      0.5,
+      Colors.green,
+    ),
+    _KantongData(
+      Icons.local_gas_station_outlined,
+      'Bensin & Ojol',
+      '680.000',
+      '800.000',
+      0.85,
+      Colors.orange,
+    ),
+    _KantongData(
+      Icons.receipt_long_outlined,
+      'Tagihan Rumah',
+      '1.100.000',
+      '1.200.000',
+      0.91,
+      Colors.red,
+    ),
+    _KantongData(
+      Icons.savings_outlined,
+      'Tabungan',
+      '420.000',
+      '500.000',
+      0.84,
+      Colors.teal,
+    ),
+  ];
+
+  final List<_UtangData> _daftarUtang = [
+    _UtangData('BS', 'Budi', true, 'Nalangin Makan Siang', '+Rp 50.000'),
+    _UtangData('RA', 'Rian', true, 'Tiket Bioskop', '+Rp 85.000'),
+    _UtangData('DP', 'Dimas', false, 'Patungan Kafe', '-Rp 120.000'),
+  ];
+
+  String get _sapaan {
+    final jam = DateTime.now().hour;
+    if (jam < 11) return 'Pagi';
+    if (jam < 15) return 'Siang';
+    if (jam < 18) return 'Sore';
+    return 'Malam';
+  }
+
+  String _formatBulanTahun(DateTime tanggal) {
+    const bulan = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'Mei',
+      'Jun',
+      'Jul',
+      'Agu',
+      'Sep',
+      'Okt',
+      'Nov',
+      'Des',
+    ];
+    return '${bulan[tanggal.month - 1]} ${tanggal.year}';
+  }
+
+  void _tampilkanNantiYa() {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text('Nanti Ya')));
+  }
 
   DateTime get _tanggalAktif {
     final skr = DateTime.now();
@@ -90,7 +150,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     return ValueListenableBuilder<int>(
       valueListenable: AppData.refreshNotifier,
-      builder: (context, _, __) {
+      builder: (context, _, _) {
         return Scaffold(
           backgroundColor: bgGray,
           body: SafeArea(
@@ -129,17 +189,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Semangat Pagi, Dimas!',
+              'Semangat $_sapaan, Dimas!',
               style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
             ),
             const SizedBox(height: 4),
             const Text(
-              'Finansialmu Sehat Hari Ini',
+              'Catatan Keuangan',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ],
         ),
-        Icon(Icons.notifications_none, color: Colors.grey.shade700),
+        InkWell(
+          onTap: _tampilkanNantiYa,
+          child: Icon(Icons.notifications_none, color: Colors.grey.shade700),
+        ),
       ],
     );
   }
@@ -173,16 +236,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              Icon(
-                Icons.visibility_outlined,
-                color: Colors.white.withValues(alpha: 0.7),
-                size: 18,
+              InkWell(
+                onTap: () =>
+                    setState(() => _saldoDisembunyikan = !_saldoDisembunyikan),
+                child: Icon(
+                  _saldoDisembunyikan
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined,
+                  color: Colors.white.withValues(alpha: 0.7),
+                  size: 18,
+                ),
               ),
             ],
           ),
           const SizedBox(height: 12),
           Text(
-            'Rp ${formatTitik(AppData.saldoTersedia)}',
+            _saldoDisembunyikan
+                ? 'Rp ••••••'
+                : 'Rp ${formatTitik(AppData.saldoTersedia)}',
             style: const TextStyle(
               color: Colors.white,
               fontSize: 32,
@@ -206,7 +277,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     children: [
                       const Icon(
                         Icons.arrow_downward,
-                        color: Colors.greenAccent,
+                        color: Color(0xFF86EFAC),
                         size: 16,
                       ),
                       const SizedBox(width: 8),
@@ -251,7 +322,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     children: [
                       const Icon(
                         Icons.arrow_upward,
-                        color: Colors.redAccent,
+                        color: Color(0xFFFCA5A5),
                         size: 16,
                       ),
                       const SizedBox(width: 8),
@@ -297,15 +368,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Row(
-                children: [
-                  Icon(Icons.currency_exchange, size: 18, color: Colors.teal),
-                  SizedBox(width: 8),
-                  Text(
-                    'Pantau Mata Uang',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                  ),
-                ],
+              const Flexible(
+                child: Row(
+                  children: [
+                    Icon(Icons.currency_exchange, size: 18, color: Colors.teal),
+                    SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        'Pantau Mata Uang',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(
@@ -316,12 +395,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   color: Colors.blue.shade50,
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Text(
-                  '+ Tambah Kurs',
-                  style: TextStyle(
-                    color: Colors.blue,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
+                child: InkWell(
+                  onTap: _tampilkanNantiYa,
+                  child: const Text(
+                    '+ Tambah Kurs',
+                    style: TextStyle(
+                      color: Colors.blue,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -365,8 +447,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const SizedBox(width: 8),
           Text(amount, style: const TextStyle(fontSize: 13)),
           const SizedBox(width: 8),
+          Icon(
+            pct.startsWith('-') ? Icons.trending_down : Icons.trending_up,
+            color: pctColor,
+            size: 15,
+          ),
+          const SizedBox(width: 2),
           Text(
-            pct,
+            pct.substring(1).trim(),
             style: TextStyle(
               color: pctColor,
               fontSize: 12,
@@ -388,23 +476,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Row(
+              Row(
                 children: [
                   Text(
-                    'Okt 2026',
+                    _formatBulanTahun(DateTime.now()),
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
-                  Icon(Icons.keyboard_arrow_down, size: 20),
+                  InkWell(
+                    onTap: _tampilkanNantiYa,
+                    child: const Icon(Icons.keyboard_arrow_down, size: 20),
+                  ),
                 ],
               ),
               Row(
                 children: [
-                  Icon(Icons.search, color: Colors.grey.shade600, size: 20),
+                  InkWell(
+                    onTap: _tampilkanNantiYa,
+                    child: Icon(
+                      Icons.search,
+                      color: Colors.grey.shade600,
+                      size: 20,
+                    ),
+                  ),
                   const SizedBox(width: 16),
-                  Icon(
-                    Icons.calendar_month,
-                    color: Colors.grey.shade600,
-                    size: 20,
+                  InkWell(
+                    onTap: _tampilkanNantiYa,
+                    child: Icon(
+                      Icons.calendar_month,
+                      color: Colors.grey.shade600,
+                      size: 20,
+                    ),
                   ),
                 ],
               ),
@@ -417,20 +518,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildStatItem(
-                'Pengeluaran',
-                'Rp ${formatTitik(AppData.totalPengeluaran)}',
-                Colors.red,
+              Expanded(
+                child: _buildStatItem(
+                  'Pengeluaran',
+                  'Rp ${formatTitik(AppData.totalPengeluaran)}',
+                  Colors.red,
+                ),
               ),
-              _buildStatItem(
-                'Pemasukan',
-                'Rp ${formatTitik(AppData.totalPemasukan)}',
-                Colors.green,
+              Expanded(
+                child: _buildStatItem(
+                  'Pemasukan',
+                  'Rp ${formatTitik(AppData.totalPemasukan)}',
+                  Colors.green,
+                ),
               ),
-              _buildStatItem(
-                'Selisih Bulan Ini',
-                '${selisih >= 0 ? '+' : '-'}Rp ${formatTitik(selisih)}',
-                Colors.blue,
+              Expanded(
+                child: _buildStatItem(
+                  'Selisih Bulan Ini',
+                  '${selisih >= 0 ? '+' : '-'}Rp ${formatTitik(selisih)}',
+                  Colors.blue,
+                ),
               ),
             ],
           ),
@@ -448,12 +555,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
           style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
         ),
         const SizedBox(height: 4),
-        Text(
-          amount,
-          style: TextStyle(
-            color: color,
-            fontWeight: FontWeight.bold,
-            fontSize: 13,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(
+            amount,
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.bold,
+              fontSize: 13,
+            ),
           ),
         ),
       ],
@@ -467,18 +578,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Kantong Alokasi',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-                Text(
-                  '4 Kategori Aktif',
-                  style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
-                ),
-              ],
+            Flexible(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Kantong Alokasi',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                  Text(
+                    '${_daftarKantong.length} Kategori Aktif',
+                    style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                  ),
+                ],
+              ),
             ),
             InkWell(
               onTap: () {
@@ -496,13 +609,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   color: Colors.grey.shade200,
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(
-                      Icons.add_location_alt_outlined,
-                      size: 14,
-                      color: Colors.black87,
-                    ),
+                    const Icon(Icons.add, size: 14, color: Colors.black87),
                     SizedBox(width: 4),
                     Text(
                       'Kategori Baru',
@@ -527,37 +636,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
           mainAxisSpacing: 12,
           childAspectRatio: 1.35,
           children: [
-            _buildKantongCard(
-              Icons.restaurant,
-              'Makan & Jajan',
-              '1.250.000',
-              '2.500.000',
-              0.5,
-              Colors.green,
-            ),
-            _buildKantongCard(
-              Icons.local_gas_station,
-              'Bensin & Ojol',
-              '680.000',
-              '800.000',
-              0.85,
-              Colors.orange,
-            ),
-            _buildKantongCard(
-              Icons.receipt_long,
-              'Tagihan Rumah',
-              '1.100.000',
-              '1.200.000',
-              0.91,
-              Colors.red,
-            ),
-            _buildKantongCard(
-              Icons.savings,
-              'Tabungan',
-              '420.000',
-              '500.000',
-              0.84,
-              Colors.teal,
+            ..._daftarKantong.map(
+              (item) => _buildKantongCard(
+                item.icon,
+                item.title,
+                item.spent,
+                item.total,
+                item.progress,
+                item.color,
+              ),
             ),
           ],
         ),
@@ -604,18 +691,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
+              Flexible(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
-                overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 2),
-              Text(
-                'Rp $spent / $total',
-                style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Rp $spent / $total',
+                  style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+                ),
               ),
               const SizedBox(height: 8),
               LinearProgressIndicator(
@@ -762,12 +855,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       color: Colors.grey.shade100,
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: Text(
-                      '${_formatLabelNav(tglKemarin)} <-',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _formatLabelNav(tglKemarin),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const Icon(Icons.chevron_left, size: 18),
+                      ],
                     ),
                   ),
                 ),
@@ -784,12 +883,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         color: Colors.grey.shade100,
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: Text(
-                        '-> ${_formatLabelNav(tglBesok)}',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.chevron_right, size: 18),
+                          Text(
+                            _formatLabelNav(tglBesok),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -833,9 +938,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         color: Colors.blue.shade50,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Text(
-                        '3 Aktif',
-                        style: TextStyle(
+                      child: Text(
+                        '${_daftarUtang.length} Aktif',
+                        style: const TextStyle(
                           color: Colors.blue,
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
@@ -853,38 +958,52 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     buatTransisiHalaman(const UtangScreen()),
                   );
                 },
-                child: const Text(
-                  'Lihat Semua >',
-                  style: TextStyle(
-                    color: Colors.teal,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Lihat Semua',
+                      style: TextStyle(
+                        color: Colors.teal,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Icon(Icons.chevron_right, color: Colors.teal, size: 18),
+                  ],
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          _buildUtangTile(
-            'BS',
-            'Budi',
-            true,
-            'Nalangin Makan Siang',
-            '+Rp 50.000',
-          ),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 8),
-            child: Divider(height: 1),
-          ),
-          _buildUtangTile('RA', 'Rian', true, 'Tiket Bioskop', '+Rp 85.000'),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 8),
-            child: Divider(height: 1),
-          ),
-          _buildUtangTile('DP', 'Dimas', false, 'Patungan Kafe', '-Rp 120.000'),
+          ..._buildUtangRows(),
         ],
       ),
     );
+  }
+
+  List<Widget> _buildUtangRows() {
+    return _daftarUtang
+        .asMap()
+        .entries
+        .map(
+          (entry) => <Widget>[
+            if (entry.key > 0)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: Divider(height: 1),
+              ),
+            _buildUtangTile(
+              entry.value.initials,
+              entry.value.name,
+              entry.value.isPiutang,
+              entry.value.description,
+              entry.value.amount,
+            ),
+          ],
+        )
+        .expand((widgets) => widgets)
+        .toList();
   }
 
   Widget _buildUtangTile(
@@ -918,7 +1037,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 children: [
                   Flexible(
                     child: Text(
-                      '$name (${isPiutang ? 'Piuta...' : 'Utang...'})',
+                      name,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
@@ -950,17 +1069,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Text(
                 desc,
                 style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
         ),
         const SizedBox(width: 8),
-        Text(
-          amount,
-          style: TextStyle(
-            color: typeColor,
-            fontWeight: FontWeight.bold,
-            fontSize: 13,
+        Flexible(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerRight,
+            child: Text(
+              amount,
+              style: TextStyle(
+                color: typeColor,
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+              ),
+            ),
           ),
         ),
         const SizedBox(width: 12),
@@ -982,4 +1108,38 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ],
     );
   }
+}
+
+class _KantongData {
+  final IconData icon;
+  final String title;
+  final String spent;
+  final String total;
+  final double progress;
+  final Color color;
+
+  const _KantongData(
+    this.icon,
+    this.title,
+    this.spent,
+    this.total,
+    this.progress,
+    this.color,
+  );
+}
+
+class _UtangData {
+  final String initials;
+  final String name;
+  final bool isPiutang;
+  final String description;
+  final String amount;
+
+  const _UtangData(
+    this.initials,
+    this.name,
+    this.isPiutang,
+    this.description,
+    this.amount,
+  );
 }

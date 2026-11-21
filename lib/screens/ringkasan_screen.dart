@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/app_data.dart';
+import '../theme/app_theme.dart';
 
 class RingkasanScreen extends StatefulWidget {
   const RingkasanScreen({super.key});
@@ -10,24 +11,9 @@ class RingkasanScreen extends StatefulWidget {
 }
 
 class _RingkasanScreenState extends State<RingkasanScreen> {
-  final Color primaryGreen = const Color(0xFF14532D);
-  final Color bgGray = const Color(0xFFF1F5F9);
-
   int _periodeIndex = 1;
   final TextEditingController _pesanCtrl = TextEditingController();
   final List<Map<String, String>> _riwayatChat = [];
-
-  BoxDecoration get _cardDeco => BoxDecoration(
-    color: Colors.white,
-    borderRadius: BorderRadius.circular(16),
-    boxShadow: [
-      BoxShadow(
-        color: Colors.black.withValues(alpha: 0.04),
-        blurRadius: 10,
-        offset: const Offset(0, 4),
-      ),
-    ],
-  );
 
   void _kirimPesan() {
     String teks = _pesanCtrl.text.trim();
@@ -38,6 +24,11 @@ class _RingkasanScreenState extends State<RingkasanScreen> {
     });
   }
 
+  void _tampilkanNantiYa() {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text('Nanti Ya')));
+  }
+
   @override
   Widget build(BuildContext context) {
     double w = MediaQuery.of(context).size.width;
@@ -45,7 +36,7 @@ class _RingkasanScreenState extends State<RingkasanScreen> {
 
     return ValueListenableBuilder<int>(
       valueListenable: AppData.refreshNotifier,
-      builder: (context, _, __) {
+      builder: (context, _, _) {
         int masuk = AppData.totalPemasukan;
         int keluar = AppData.totalPengeluaran;
         int surplus = masuk - keluar;
@@ -127,15 +118,16 @@ class _RingkasanScreenState extends State<RingkasanScreen> {
   }
 
   Widget _buildKartuSurplus(int masuk, int keluar, int surplus) {
+    final surplusNegatif = surplus < 0;
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: _cardDeco,
+      decoration: cardDecoration,
       child: Column(
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Row(
+              Row(
                 children: [
                   Icon(
                     Icons.calendar_month_outlined,
@@ -143,9 +135,15 @@ class _RingkasanScreenState extends State<RingkasanScreen> {
                     color: Colors.black87,
                   ),
                   SizedBox(width: 6),
-                  Text(
-                    'Oktober 2026',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  InkWell(
+                    onTap: _tampilkanNantiYa,
+                    child: const Text(
+                      'Oktober 2026',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -159,9 +157,9 @@ class _RingkasanScreenState extends State<RingkasanScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  'Arus Kas Sehat',
+                  surplusNegatif ? 'Arus Kas Defisit' : 'Arus Kas Sehat',
                   style: TextStyle(
-                    color: primaryGreen,
+                    color: surplusNegatif ? Colors.red : primaryGreen,
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
                   ),
@@ -233,7 +231,7 @@ class _RingkasanScreenState extends State<RingkasanScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
-              color: primaryGreen,
+              color: surplusNegatif ? Colors.red.shade700 : primaryGreen,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
@@ -247,7 +245,7 @@ class _RingkasanScreenState extends State<RingkasanScreen> {
                       style: TextStyle(color: Colors.white70, fontSize: 11),
                     ),
                     Text(
-                      '+Rp ${formatTitik(surplus)}',
+                      '${surplusNegatif ? '-' : '+'}Rp ${formatTitik(surplus)}',
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -265,8 +263,8 @@ class _RingkasanScreenState extends State<RingkasanScreen> {
                     color: Colors.white.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: const Text(
-                    'Alokasi Aman',
+                  child: Text(
+                    surplusNegatif ? 'Alokasi Perlu Ditinjau' : 'Alokasi Aman',
                     style: TextStyle(color: Colors.white, fontSize: 11),
                   ),
                 ),
@@ -284,9 +282,14 @@ class _RingkasanScreenState extends State<RingkasanScreen> {
     int sisa,
     double rasio,
   ) {
+    final warnaStatus = rasio < 0.7
+        ? primaryGreen
+        : rasio <= 0.9
+        ? const Color(0xFFF59E0B)
+        : Colors.red;
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: _cardDeco,
+      decoration: cardDecoration,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -307,7 +310,7 @@ class _RingkasanScreenState extends State<RingkasanScreen> {
                       value: rasio,
                       strokeWidth: 12,
                       backgroundColor: Colors.grey.shade200,
-                      valueColor: AlwaysStoppedAnimation<Color>(primaryGreen),
+                      valueColor: AlwaysStoppedAnimation<Color>(warnaStatus),
                     ),
                     Center(
                       child: Text(
@@ -315,7 +318,7 @@ class _RingkasanScreenState extends State<RingkasanScreen> {
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
-                          color: primaryGreen,
+                          color: warnaStatus,
                         ),
                       ),
                     ),
@@ -374,9 +377,17 @@ class _RingkasanScreenState extends State<RingkasanScreen> {
   }
 
   Widget _buildDistribusiPengeluaran() {
+    final distribusi = _hitungDistribusi();
+    final total = distribusi.fold<int>(0, (sum, item) => sum + item.nominal);
+    final warnaSegmen = [
+      const Color(0xFF2A78D6),
+      const Color(0xFFE87BA4),
+      const Color(0xFFEDA100),
+      const Color(0xFF6250D6),
+    ];
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: _cardDeco,
+      decoration: cardDecoration,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -392,24 +403,20 @@ class _RingkasanScreenState extends State<RingkasanScreen> {
           ClipRRect(
             borderRadius: BorderRadius.circular(6),
             child: Row(
-              children: [
-                Expanded(
-                  flex: 36,
-                  child: Container(height: 10, color: primaryGreen),
-                ),
-                Expanded(
-                  flex: 32,
-                  child: Container(height: 10, color: Colors.teal),
-                ),
-                Expanded(
-                  flex: 20,
-                  child: Container(height: 10, color: Colors.orange),
-                ),
-                Expanded(
-                  flex: 12,
-                  child: Container(height: 10, color: Colors.greenAccent),
-                ),
-              ],
+              children: distribusi.asMap().entries.expand((entry) {
+                final index = entry.key;
+                final item = entry.value;
+                final widgets = <Widget>[
+                  Expanded(
+                    flex: item.nominal,
+                    child: Container(height: 10, color: warnaSegmen[index]),
+                  ),
+                ];
+                if (index < distribusi.length - 1) {
+                  widgets.add(const SizedBox(width: 2));
+                }
+                return widgets;
+              }).toList(),
             ),
           ),
           const SizedBox(height: 14),
@@ -420,40 +427,52 @@ class _RingkasanScreenState extends State<RingkasanScreen> {
             crossAxisSpacing: 10,
             mainAxisSpacing: 10,
             childAspectRatio: 2.2,
-            children: [
-              _kotakDistribusi(
-                Icons.restaurant,
-                'Makan & Minum',
-                '36%',
-                'Rp 1.250.000',
-                primaryGreen,
-              ),
-              _kotakDistribusi(
-                Icons.receipt_long,
-                'Tagihan Rumah',
-                '32%',
-                'Rp 1.100.000',
-                Colors.teal,
-              ),
-              _kotakDistribusi(
-                Icons.local_gas_station,
-                'Transportasi',
-                '20%',
-                'Rp 680.000',
-                Colors.orange,
-              ),
-              _kotakDistribusi(
-                Icons.coffee,
-                'Hiburan & Kopi',
-                '12%',
-                'Rp 420.000',
-                Colors.green,
-              ),
-            ],
+            children: distribusi.asMap().entries.map((entry) {
+              final item = entry.value;
+              final persen = total == 0
+                  ? 0
+                  : (item.nominal * 100 / total).round();
+              return _kotakDistribusi(
+                item.icon,
+                item.nama,
+                '$persen%',
+                'Rp ${formatTitik(item.nominal)}',
+                warnaSegmen[entry.key],
+              );
+            }).toList(),
           ),
         ],
       ),
     );
+  }
+
+  List<_DistribusiData> _hitungDistribusi() {
+    final nominalPerKategori = <String, int>{};
+    final ikonPerKategori = <String, IconData>{};
+    for (final transaksi in AppData.daftarTransaksi) {
+      if (transaksi.isPemasukan || transaksi.isTransfer) continue;
+      nominalPerKategori.update(
+        transaksi.kategori,
+        (nilai) => nilai + transaksi.nominal,
+        ifAbsent: () {
+          ikonPerKategori[transaksi.kategori] = transaksi.ikon;
+          return transaksi.nominal;
+        },
+      );
+    }
+
+    final daftar =
+        nominalPerKategori.entries
+            .map(
+              (entry) => _DistribusiData(
+                entry.key,
+                ikonPerKategori[entry.key] ?? Icons.receipt_long_outlined,
+                entry.value,
+              ),
+            )
+            .toList()
+          ..sort((a, b) => b.nominal.compareTo(a.nominal));
+    return daftar.take(4).toList();
   }
 
   Widget _kotakDistribusi(
@@ -501,7 +520,7 @@ class _RingkasanScreenState extends State<RingkasanScreen> {
   Widget _buildChatbotCard() {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: _cardDeco,
+      decoration: cardDecoration,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -623,4 +642,12 @@ class _RingkasanScreenState extends State<RingkasanScreen> {
       ),
     );
   }
+}
+
+class _DistribusiData {
+  final String nama;
+  final IconData icon;
+  final int nominal;
+
+  const _DistribusiData(this.nama, this.icon, this.nominal);
 }

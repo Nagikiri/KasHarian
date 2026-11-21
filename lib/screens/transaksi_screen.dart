@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../main.dart';
 import '../models/app_data.dart';
+import '../theme/app_theme.dart';
 import 'budget_screen.dart';
 
 class TransaksiScreen extends StatefulWidget {
@@ -12,23 +13,9 @@ class TransaksiScreen extends StatefulWidget {
 }
 
 class _TransaksiScreenState extends State<TransaksiScreen> {
-  final Color primaryGreen = const Color(0xFF14532D);
-  final Color bgGray = const Color(0xFFF1F5F9);
   int _filterIndex = 0;
   String _kataKunci = '';
   int _indexTips = 0;
-
-  BoxDecoration get _cardDeco => BoxDecoration(
-    color: Colors.white,
-    borderRadius: BorderRadius.circular(16),
-    boxShadow: [
-      BoxShadow(
-        color: Colors.black.withValues(alpha: 0.04),
-        blurRadius: 10,
-        offset: const Offset(0, 4),
-      ),
-    ],
-  );
 
   @override
   Widget build(BuildContext context) {
@@ -37,18 +24,25 @@ class _TransaksiScreenState extends State<TransaksiScreen> {
 
     return ValueListenableBuilder<int>(
       valueListenable: AppData.refreshNotifier,
-      builder: (context, _, __) {
+      builder: (context, _, _) {
         int targetBulanan = 5000000;
         int terpakai = AppData.totalPengeluaran;
         int sisa = targetBulanan - terpakai;
-        if (sisa < 0) sisa = 0;
+        if (sisa < 0) {
+          sisa = 0;
+        }
         double rasio = (terpakai / targetBulanan).clamp(0.0, 1.0);
 
         final daftarFilter = AppData.daftarTransaksi.where((t) {
-          if (_filterIndex == 1 && (t.isPemasukan || t.isTransfer))
+          if (_filterIndex == 1 && (t.isPemasukan || t.isTransfer)) {
             return false;
-          if (_filterIndex == 2 && !t.isPemasukan) return false;
-          if (_filterIndex == 3 && !t.isTransfer) return false;
+          }
+          if (_filterIndex == 2 && !t.isPemasukan) {
+            return false;
+          }
+          if (_filterIndex == 3 && !t.isTransfer) {
+            return false;
+          }
           if (_kataKunci.isNotEmpty) {
             bool cocokNama = t.catatan.toLowerCase().contains(
               _kataKunci.toLowerCase(),
@@ -211,7 +205,7 @@ class _TransaksiScreenState extends State<TransaksiScreen> {
     int selisih = AppData.totalPemasukan - AppData.totalPengeluaran;
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: _cardDeco,
+      decoration: cardDecoration,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -368,7 +362,7 @@ class _TransaksiScreenState extends State<TransaksiScreen> {
   ) {
     return Container(
       padding: const EdgeInsets.all(12),
-      decoration: _cardDeco,
+      decoration: cardDecoration,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -430,7 +424,7 @@ class _TransaksiScreenState extends State<TransaksiScreen> {
       children: [
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14),
-          decoration: _cardDeco,
+          decoration: cardDecoration,
           child: TextField(
             onChanged: (val) => setState(() => _kataKunci = val),
             decoration: const InputDecoration(
@@ -487,7 +481,7 @@ class _TransaksiScreenState extends State<TransaksiScreen> {
       return Container(
         width: double.infinity,
         padding: const EdgeInsets.all(24),
-        decoration: _cardDeco,
+        decoration: cardDecoration,
         alignment: Alignment.center,
         child: const Text(
           'Tidak ada transaksi yang sesuai filter',
@@ -511,7 +505,7 @@ class _TransaksiScreenState extends State<TransaksiScreen> {
         return Container(
           margin: const EdgeInsets.only(bottom: 10),
           padding: const EdgeInsets.all(14),
-          decoration: _cardDeco,
+          decoration: cardDecoration,
           child: Row(
             children: [
               Container(
