@@ -10,6 +10,7 @@ class KartuNavigasi extends StatelessWidget {
   final String info;
   final VoidCallback onTekan;
   final double? persen;
+  final Color? warnaInfo;
 
   const KartuNavigasi({
     super.key,
@@ -18,6 +19,7 @@ class KartuNavigasi extends StatelessWidget {
     required this.info,
     required this.onTekan,
     this.persen,
+    this.warnaInfo,
   });
 
   @override
@@ -52,7 +54,7 @@ class KartuNavigasi extends StatelessWidget {
                     const SizedBox(height: JarakApp.j4),
                     Text(
                       info,
-                      style: TeksApp.kecil,
+                      style: TeksApp.kecil.copyWith(color: warnaInfo),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),

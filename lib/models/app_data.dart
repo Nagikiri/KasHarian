@@ -3,6 +3,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../services/api_service.dart';
 import '../utils/format.dart';
+import 'bagian_teman.dart';
 import 'budget.dart';
 import 'kategori.dart';
 import 'transaksi.dart';
@@ -462,6 +463,25 @@ class AppData {
   static void tambahUtang(UtangItem item) {
     daftarUtang.insert(0, item);
     refreshNotifier.value++;
+  }
+
+  // Bagian setiap teman dari pengeluaran bersama dicatat sebagai piutang.
+  static void catatPiutang(
+    List<BagianTeman> daftar,
+    String keterangan,
+    DateTime tanggal,
+  ) {
+    for (var teman in daftar) {
+      tambahUtang(
+        UtangItem(
+          jenis: 'Piutang',
+          nama: teman.nama.trim(),
+          nominal: teman.nominal,
+          keterangan: keterangan,
+          tanggal: tanggal,
+        ),
+      );
+    }
   }
 
   // Pelunasan dicatat sebagai transaksi supaya saldo ikut berubah.

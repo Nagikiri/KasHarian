@@ -18,6 +18,7 @@ class BarisBudget extends StatelessWidget {
     int terpakai = AppData.terpakaiBudget(budget.kategori, DateTime.now());
     // Limit 0 tidak bisa dibagi, jadi persennya dianggap 0.
     double persen = budget.limit > 0 ? terpakai / budget.limit : 0;
+    int lebih = terpakai - budget.limit;
 
     return InkWell(
       onTap: onTekan,
@@ -40,9 +41,23 @@ class BarisBudget extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: JarakApp.j4),
-                      Text(
-                        '${formatRupiah(terpakai)} dari ${formatRupiah(budget.limit)}',
-                        style: TeksApp.kecil,
+                      Text.rich(
+                        TextSpan(
+                          style: TeksApp.kecil,
+                          children: [
+                            TextSpan(text: '${formatRupiah(terpakai)} '),
+                            lebih > 0
+                                ? TextSpan(
+                                    text: '· Lebih ${formatRupiah(lebih)}',
+                                    style: TeksApp.kecil.copyWith(
+                                      color: WarnaApp.bahaya,
+                                    ),
+                                  )
+                                : TextSpan(
+                                    text: 'dari ${formatRupiah(budget.limit)}',
+                                  ),
+                          ],
+                        ),
                       ),
                     ],
                   ),

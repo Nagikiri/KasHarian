@@ -144,8 +144,11 @@ class _TransaksiScreenState extends State<TransaksiScreen> {
         const SizedBox(height: JarakApp.j8),
         ProgressTipis(persen: persen),
         const SizedBox(height: JarakApp.j8),
+        // Budget adalah rencana, jadi kelebihan ditulis positif, bukan "Sisa -Rp".
         Text(
-          'Sisa ${formatRupiah(sisa)}',
+          sisa < 0
+              ? 'Lebih ${formatRupiah(-sisa)} dari anggaran'
+              : 'Sisa ${formatRupiah(sisa)}',
           style: TeksApp.kecil.copyWith(
             color: sisa < 0 ? WarnaApp.bahaya : null,
           ),

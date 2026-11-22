@@ -149,6 +149,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _bangunKartuNavigasi() {
     int anggaran = AppData.anggaranBulanan;
     int terpakai = AppData.terpakaiAnggaran(DateTime.now());
+    int sisa = anggaran - terpakai;
     int belumLunas = AppData.daftarUtang.where((u) => !u.lunas).length;
     // IntrinsicHeight + stretch membuat kedua kartu setinggi kartu yang paling tinggi.
     return IntrinsicHeight(
@@ -159,7 +160,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: KartuNavigasi(
               ikon: LucideIcons.wallet,
               judul: 'Budget',
-              info: 'Sisa ${_rupiah(anggaran - terpakai)}',
+              info: sisa < 0
+                  ? 'Lebih ${_rupiah(-sisa)} dari anggaran'
+                  : 'Sisa ${_rupiah(sisa)}',
+              warnaInfo: sisa < 0 ? WarnaApp.bahaya : null,
               persen: anggaran > 0 ? terpakai / anggaran : 0,
               onTekan: () => _buka(const BudgetScreen()),
             ),

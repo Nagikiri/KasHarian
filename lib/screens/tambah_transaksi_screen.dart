@@ -5,12 +5,12 @@ import '../models/app_data.dart';
 import '../models/bagian_teman.dart';
 import '../models/kategori.dart';
 import '../models/transaksi.dart';
-import '../models/utang.dart';
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
 import '../utils/nominal.dart';
 import '../widgets/baris_isian.dart';
 import '../widgets/baris_kategori.dart';
+import '../widgets/info_budget.dart';
 import '../widgets/baris_dompet.dart';
 import '../widgets/numpad_simpan.dart';
 import '../widgets/pilihan_segmen.dart';
@@ -165,17 +165,7 @@ class _TambahTransaksiScreenState extends State<TambahTransaksiScreen> {
     }
 
     List<BagianTeman> piutang = _bisaBagi ? temanTerisi(_daftarTeman) : [];
-    for (var teman in piutang) {
-      AppData.tambahUtang(
-        UtangItem(
-          jenis: 'Piutang',
-          nama: teman.nama.trim(),
-          nominal: teman.nominal,
-          keterangan: catatan,
-          tanggal: _tanggal,
-        ),
-      );
-    }
+    AppData.catatPiutang(piutang, catatan, _tanggal);
 
     // Diambil sebelum pop, karena context halaman ini tidak bisa dipakai setelah ditutup.
     final pesan = ScaffoldMessenger.of(context);
@@ -260,6 +250,14 @@ class _TambahTransaksiScreenState extends State<TambahTransaksiScreen> {
                 onPilih: (k) => setState(() => _kategori = k),
                 onLainnya: _bukaLainnya,
               ),
+        // Info budget hanya untuk pengeluaran; simpan tetap boleh walau melebihi.
+        if (_tipe == 0 && _kategori != null)
+          InfoBudget(
+            kategori: _kategori!.nama,
+            nominal: _nominal,
+            tanggal: _tanggal,
+            transaksiLama: widget.transaksiLama,
+          ),
         const SizedBox(height: JarakApp.j16),
         if (!_transfer) ...[
           BarisIsian(

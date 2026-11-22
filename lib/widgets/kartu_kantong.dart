@@ -24,6 +24,7 @@ class KartuKantong extends StatelessWidget {
     int terpakai = AppData.terpakaiBudget(budget.kategori, bulan);
     // Limit 0 tidak bisa dibagi, jadi persennya dianggap 0.
     double persen = budget.limit > 0 ? terpakai / budget.limit : 0;
+    int lebih = terpakai - budget.limit;
     BorderRadius sudut = BorderRadius.circular(RadiusApp.input);
 
     return Material(
@@ -58,7 +59,15 @@ class KartuKantong extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
               Text(formatRupiah(terpakai), style: TeksApp.angka),
-              Text('dari ${formatRupiah(budget.limit)}', style: TeksApp.kecil),
+              lebih > 0
+                  ? Text(
+                      'Lebih ${formatRupiah(lebih)}',
+                      style: TeksApp.kecil.copyWith(color: WarnaApp.bahaya),
+                    )
+                  : Text(
+                      'dari ${formatRupiah(budget.limit)}',
+                      style: TeksApp.kecil,
+                    ),
               const SizedBox(height: JarakApp.j8),
               ProgressTipis(persen: persen),
             ],
