@@ -61,3 +61,7 @@ String formatTanggal(DateTime t) {
 String formatTanggalPendek(DateTime t) {
   return '${t.day} ${namaBulan[t.month - 1]}';
 }
+
+String formatTanggalPanjang(DateTime t) {
+  return '${namaHari[t.weekday - 1]}, ${t.day} ${namaBulanPanjang[t.month - 1]} ${t.year}';
+}

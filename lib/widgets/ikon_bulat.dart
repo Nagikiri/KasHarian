@@ -17,7 +17,7 @@ class IkonBulat extends StatelessWidget {
         color: WarnaApp.aksenLembut,
         shape: BoxShape.circle,
       ),
-      child: Icon(ikon, size: 20, color: WarnaApp.primer),
+      child: Icon(ikon, size: ukuran * 0.5, color: WarnaApp.primer),
     );
   }
 }

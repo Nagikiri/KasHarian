@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../main.dart';
 import '../models/app_data.dart';
 import '../models/transaksi.dart';
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
+import '../widgets/baris_transaksi.dart';
+import '../widgets/judul_seksi.dart';
+import '../widgets/grid_kantong.dart';
+import '../widgets/pemilih_bulan.dart';
+import '../widgets/progress_tipis.dart';
+import '../widgets/sheet_detail_transaksi.dart';
+import '../widgets/tombol_pill.dart';
 import 'budget_screen.dart';
 
 class TransaksiScreen extends StatefulWidget {
@@ -15,437 +23,182 @@ class TransaksiScreen extends StatefulWidget {
 }
 
 class _TransaksiScreenState extends State<TransaksiScreen> {
-  int _filterIndex = 0;
+  final List<String> _pilihanFilter = const [
+    'Semua',
+    'Pengeluaran',
+    'Pemasukan',
+    'Transfer',
+  ];
+  int _filter = 0;
   String _kataKunci = '';
-  int _indexTips = 0;
+
+  void _bukaBudget() =>
+      Navigator.push(context, buatTransisiHalaman(const BudgetScreen()));
+
+  void _pilihBulan(DateTime bulan) {
+    AppData.bulanDipilih = bulan;
+    AppData.refreshNotifier.value++;
+  }
+
+  void _bukaDetail(CatatanTransaksi transaksi) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => SheetDetailTransaksi(transaksi: transaksi),
+    );
+  }
+
+  bool _hariSama(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
+  bool _cocok(CatatanTransaksi t) {
+    DateTime bulan = AppData.bulanDipilih;
+    if (t.tanggal.year != bulan.year || t.tanggal.month != bulan.month) {
+      return false;
+    }
+    if (_filter == 1 && (t.isPemasukan || t.isTransfer)) return false;
+    if (_filter == 2 && !t.isPemasukan) return false;
+    if (_filter == 3 && !t.isTransfer) return false;
+    String kunci = _kataKunci.toLowerCase();
+    return t.catatan.toLowerCase().contains(kunci) ||
+        t.kategori.toLowerCase().contains(kunci);
+  }
 
   @override
   Widget build(BuildContext context) {
-    double w = MediaQuery.of(context).size.width;
-    double x = w * 0.05;
-
-    return ValueListenableBuilder<int>(
-      valueListenable: AppData.refreshNotifier,
-      builder: (context, _, _) {
-        int targetBulanan = 5000000;
-        int terpakai = AppData.totalPengeluaran;
-        int sisa = targetBulanan - terpakai;
-        if (sisa < 0) {
-          sisa = 0;
-        }
-        double rasio = (terpakai / targetBulanan).clamp(0.0, 1.0);
-
-        final daftarFilter = AppData.daftarTransaksi.where((t) {
-          if (_filterIndex == 1 && (t.isPemasukan || t.isTransfer)) {
-            return false;
-          }
-          if (_filterIndex == 2 && !t.isPemasukan) {
-            return false;
-          }
-          if (_filterIndex == 3 && !t.isTransfer) {
-            return false;
-          }
-          if (_kataKunci.isNotEmpty) {
-            bool cocokNama = t.catatan.toLowerCase().contains(
-              _kataKunci.toLowerCase(),
-            );
-            bool cocokKat = t.kategori.toLowerCase().contains(
-              _kataKunci.toLowerCase(),
-            );
-            return cocokNama || cocokKat;
-          }
-          return true;
-        }).toList();
-
-        return Scaffold(
-          backgroundColor: bgGray,
-          body: SafeArea(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(x, 20, x, 100),
+    return Scaffold(
+      body: SafeArea(
+        child: ValueListenableBuilder<int>(
+          valueListenable: AppData.refreshNotifier,
+          builder: (context, nilai, child) {
+            return SingleChildScrollView(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _buildTargetCard(targetBulanan, terpakai, sisa, rasio),
-                  const SizedBox(height: 20),
-                  _buildAkumulasiBulanan(),
-                  const SizedBox(height: 20),
-                  _buildKantongAlokasi(context),
-                  const SizedBox(height: 20),
-                  _buildPencarianDanFilter(),
-                  const SizedBox(height: 16),
-                  _buildDaftarTransaksi(daftarFilter),
-                  const SizedBox(height: 20),
-                  _buildTipsCard(),
+                  _tepi(_bangunHeader()),
+                  _tepi(_bangunBudget()),
+                  _tepi(_bangunKantong()),
+                  const SizedBox(height: JarakApp.j24),
+                  Container(height: 8, color: WarnaApp.latarSeksi),
+                  _tepi(_bangunPencarian()),
+                  _tepi(_bangunDaftar()),
+                  _tepi(_bangunNavigasiBulan()),
+                  const SizedBox(height: JarakApp.j24),
                 ],
               ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildTargetCard(int target, int terpakai, int sisa, double rasio) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: primaryGreen,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: primaryGreen.withValues(alpha: 0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 5,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Text(
-                  'Perhitungan Oktober 2026',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              InkWell(
-                onTap: () => Navigator.push(
-                  context,
-                  buatTransisiHalaman(const BudgetScreen()),
-                ),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Text(
-                    'Ubah Target',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          const Text(
-            'TARGET ALOKASI BULANAN',
-            style: TextStyle(
-              color: Colors.white70,
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'Rp ${formatTitik(target)}',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 30,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 14),
-          LinearProgressIndicator(
-            value: rasio,
-            backgroundColor: Colors.white.withValues(alpha: 0.2),
-            valueColor: const AlwaysStoppedAnimation<Color>(Colors.greenAccent),
-            minHeight: 8,
-            borderRadius: BorderRadius.circular(6),
-          ),
-          const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Terpakai: Rp ${formatTitik(terpakai)} (${(rasio * 100).toInt()}%)',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              Text(
-                'Sisa: Rp ${formatTitik(sisa)}',
-                style: const TextStyle(
-                  color: Colors.greenAccent,
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-        ],
+            );
+          },
+        ),
       ),
     );
   }
 
-  Widget _buildAkumulasiBulanan() {
-    int selisih = AppData.totalPemasukan - AppData.totalPengeluaran;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: cardDecoration,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Akumulasi Kas Bulan Ini',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-          ),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 10),
-            child: Divider(height: 1),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _kolomStat(
-                'Total Pemasukan',
-                '+Rp ${formatTitik(AppData.totalPemasukan)}',
-                Colors.green,
-              ),
-              _kolomStat(
-                'Total Pengeluaran',
-                '-Rp ${formatTitik(AppData.totalPengeluaran)}',
-                Colors.red,
-              ),
-              _kolomStat(
-                'Selisih Bersih',
-                'Rp ${formatTitik(selisih)}',
-                primaryGreen,
-              ),
-            ],
-          ),
-        ],
-      ),
+  // Pita pemisah harus selebar layar, jadi padding samping dipasang per bagian.
+  Widget _tepi(Widget isi) => Padding(
+    padding: const EdgeInsets.fromLTRB(
+      JarakApp.tepiHalaman,
+      JarakApp.j16,
+      JarakApp.tepiHalaman,
+      0,
+    ),
+    child: isi,
+  );
+
+  Widget _bangunTeksKosong(String teks) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: JarakApp.j16),
+    child: Text(teks, style: TeksApp.kecil),
+  );
+
+  Widget _bangunHeader() {
+    return const Row(
+      children: [
+        Expanded(child: Text('Transaksi', style: TeksApp.judulHalaman)),
+        PemilihBulan(),
+      ],
     );
   }
 
-  Widget _kolomStat(String label, String nilai, Color warna) {
+  Widget _bangunBudget() {
+    int anggaran = AppData.anggaranBulanan;
+    int terpakai = AppData.terpakaiAnggaran(AppData.bulanDipilih);
+    int sisa = anggaran - terpakai;
+    // Anggaran 0 tidak bisa dibagi, jadi persennya dianggap 0.
+    double persen = anggaran > 0 ? terpakai / anggaran : 0;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+        JudulSeksi(judul: 'Budget', aksi: 'Atur', onAksi: _bukaBudget),
+        const SizedBox(height: JarakApp.j12),
+        Text.rich(
+          TextSpan(
+            children: [
+              TextSpan(text: formatRupiah(terpakai), style: TeksApp.angka),
+              TextSpan(
+                text: ' dari ${formatRupiah(anggaran)}',
+                style: TeksApp.kecil,
+              ),
+            ],
+          ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: JarakApp.j8),
+        ProgressTipis(persen: persen),
+        const SizedBox(height: JarakApp.j8),
         Text(
-          nilai,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-            color: warna,
+          'Sisa ${formatRupiah(sisa)}',
+          style: TeksApp.kecil.copyWith(
+            color: sisa < 0 ? WarnaApp.bahaya : null,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildKantongAlokasi(BuildContext context) {
+  Widget _bangunKantong() {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Kantong Alokasi',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-                Text(
-                  '4 Kategori Aktif',
-                  style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
-                ),
-              ],
-            ),
-            InkWell(
-              onTap: () => Navigator.push(
-                context,
-                buatTransisiHalaman(const BudgetScreen()),
-              ),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Text(
-                  '+ Kategori Baru',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                ),
-              ),
-            ),
-          ],
+        JudulSeksi(
+          judul: 'Kantong alokasi',
+          aksi: '+ Kategori',
+          onAksi: _bukaBudget,
         ),
-        const SizedBox(height: 12),
-        GridView.count(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: 2,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-          childAspectRatio: 1.35,
-          children: [
-            _kartuKantong(
-              Icons.restaurant,
-              'Makan & Jajan',
-              '1.250.000',
-              '2.500.000',
-              0.50,
-              Colors.green,
-            ),
-            _kartuKantong(
-              Icons.local_gas_station,
-              'Bensin & Ojol',
-              '680.000',
-              '800.000',
-              0.85,
-              Colors.orange,
-            ),
-            _kartuKantong(
-              Icons.receipt_long,
-              'Tagihan Rumah',
-              '1.100.000',
-              '1.200.000',
-              0.91,
-              Colors.red,
-            ),
-            _kartuKantong(
-              Icons.savings,
-              'Tabungan Darurat',
-              '420.000',
-              '500.000',
-              0.84,
-              Colors.teal,
-            ),
-          ],
-        ),
+        const SizedBox(height: JarakApp.j12),
+        GridKantong(bulan: AppData.bulanDipilih, onTekanKartu: _bukaBudget),
       ],
     );
   }
 
-  Widget _kartuKantong(
-    IconData icon,
-    String title,
-    String spent,
-    String total,
-    double progress,
-    Color color,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: cardDecoration,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(icon, color: color, size: 18),
-              ),
-              Text(
-                '${(progress * 100).toInt()}%',
-                style: TextStyle(
-                  color: color,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 2),
-              Text(
-                'Rp $spent / $total',
-                style: TextStyle(color: Colors.grey.shade500, fontSize: 10),
-              ),
-              const SizedBox(height: 8),
-              LinearProgressIndicator(
-                value: progress,
-                backgroundColor: Colors.grey.shade200,
-                valueColor: AlwaysStoppedAnimation<Color>(color),
-                minHeight: 5,
-                borderRadius: BorderRadius.circular(4),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPencarianDanFilter() {
+  Widget _bangunPencarian() {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          decoration: cardDecoration,
-          child: TextField(
-            onChanged: (val) => setState(() => _kataKunci = val),
-            decoration: const InputDecoration(
-              icon: Icon(Icons.search, color: Colors.grey, size: 20),
-              hintText: 'Cari transaksi atau catatan...',
-              hintStyle: TextStyle(fontSize: 13, color: Colors.grey),
-              border: InputBorder.none,
+        TextField(
+          onChanged: (v) => setState(() => _kataKunci = v),
+          decoration: const InputDecoration(
+            hintText: 'Cari catatan atau kategori',
+            prefixIcon: Icon(
+              LucideIcons.search,
+              size: 18,
+              color: WarnaApp.teksRedup,
             ),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: JarakApp.j12),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
             children: [
-              _chipFilter('Semua', 0),
-              _chipFilter('Pengeluaran', 1),
-              _chipFilter('Pemasukan', 2),
-              _chipFilter('Transfer', 3),
+              for (int i = 0; i < _pilihanFilter.length; i++)
+                Padding(
+                  padding: const EdgeInsets.only(right: JarakApp.j8),
+                  child: TombolPill(
+                    teks: _pilihanFilter[i],
+                    kecil: true,
+                    terpilih: _filter == i,
+                    onTekan: () => setState(() => _filter = i),
+                  ),
+                ),
             ],
           ),
         ),
@@ -453,189 +206,83 @@ class _TransaksiScreenState extends State<TransaksiScreen> {
     );
   }
 
-  Widget _chipFilter(String label, int idx) {
-    bool aktif = _filterIndex == idx;
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: InkWell(
-        onTap: () => setState(() => _filterIndex = idx),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: aktif ? primaryGreen : Colors.white,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Text(
-            label,
-            style: TextStyle(
-              color: aktif ? Colors.white : Colors.black87,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  Widget _bangunDaftar() {
+    List<CatatanTransaksi> daftar = AppData.daftarTransaksi
+        .where(_cocok)
+        .toList();
+    daftar.sort((a, b) => b.tanggal.compareTo(a.tanggal));
 
-  Widget _buildDaftarTransaksi(List<CatatanTransaksi> daftar) {
     if (daftar.isEmpty) {
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(24),
-        decoration: cardDecoration,
-        alignment: Alignment.center,
-        child: const Text(
-          'Tidak ada transaksi yang sesuai filter',
-          style: TextStyle(color: Colors.grey, fontSize: 13),
-        ),
+      bool adaSaringan = _filter != 0 || _kataKunci.isNotEmpty;
+      return _bangunTeksKosong(
+        adaSaringan
+            ? 'Tidak ada transaksi yang sesuai'
+            : 'Belum ada transaksi di bulan ini',
       );
     }
 
     return Column(
-      children: daftar.map((item) {
-        Color warnaNominal = Colors.red;
-        String tanda = '-';
-        if (item.isPemasukan) {
-          warnaNominal = Colors.green;
-          tanda = '+';
-        } else if (item.isTransfer) {
-          warnaNominal = Colors.teal;
-          tanda = '';
-        }
-
-        return Container(
-          margin: const EdgeInsets.only(bottom: 10),
-          padding: const EdgeInsets.all(14),
-          decoration: cardDecoration,
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: item.warna.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(item.ikon, color: item.warna, size: 20),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.catatan,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '${item.kategori} • ${item.tanggal.day}/${item.tanggal.month}/${item.tanggal.year}',
-                      style: TextStyle(
-                        color: Colors.grey.shade600,
-                        fontSize: 11,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    '${tanda}Rp ${formatTitik(item.nominal)}',
-                    style: TextStyle(
-                      color: warnaNominal,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    item.sumberDana,
-                    style: const TextStyle(
-                      color: Colors.teal,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (int i = 0; i < daftar.length; i++) ...[
+          // Judul tanggal hanya muncul di transaksi pertama setiap hari.
+          if (i == 0 || !_hariSama(daftar[i - 1].tanggal, daftar[i].tanggal))
+            _bangunJudulTanggal(daftar[i].tanggal, daftar)
+          else
+            const Divider(height: 1),
+          BarisTransaksi(
+            transaksi: daftar[i],
+            onTekan: () => _bukaDetail(daftar[i]),
           ),
-        );
-      }).toList(),
+        ],
+      ],
     );
   }
 
-  Widget _buildTipsCard() {
-    return InkWell(
-      onTap: () {
-        setState(() {
-          _indexTips = (_indexTips + 1) % AppData.tipsKeuangan.length;
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0xFFE0F2FE),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            CircleAvatar(
-              backgroundColor: primaryGreen,
-              radius: 18,
-              child: const Icon(
-                Icons.lightbulb_outline,
-                color: Colors.white,
-                size: 18,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Tips Keuangan Harian',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      Text(
-                        'Ketuk ganti (${_indexTips + 1}/${AppData.tipsKeuangan.length})',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: primaryGreen,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    AppData.tipsKeuangan[_indexTips],
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.black87,
-                      height: 1.4,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+  Widget _bangunJudulTanggal(DateTime tanggal, List<CatatanTransaksi> daftar) {
+    int keluar = 0;
+    for (var t in daftar) {
+      bool pengeluaran = !t.isPemasukan && !t.isTransfer;
+      if (pengeluaran && _hariSama(t.tanggal, tanggal)) keluar += t.nominal;
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(top: JarakApp.j16, bottom: JarakApp.j4),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(formatTanggal(tanggal), style: TeksApp.tombolKecil),
+          ),
+          if (keluar > 0)
+            Text('-${formatRupiah(keluar)}', style: TeksApp.kecil),
+        ],
       ),
+    );
+  }
+
+  String _teksBulan(DateTime b) => '${namaBulan[b.month - 1]} ${b.year}';
+
+  Widget _bangunNavigasiBulan() {
+    DateTime? sebelum = AppData.bulanBerdataSebelum(AppData.bulanDipilih);
+    DateTime? sesudah = AppData.bulanBerdataSesudah(AppData.bulanDipilih);
+
+    return Row(
+      children: [
+        if (sebelum != null)
+          TombolPill(
+            teks: _teksBulan(sebelum),
+            ikon: LucideIcons.arrowLeft,
+            onTekan: () => _pilihBulan(sebelum),
+          ),
+        const Spacer(),
+        if (sesudah != null)
+          TombolPill(
+            teks: _teksBulan(sesudah),
+            ikon: LucideIcons.arrowRight,
+            ikonDiKanan: true,
+            onTekan: () => _pilihBulan(sesudah),
+          ),
+      ],
     );
   }
 }

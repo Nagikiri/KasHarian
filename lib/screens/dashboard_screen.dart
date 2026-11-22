@@ -148,7 +148,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _bangunKartuNavigasi() {
     int anggaran = AppData.anggaranBulanan;
-    int terpakai = AppData.totalPengeluaran;
+    int terpakai = AppData.terpakaiAnggaran(DateTime.now());
     int belumLunas = AppData.daftarUtang.where((u) => !u.lunas).length;
     // IntrinsicHeight + stretch membuat kedua kartu setinggi kartu yang paling tinggi.
     return IntrinsicHeight(

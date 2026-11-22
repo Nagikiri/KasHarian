@@ -7,23 +7,30 @@ import 'ikon_bulat.dart';
 
 class BarisTransaksi extends StatelessWidget {
   final CatatanTransaksi transaksi;
+  final VoidCallback? onTekan;
 
-  const BarisTransaksi({super.key, required this.transaksi});
+  const BarisTransaksi({super.key, required this.transaksi, this.onTekan});
+
+  // Transfer hanya memindahkan uang antar-kantong, jadi tanpa tanda + atau -.
+  static String teksNominal(CatatanTransaksi t) {
+    String tanda = '';
+    if (t.isPemasukan) {
+      tanda = '+';
+    } else if (!t.isTransfer) {
+      tanda = '-';
+    }
+    return '${tanda}Rp ${formatTitik(t.nominal)}';
+  }
+
+  static Color warnaNominal(CatatanTransaksi t) {
+    if (t.isPemasukan) return WarnaApp.primer;
+    if (t.isTransfer) return WarnaApp.teksKedua;
+    return WarnaApp.bahaya;
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Transfer hanya memindahkan uang antar-kantong, jadi tanpa tanda + atau -.
-    String tanda = '';
-    Color warnaNominal = WarnaApp.teksKedua;
-    if (transaksi.isPemasukan) {
-      tanda = '+';
-      warnaNominal = WarnaApp.primer;
-    } else if (!transaksi.isTransfer) {
-      tanda = '-';
-      warnaNominal = WarnaApp.bahaya;
-    }
-
-    return Padding(
+    Widget isi = Padding(
       padding: const EdgeInsets.symmetric(vertical: JarakApp.j12),
       child: Row(
         children: [
@@ -54,8 +61,8 @@ class BarisTransaksi extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                '${tanda}Rp ${formatTitik(transaksi.nominal)}',
-                style: TeksApp.angka.copyWith(color: warnaNominal),
+                teksNominal(transaksi),
+                style: TeksApp.angka.copyWith(color: warnaNominal(transaksi)),
               ),
               const SizedBox(height: JarakApp.j4),
               Text(
@@ -67,5 +74,8 @@ class BarisTransaksi extends StatelessWidget {
         ],
       ),
     );
+
+    if (onTekan == null) return isi;
+    return InkWell(onTap: onTekan, child: isi);
   }
 }

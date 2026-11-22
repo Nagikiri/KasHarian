@@ -407,13 +407,6 @@ class AppData {
       'Uang jajan kopi dan makan di luar juga lumayan, kalau dikurangi sedikit tiap minggu sisanya bisa langsung masuk ke tabungan PlayStation 5 Slim. '
       'Targetnya sudah lewat setengah jalan, tinggal konsisten beberapa bulan lagi.';
 
-  static final List<String> tipsKeuangan = [
-    'Alokasikan minimal 20% penghasilan ke Kantong Tabungan di awal bulan agar target tahunan tercapai tepat waktu.',
-    'Gunakan fitur batas anggaran pada kategori Makan & Jajan untuk mencegah pengeluaran impulsif di akhir pekan.',
-    'Catat setiap pengeluaran kecil di bawah Rp 20.000 karena akumulasi jajan harian sering kali tidak disadari.',
-    'Pisahkan rekening kebutuhan bulanan dengan rekening dana darurat agar arus kas tetap sehat.',
-  ];
-
   static final List<String> tipsValas = [
     'Saat menabung untuk barang berharga mata uang asing, sisihkan cadangan sekitar 3% untuk mengantisipasi fluktuasi kurs.',
     'Beli atau konversi mata uang asing secara bertahap (cicil) ketika nilai tukar Rupiah sedang menguat.',
@@ -590,14 +583,57 @@ class AppData {
   }
 
   // Transfer ikut dihitung supaya budget 'Setor Tabungan' terisi.
-  static int terpakaiBudget(String kategori) {
+  static int terpakaiBudget(String kategori, DateTime bulan) {
     int total = 0;
     for (var t in daftarTransaksi) {
-      bool bulanIni = _bulanSama(t.tanggal, DateTime.now());
-      if (!t.isPemasukan && t.kategori == kategori && bulanIni) {
-        total += t.nominal;
-      }
+      bool cocok = !t.isPemasukan && t.kategori == kategori;
+      if (cocok && _bulanSama(t.tanggal, bulan)) total += t.nominal;
     }
     return total;
+  }
+
+  // Uang yang ditabung juga diambil dari anggaran bulanan.
+  static int terpakaiAnggaran(DateTime bulan) {
+    return pengeluaranBulan(bulan) + terpakaiBudget('Setor Tabungan', bulan);
+  }
+
+  static int totalLimitBudget() {
+    int total = 0;
+    for (var b in daftarBudget) {
+      total += b.limit;
+    }
+    return total;
+  }
+
+  static IconData ikonKategori(String nama) {
+    for (var k in daftarKategori) {
+      if (k.nama == nama) return k.ikon;
+    }
+    return LucideIcons.wallet;
+  }
+
+  static void hapusTransaksi(CatatanTransaksi item) {
+    daftarTransaksi.remove(item);
+    refreshNotifier.value++;
+  }
+
+  static void ubahAnggaran(int nominal) {
+    anggaranBulanan = nominal;
+    refreshNotifier.value++;
+  }
+
+  static void tambahBudget(BudgetItem item) {
+    daftarBudget.add(item);
+    refreshNotifier.value++;
+  }
+
+  static void ubahLimitBudget(BudgetItem item, int limit) {
+    item.limit = limit;
+    refreshNotifier.value++;
+  }
+
+  static void hapusBudget(BudgetItem item) {
+    daftarBudget.remove(item);
+    refreshNotifier.value++;
   }
 }
