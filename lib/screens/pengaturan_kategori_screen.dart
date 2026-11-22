@@ -19,19 +19,23 @@ class PengaturanKategoriScreen extends StatefulWidget {
 }
 
 class _PengaturanKategoriScreenState extends State<PengaturanKategoriScreen> {
-  // 0 = Pengeluaran, 1 = Pemasukan, 2 = Transfer, sama dengan urutan PilihanSegmen.
+  // 0 = Pengeluaran, 1 = Pemasukan, sama dengan urutan PilihanSegmen.
   int _tipe = 0;
 
-  // Dicek tanpa membedakan huruf besar/kecil, karena kategori dicocokkan lewat nama.
+  // Kategori dicocokkan lewat nama, jadi nama khusus dan nama kembar di tipe yang sama ditolak.
   bool _namaDipakai(String nama) {
     String dicari = nama.trim().toLowerCase();
-    return AppData.daftarKategori.any((k) => k.nama.toLowerCase() == dicari);
+    bool khusus = AppData.namaKhusus.any((n) => n.toLowerCase() == dicari);
+    bool kembar = AppData.kategoriTipe(_tipe)
+        .any((k) => k.nama.toLowerCase() == dicari);
+    return khusus || kembar;
   }
 
   Future<void> _hapus(KategoriItem kategori) async {
-    bool punyaBudget = AppData.daftarBudget.any(
-      (b) => b.kategori == kategori.nama,
-    );
+    // Budget hanya ada untuk kategori pengeluaran.
+    bool punyaBudget =
+        !kategori.isPemasukan &&
+        AppData.daftarBudget.any((b) => b.kategori == kategori.nama);
     bool? hapus = await showDialog<bool>(
       context: context,
       builder: (context) => DialogKonfirmasiHapus(
@@ -46,13 +50,7 @@ class _PengaturanKategoriScreenState extends State<PengaturanKategoriScreen> {
   void _simpanKategori(String nama, IconData ikon) {
     setState(() {
       AppData.tambahKategori(
-        KategoriItem(
-          nama: nama,
-          ikon: ikon,
-          warna: WarnaApp.primer,
-          isPemasukan: _tipe == 1,
-          isTransfer: _tipe == 2,
-        ),
+        KategoriItem(nama: nama, ikon: ikon, isPemasukan: _tipe == 1),
       );
     });
   }
@@ -71,7 +69,7 @@ class _PengaturanKategoriScreenState extends State<PengaturanKategoriScreen> {
               JarakApp.j8,
             ),
             child: PilihanSegmen(
-              pilihan: const ['Pengeluaran', 'Pemasukan', 'Transfer'],
+              pilihan: const ['Pengeluaran', 'Pemasukan'],
               indeksAktif: _tipe,
               onPilih: (i) => setState(() => _tipe = i),
             ),
@@ -104,9 +102,6 @@ class _PengaturanKategoriScreenState extends State<PengaturanKategoriScreen> {
   }
 
   Widget _bangunBaris(KategoriItem kategori) {
-    // 'Setor Tabungan' dipakai estimasi wishlist dan anggaran, jadi tidak boleh dihapus.
-    bool bisaDihapus = kategori.nama != 'Setor Tabungan';
-
     return SizedBox(
       height: 64,
       child: Row(
@@ -114,15 +109,14 @@ class _PengaturanKategoriScreenState extends State<PengaturanKategoriScreen> {
           IkonBulat(ikon: kategori.ikon),
           const SizedBox(width: JarakApp.j12),
           Expanded(child: Text(kategori.nama, style: TeksApp.isi)),
-          if (bisaDihapus)
-            IconButton(
-              icon: const Icon(
-                LucideIcons.trash2,
-                size: 20,
-                color: WarnaApp.teksRedup,
-              ),
-              onPressed: () => _hapus(kategori),
+          IconButton(
+            icon: const Icon(
+              LucideIcons.trash2,
+              size: 20,
+              color: WarnaApp.teksRedup,
             ),
+            onPressed: () => _hapus(kategori),
+          ),
         ],
       ),
     );

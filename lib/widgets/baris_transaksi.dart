@@ -28,6 +28,14 @@ class BarisTransaksi extends StatelessWidget {
     return WarnaApp.bahaya;
   }
 
+  // Transfer menampilkan arah perpindahan uang, transaksi lain menampilkan kategori.
+  String get _subjudul {
+    if (transaksi.isTransfer && transaksi.sumberTujuan != null) {
+      return '${transaksi.sumberDana} → ${transaksi.sumberTujuan}';
+    }
+    return '${transaksi.kategori} · ${transaksi.sumberDana}';
+  }
+
   @override
   Widget build(BuildContext context) {
     Widget isi = Padding(
@@ -48,7 +56,7 @@ class BarisTransaksi extends StatelessWidget {
                 ),
                 const SizedBox(height: JarakApp.j4),
                 Text(
-                  '${transaksi.kategori} · ${transaksi.sumberDana}',
+                  _subjudul,
                   style: TeksApp.kecil,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

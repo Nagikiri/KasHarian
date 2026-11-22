@@ -25,14 +25,6 @@ class _SheetBagiTemanState extends State<SheetBagiTeman> {
     for (var t in widget.awal) BagianTeman(nama: t.nama, nominal: t.nominal),
   ];
 
-  int get _totalBagian {
-    int total = 0;
-    for (var t in _daftar) {
-      total += t.nominal;
-    }
-    return total;
-  }
-
   void _bagiRata() {
     // Ditambah 1 karena diri sendiri juga menanggung satu bagian.
     int bagian = widget.total ~/ (_daftar.length + 1);
@@ -56,7 +48,7 @@ class _SheetBagiTemanState extends State<SheetBagiTeman> {
 
   @override
   Widget build(BuildContext context) {
-    bool melebihi = _totalBagian > widget.total;
+    bool melebihi = totalBagian(_daftar) > widget.total;
 
     return Padding(
       // viewInsets.bottom = tinggi keyboard, supaya isian tidak tertutup.

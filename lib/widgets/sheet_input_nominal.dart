@@ -4,10 +4,9 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../theme/app_theme.dart';
 import '../utils/nominal.dart';
 import 'ikon_bulat.dart';
-import 'numpad.dart';
+import 'numpad_simpan.dart';
 import 'tampilan_nominal.dart';
 import 'template_nominal.dart';
-import 'tombol_utama.dart';
 
 // onHapus mengembalikan true kalau benar-benar dihapus, baru sheet ditutup.
 Future<void> bukaInputNominal(
@@ -91,16 +90,13 @@ Future<void> bukaInputNominal(
                         ),
                       ),
                     ),
-                  Numpad(
+                  NumpadSimpan(
                     onAngka: (a) =>
                         setSheet(() => nominal = tambahDigit(nominal, a)),
                     onHapus: () =>
                         setSheet(() => nominal = hapusDigit(nominal)),
-                  ),
-                  const SizedBox(height: JarakApp.j12),
-                  TombolUtama(
-                    teks: labelTombol,
-                    onTekan: nominal > 0
+                    labelTombol: labelTombol,
+                    onSimpan: nominal > 0
                         ? () {
                             onSimpan(nominal);
                             Navigator.pop(context);

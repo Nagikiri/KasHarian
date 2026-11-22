@@ -22,8 +22,11 @@ class SheetDetailTransaksi extends StatelessWidget {
   }
 
   // Kategori di luar daftar (misalnya 'Pelunasan') akan tertukar kalau dibuka di mode ubah.
-  bool get _bisaDiubah =>
-      AppData.daftarKategori.any((k) => k.nama == transaksi.kategori);
+  bool get _bisaDiubah {
+    if (transaksi.isTransfer) return true;
+    int tipe = transaksi.isPemasukan ? 1 : 0;
+    return AppData.kategoriTipe(tipe).any((k) => k.nama == transaksi.kategori);
+  }
 
   void _bukaUbah(BuildContext context) {
     final navigator = Navigator.of(context);
@@ -76,11 +79,17 @@ class SheetDetailTransaksi extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: JarakApp.j16),
-            _bangunBaris('Kategori', transaksi.kategori),
+            if (transaksi.isTransfer) ...[
+              _bangunBaris('Dari', transaksi.sumberDana),
+              const Divider(height: 1),
+              _bangunBaris('Ke', transaksi.sumberTujuan ?? '-'),
+            ] else ...[
+              _bangunBaris('Kategori', transaksi.kategori),
+              const Divider(height: 1),
+              _bangunBaris('Sumber dana', transaksi.sumberDana),
+            ],
             const Divider(height: 1),
             _bangunBaris('Tipe', _tipe),
-            const Divider(height: 1),
-            _bangunBaris('Sumber dana', transaksi.sumberDana),
             const Divider(height: 1),
             _bangunBaris('Tanggal', formatTanggalPanjang(transaksi.tanggal)),
             const SizedBox(height: JarakApp.j16),

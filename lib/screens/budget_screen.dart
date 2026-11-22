@@ -3,6 +3,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../models/app_data.dart';
 import '../models/budget.dart';
+import '../models/kategori.dart';
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
 import '../widgets/app_bar_turunan.dart';
@@ -157,11 +158,21 @@ class _BudgetScreenState extends State<BudgetScreen> {
     return true;
   }
 
-  void _bukaTambah() {
-    showModalBottomSheet(
+  // Dua langkah: pilih kategori di sheet grid, lalu isi limit lewat sheet nominal.
+  Future<void> _bukaTambah() async {
+    KategoriItem? kategori = await showModalBottomSheet<KategoriItem>(
       context: context,
       isScrollControlled: true,
       builder: (context) => const SheetTambahBudget(),
+    );
+    if (kategori == null || !mounted) return;
+    bukaInputNominal(
+      context,
+      judul: 'Limit ${kategori.nama} per bulan',
+      ikon: kategori.ikon,
+      onSimpan: (limit) => AppData.tambahBudget(
+        BudgetItem(kategori: kategori.nama, limit: limit),
+      ),
     );
   }
 }

@@ -52,7 +52,7 @@ class KartuImpian extends StatelessWidget {
                 style: TeksApp.kecil,
               ),
             ),
-            // Estimasi 0 berarti budget 'Setor Tabungan' belum ada.
+            // Estimasi 0 berarti budget 'Tabungan' belum ada.
             if (estimasi > 0)
               Text('± $estimasi bulan lagi', style: TeksApp.kecil),
           ],

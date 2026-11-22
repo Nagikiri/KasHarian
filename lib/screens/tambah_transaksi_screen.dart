@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import '../main.dart';
 import '../models/app_data.dart';
 import '../models/bagian_teman.dart';
 import '../models/kategori.dart';
@@ -11,16 +10,16 @@ import '../theme/app_theme.dart';
 import '../utils/format.dart';
 import '../utils/nominal.dart';
 import '../widgets/baris_isian.dart';
-import '../widgets/numpad.dart';
-import '../widgets/pilih_kategori.dart';
+import '../widgets/baris_kategori.dart';
+import '../widgets/baris_dompet.dart';
+import '../widgets/numpad_simpan.dart';
 import '../widgets/pilihan_segmen.dart';
 import '../widgets/sheet_bagi_teman.dart';
 import '../widgets/sheet_catatan.dart';
+import '../widgets/sheet_pilih_kategori.dart';
 import '../widgets/sheet_sumber_dana.dart';
 import '../widgets/tampilan_nominal.dart';
 import '../widgets/template_nominal.dart';
-import '../widgets/tombol_utama.dart';
-import 'pengaturan_kategori_screen.dart';
 
 class TambahTransaksiScreen extends StatefulWidget {
   final CatatanTransaksi? transaksiLama;
@@ -32,84 +31,92 @@ class TambahTransaksiScreen extends StatefulWidget {
 }
 
 class _TambahTransaksiScreenState extends State<TambahTransaksiScreen> {
-  static const List<String> _labelNominal = [
-    'Jumlah pengeluaran',
-    'Jumlah pemasukan',
-    'Jumlah transfer',
-  ];
+  static const List<String> _jenis = ['pengeluaran', 'pemasukan', 'transfer'];
 
-  // 0 = Keluar, 1 = Masuk, 2 = Transfer, sama dengan urutan PilihanSegmen.
+  // 0 = Pengeluaran, 1 = Pemasukan, 2 = Transfer, sama dengan urutan PilihanSegmen.
   int _tipe = 0;
   KategoriItem? _kategori;
   int _nominal = 0;
   DateTime _tanggal = DateTime.now();
+  // Untuk transfer, _sumber adalah dompet "Dari" dan _tujuan dompet "Ke".
   String _sumber = 'Kantong Utama';
+  String _tujuan = 'Tabungan';
   String _catatan = '';
   List<BagianTeman> _daftarTeman = [];
 
   bool get _modeUbah => widget.transaksiLama != null;
+  bool get _transfer => _tipe == 2;
+  bool get _bisaBagi => _tipe == 0 && !_modeUbah;
 
   @override
   void initState() {
     super.initState();
     final lama = widget.transaksiLama;
-    if (lama != null) {
-      _tipe = lama.isPemasukan ? 1 : (lama.isTransfer ? 2 : 0);
-      _nominal = lama.nominal;
-      _tanggal = lama.tanggal;
-      _sumber = lama.sumberDana;
-      _catatan = lama.catatan;
-      for (var k in AppData.kategoriTipe(_tipe)) {
-        if (k.nama == lama.kategori) _kategori = k;
-      }
+    if (lama == null) {
+      _pilihKategoriAwal();
+      return;
     }
-    _pastikanKategori();
-  }
-
-  // Kategori terpilih bisa tidak cocok lagi setelah ganti tipe atau setelah kategori dihapus.
-  void _pastikanKategori() {
-    List<KategoriItem> daftar = AppData.kategoriTipe(_tipe);
-    if (!daftar.contains(_kategori)) {
-      _kategori = daftar.isEmpty ? null : daftar.first;
+    _tipe = lama.isTransfer ? 2 : (lama.isPemasukan ? 1 : 0);
+    _nominal = lama.nominal;
+    _tanggal = lama.tanggal;
+    _sumber = lama.sumberDana;
+    _tujuan = lama.sumberTujuan ?? 'Tabungan';
+    _catatan = lama.catatan;
+    for (var k in AppData.kategoriTipe(_tipe)) {
+      if (k.nama == lama.kategori) _kategori = k;
     }
   }
 
-  List<BagianTeman> _temanTerisi() {
-    return _daftarTeman
-        .where((t) => t.nama.trim().isNotEmpty && t.nominal > 0)
-        .toList();
+  void _pilihKategoriAwal() {
+    List<KategoriItem> sering = AppData.kategoriSering(_tipe == 1, 4);
+    _kategori = _transfer || sering.isEmpty ? null : sering.first;
   }
 
-  int _totalBagian() {
-    int total = 0;
-    for (var t in _temanTerisi()) {
-      total += t.nominal;
-    }
-    return total;
-  }
-
-  // Hanya berlaku saat baris bagi teman tampil, karena tipe lain tidak membuat piutang.
   bool get _bagianMelebihi =>
-      _tipe == 0 && !_modeUbah && _totalBagian() > _nominal;
+      _bisaBagi && totalBagian(temanTerisi(_daftarTeman)) > _nominal;
 
-  String _teksBagi() {
-    int jumlah = _temanTerisi().length;
-    if (jumlah == 0) return 'Tidak';
-    return '$jumlah teman · ${formatRupiah(_totalBagian())}';
+  void _gantiTipe(int tipe) {
+    setState(() {
+      _tipe = tipe;
+      _pilihKategoriAwal();
+      // Dompet yang dipilih sebelumnya bisa sama dengan tujuan bawaan transfer.
+      if (_sumber == _tujuan) {
+        _tujuan = _sumber == 'Tabungan' ? 'Kantong Utama' : 'Tabungan';
+      }
+    });
   }
 
-  Future<void> _bukaPengaturanKategori() async {
-    await Navigator.push(
+  void _ubahNominal(int nilai) => setState(() => _nominal = nilai);
+
+  Future<void> _bukaLainnya() async {
+    KategoriItem? hasil = await bukaPilihKategori(
       context,
-      buatTransisiHalaman(const PengaturanKategoriScreen()),
+      pemasukan: _tipe == 1,
+      terpilih: _kategori,
     );
     if (!mounted) return;
-    setState(_pastikanKategori);
+    setState(() {
+      if (hasil != null) _kategori = hasil;
+      // Kategori terpilih bisa saja dihapus lewat "Atur" di dalam sheet.
+      if (!AppData.daftarKategori.contains(_kategori)) _pilihKategoriAwal();
+    });
   }
 
-  Future<void> _pilihSumber() async {
-    String? hasil = await bukaSumberDana(context, _sumber);
-    if (hasil != null) setState(() => _sumber = hasil);
+  Future<void> _pilihDompet({required bool tujuan}) async {
+    String? hasil = await bukaSumberDana(
+      context,
+      tujuan ? _tujuan : _sumber,
+      judul: !_transfer ? 'Sumber dana' : (tujuan ? 'Ke' : 'Dari'),
+      kecuali: !_transfer ? null : (tujuan ? _sumber : _tujuan),
+    );
+    if (hasil == null) return;
+    setState(() {
+      if (tujuan) {
+        _tujuan = hasil;
+      } else {
+        _sumber = hasil;
+      }
+    });
   }
 
   Future<void> _pilihTanggal() async {
@@ -137,18 +144,19 @@ class _TambahTransaksiScreenState extends State<TambahTransaksiScreen> {
   }
 
   void _simpan() {
-    KategoriItem kategori = _kategori!;
-    String catatan = _catatan.isEmpty ? kategori.nama : _catatan;
+    String nama = _transfer ? 'Transfer' : _kategori!.nama;
+    String bawaan = _transfer ? '$_sumber → $_tujuan' : nama;
+    String catatan = _catatan.isEmpty ? bawaan : _catatan;
     CatatanTransaksi baru = CatatanTransaksi(
-      kategori: kategori.nama,
+      kategori: nama,
       catatan: catatan,
       nominal: _nominal,
-      ikon: kategori.ikon,
-      warna: WarnaApp.primer,
+      ikon: _transfer ? LucideIcons.arrowLeftRight : _kategori!.ikon,
       tanggal: _tanggal,
       isPemasukan: _tipe == 1,
-      isTransfer: _tipe == 2,
+      isTransfer: _transfer,
       sumberDana: _sumber,
+      sumberTujuan: _transfer ? _tujuan : null,
     );
     if (_modeUbah) {
       AppData.ubahTransaksi(widget.transaksiLama!, baru);
@@ -156,8 +164,7 @@ class _TambahTransaksiScreenState extends State<TambahTransaksiScreen> {
       AppData.tambahTransaksi(baru);
     }
 
-    // Piutang hanya dibuat untuk pengeluaran baru, bukan saat mengubah transaksi.
-    List<BagianTeman> piutang = _tipe == 0 && !_modeUbah ? _temanTerisi() : [];
+    List<BagianTeman> piutang = _bisaBagi ? temanTerisi(_daftarTeman) : [];
     for (var teman in piutang) {
       AppData.tambahUtang(
         UtangItem(
@@ -181,6 +188,9 @@ class _TambahTransaksiScreenState extends State<TambahTransaksiScreen> {
 
   @override
   Widget build(BuildContext context) {
+    bool bisaSimpan =
+        _nominal > 0 && !_bagianMelebihi && (_transfer || _kategori != null);
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -195,13 +205,26 @@ class _TambahTransaksiScreenState extends State<TambahTransaksiScreen> {
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(
                 horizontal: JarakApp.tepiHalaman,
-                vertical: JarakApp.j16,
+                vertical: JarakApp.j8,
               ),
               child: _bangunIsian(),
             ),
           ),
           const Divider(height: 1),
-          _bangunBawah(),
+          SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: JarakApp.tepiHalaman,
+                vertical: JarakApp.j8,
+              ),
+              child: NumpadSimpan(
+                onAngka: (a) => _ubahNominal(tambahDigit(_nominal, a)),
+                onHapus: () => _ubahNominal(hapusDigit(_nominal)),
+                onSimpan: bisaSimpan ? _simpan : null,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -212,36 +235,41 @@ class _TambahTransaksiScreenState extends State<TambahTransaksiScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         PilihanSegmen(
-          pilihan: const ['Keluar', 'Masuk', 'Transfer'],
+          pilihan: const ['Pengeluaran', 'Pemasukan', 'Transfer'],
           indeksAktif: _tipe,
-          onPilih: (i) => setState(() {
-            _tipe = i;
-            _pastikanKategori();
-          }),
+          onPilih: _gantiTipe,
         ),
         const SizedBox(height: JarakApp.j24),
-        TampilanNominal(label: _labelNominal[_tipe], nominal: _nominal),
+        TampilanNominal(label: 'Jumlah ${_jenis[_tipe]}', nominal: _nominal),
         const SizedBox(height: JarakApp.j12),
         TemplateNominal(
-          onTambah: (n) =>
-              setState(() => _nominal = tambahNominal(_nominal, n)),
-          onReset: () => setState(() => _nominal = 0),
+          onTambah: (n) => _ubahNominal(tambahNominal(_nominal, n)),
+          onReset: () => _ubahNominal(0),
         ),
         const SizedBox(height: JarakApp.j24),
-        PilihKategori(
-          daftar: AppData.kategoriTipe(_tipe),
-          terpilih: _kategori,
-          onPilih: (k) => setState(() => _kategori = k),
-          onTambahBaru: _bukaPengaturanKategori,
-        ),
+        _transfer
+            ? BarisDompet(
+                sumber: _sumber,
+                tujuan: _tujuan,
+                onDari: () => _pilihDompet(tujuan: false),
+                onKe: () => _pilihDompet(tujuan: true),
+              )
+            : BarisKategori(
+                daftar: AppData.kategoriSering(_tipe == 1, 4),
+                terpilih: _kategori,
+                onPilih: (k) => setState(() => _kategori = k),
+                onLainnya: _bukaLainnya,
+              ),
         const SizedBox(height: JarakApp.j16),
-        BarisIsian(
-          ikon: LucideIcons.wallet,
-          label: 'Sumber dana',
-          nilai: '$_sumber · ${formatRupiah(AppData.saldoSumber(_sumber))}',
-          onTekan: _pilihSumber,
-        ),
-        const Divider(height: 1),
+        if (!_transfer) ...[
+          BarisIsian(
+            ikon: LucideIcons.wallet,
+            label: 'Sumber dana',
+            nilai: '$_sumber · ${formatRupiah(AppData.saldoSumber(_sumber))}',
+            onTekan: () => _pilihDompet(tujuan: false),
+          ),
+          const Divider(height: 1),
+        ],
         BarisIsian(
           ikon: LucideIcons.calendar,
           label: 'Tanggal',
@@ -256,43 +284,17 @@ class _TambahTransaksiScreenState extends State<TambahTransaksiScreen> {
           warnaNilai: _catatan.isEmpty ? WarnaApp.teksRedup : null,
           onTekan: _ubahCatatan,
         ),
-        if (_tipe == 0 && !_modeUbah) ...[
+        if (_bisaBagi) ...[
           const Divider(height: 1),
           BarisIsian(
             ikon: LucideIcons.users,
             label: 'Bagi dengan teman',
-            nilai: _teksBagi(),
+            nilai: ringkasanBagian(_daftarTeman),
             warnaNilai: _bagianMelebihi ? WarnaApp.bahaya : null,
             onTekan: _bukaBagiTeman,
           ),
         ],
       ],
-    );
-  }
-
-  Widget _bangunBawah() {
-    bool bisaSimpan = _nominal > 0 && _kategori != null && !_bagianMelebihi;
-
-    return SafeArea(
-      top: false,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: JarakApp.tepiHalaman,
-          vertical: JarakApp.j8,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Numpad(
-              onAngka: (a) =>
-                  setState(() => _nominal = tambahDigit(_nominal, a)),
-              onHapus: () => setState(() => _nominal = hapusDigit(_nominal)),
-            ),
-            const SizedBox(height: JarakApp.j8),
-            TombolUtama(teks: 'Simpan', onTekan: bisaSimpan ? _simpan : null),
-          ],
-        ),
-      ),
     );
   }
 }
