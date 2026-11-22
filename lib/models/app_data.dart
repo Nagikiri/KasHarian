@@ -419,13 +419,31 @@ class AppData {
     refreshNotifier.value++;
   }
 
+  // tipe: 0 = Pengeluaran, 1 = Pemasukan, 2 = Transfer, sama dengan urutan PilihanSegmen.
+  static List<KategoriItem> kategoriTipe(int tipe) {
+    return daftarKategori.where((k) {
+      if (tipe == 1) return k.isPemasukan;
+      if (tipe == 2) return k.isTransfer;
+      return !k.isPemasukan && !k.isTransfer;
+    }).toList();
+  }
+
   static void tambahKategori(KategoriItem item) {
     daftarKategori.add(item);
     refreshNotifier.value++;
   }
 
+  static void ubahTransaksi(CatatanTransaksi lama, CatatanTransaksi baru) {
+    int posisi = daftarTransaksi.indexOf(lama);
+    if (posisi == -1) return;
+    daftarTransaksi[posisi] = baru;
+    refreshNotifier.value++;
+  }
+
+  // Budget ikut dihapus supaya tidak ada budget tanpa kategori.
   static void hapusKategori(KategoriItem item) {
     daftarKategori.remove(item);
+    daftarBudget.removeWhere((b) => b.kategori == item.nama);
     refreshNotifier.value++;
   }
 
@@ -573,6 +591,20 @@ class AppData {
   static int get saldoTersedia {
     int saldo = saldoAwal;
     for (var t in daftarTransaksi) {
+      if (t.isPemasukan) {
+        saldo += t.nominal;
+      } else if (!t.isTransfer) {
+        saldo -= t.nominal;
+      }
+    }
+    return saldo;
+  }
+
+  // Transfer tidak dihitung karena transaksi tidak mencatat sumber tujuannya.
+  static int saldoSumber(String sumber) {
+    int saldo = sumber == 'Kantong Utama' ? saldoAwal : 0;
+    for (var t in daftarTransaksi) {
+      if (t.sumberDana != sumber) continue;
       if (t.isPemasukan) {
         saldo += t.nominal;
       } else if (!t.isTransfer) {

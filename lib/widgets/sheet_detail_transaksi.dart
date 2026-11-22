@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../main.dart';
 import '../models/app_data.dart';
 import '../models/transaksi.dart';
+import '../screens/tambah_transaksi_screen.dart';
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
 import 'baris_transaksi.dart';
@@ -17,6 +19,18 @@ class SheetDetailTransaksi extends StatelessWidget {
     if (transaksi.isPemasukan) return 'Pemasukan';
     if (transaksi.isTransfer) return 'Transfer';
     return 'Pengeluaran';
+  }
+
+  // Kategori di luar daftar (misalnya 'Pelunasan') akan tertukar kalau dibuka di mode ubah.
+  bool get _bisaDiubah =>
+      AppData.daftarKategori.any((k) => k.nama == transaksi.kategori);
+
+  void _bukaUbah(BuildContext context) {
+    final navigator = Navigator.of(context);
+    navigator.pop();
+    navigator.push(
+      buatTransisiHalaman(TambahTransaksiScreen(transaksiLama: transaksi)),
+    );
   }
 
   Future<void> _konfirmasiHapus(BuildContext context) async {
@@ -70,12 +84,27 @@ class SheetDetailTransaksi extends StatelessWidget {
             const Divider(height: 1),
             _bangunBaris('Tanggal', formatTanggalPanjang(transaksi.tanggal)),
             const SizedBox(height: JarakApp.j16),
-            TextButton(
-              onPressed: () => _konfirmasiHapus(context),
-              child: Text(
-                'Hapus transaksi',
-                style: TeksApp.tombolKecil.copyWith(color: WarnaApp.bahaya),
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (_bisaDiubah)
+                  TextButton(
+                    onPressed: () => _bukaUbah(context),
+                    child: Text(
+                      'Ubah',
+                      style: TeksApp.tombolKecil.copyWith(
+                        color: WarnaApp.primer,
+                      ),
+                    ),
+                  ),
+                TextButton(
+                  onPressed: () => _konfirmasiHapus(context),
+                  child: Text(
+                    'Hapus transaksi',
+                    style: TeksApp.tombolKecil.copyWith(color: WarnaApp.bahaya),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

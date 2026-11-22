@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../models/app_data.dart';
 import '../models/budget.dart';
@@ -9,6 +9,8 @@ import '../widgets/app_bar_turunan.dart';
 import '../widgets/baris_budget.dart';
 import '../widgets/dialog_konfirmasi_hapus.dart';
 import '../widgets/judul_seksi.dart';
+import '../widgets/kolom_angka.dart';
+import '../widgets/sheet_input_nominal.dart';
 import '../widgets/sheet_tambah_budget.dart';
 import '../widgets/tombol_pill.dart';
 import '../widgets/tombol_utama.dart';
@@ -64,6 +66,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
     int anggaran = AppData.anggaranBulanan;
     int totalLimit = AppData.totalLimitBudget();
     int sisa = anggaran - totalLimit;
+    bool melebihi = sisa < 0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -75,34 +78,27 @@ class _BudgetScreenState extends State<BudgetScreen> {
             Expanded(
               child: Text(formatRupiah(anggaran), style: TeksApp.angkaBesar),
             ),
-            TombolPill(
-              teks: 'Ubah',
-              kecil: true,
-              onTekan: () => _bukaSheetNominal(
-                judul: 'Anggaran bulanan',
-                nilaiAwal: anggaran,
-                onSimpan: AppData.ubahAnggaran,
+            TombolPill(teks: 'Ubah', kecil: true, onTekan: _ubahAnggaran),
+          ],
+        ),
+        const SizedBox(height: JarakApp.j16),
+        Row(
+          children: [
+            Expanded(
+              child: KolomAngka(
+                label: 'Dialokasikan',
+                nilai: formatRupiah(totalLimit),
+              ),
+            ),
+            Expanded(
+              // Kalau minus, nominal ditulis positif dan labelnya yang berubah.
+              child: KolomAngka(
+                label: melebihi ? 'Melebihi anggaran' : 'Belum dialokasikan',
+                nilai: formatRupiah(sisa.abs()),
+                warnaNilai: melebihi ? WarnaApp.bahaya : null,
               ),
             ),
           ],
-        ),
-        const SizedBox(height: JarakApp.j8),
-        Text.rich(
-          TextSpan(
-            style: TeksApp.kecil,
-            children: [
-              TextSpan(
-                text:
-                    'Dialokasikan ${formatRupiah(totalLimit)} · Belum dialokasikan ',
-              ),
-              TextSpan(
-                text: formatRupiah(sisa),
-                style: TeksApp.kecil.copyWith(
-                  color: sisa < 0 ? WarnaApp.bahaya : null,
-                ),
-              ),
-            ],
-          ),
         ),
       ],
     );
@@ -122,104 +118,43 @@ class _BudgetScreenState extends State<BudgetScreen> {
           ),
         for (int i = 0; i < daftar.length; i++) ...[
           if (i > 0) const Divider(height: 1),
-          BarisBudget(
-            budget: daftar[i],
-            onTekan: () => _bukaSheetNominal(
-              judul: daftar[i].kategori,
-              nilaiAwal: daftar[i].limit,
-              onSimpan: (limit) => AppData.ubahLimitBudget(daftar[i], limit),
-              budgetDihapus: daftar[i],
-            ),
-          ),
+          BarisBudget(budget: daftar[i], onTekan: () => _ubahLimit(daftar[i])),
         ],
       ],
     );
   }
 
-  Widget _bangunIsiSheet(BuildContext context, List<Widget> isi) {
-    return Padding(
-      // viewInsets.bottom = tinggi keyboard, supaya isian tidak tertutup.
-      padding: EdgeInsets.fromLTRB(
-        JarakApp.tepiHalaman,
-        JarakApp.j24,
-        JarakApp.tepiHalaman,
-        JarakApp.j24 + MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: isi,
-      ),
+  void _ubahAnggaran() {
+    bukaInputNominal(
+      context,
+      judul: 'Anggaran bulanan',
+      ikon: LucideIcons.wallet,
+      nominalAwal: AppData.anggaranBulanan,
+      onSimpan: AppData.ubahAnggaran,
     );
   }
 
-  Widget _bangunIsianNominal(int nilaiAwal, ValueChanged<int> onUbah) {
-    return TextFormField(
-      initialValue: nilaiAwal > 0 ? '$nilaiAwal' : '',
-      decoration: const InputDecoration(hintText: 'Nominal'),
-      keyboardType: TextInputType.number,
-      inputFormatters: [
-        FilteringTextInputFormatter.digitsOnly,
-        LengthLimitingTextInputFormatter(10),
-      ],
-      onChanged: (v) => onUbah(int.tryParse(v) ?? 0),
+  void _ubahLimit(BudgetItem budget) {
+    bukaInputNominal(
+      context,
+      judul: 'Limit ${budget.kategori} per bulan',
+      ikon: AppData.ikonKategori(budget.kategori),
+      nominalAwal: budget.limit,
+      onSimpan: (limit) => AppData.ubahLimitBudget(budget, limit),
+      onHapus: () => _hapusBudget(budget),
+      labelHapus: 'Hapus budget',
     );
   }
 
-  // Dipakai untuk ubah anggaran dan ubah limit; budgetDihapus diisi kalau perlu tombol hapus.
-  void _bukaSheetNominal({
-    required String judul,
-    required int nilaiAwal,
-    required ValueChanged<int> onSimpan,
-    BudgetItem? budgetDihapus,
-  }) {
-    int nominal = nilaiAwal;
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setSheet) => _bangunIsiSheet(context, [
-          Text(judul, style: TeksApp.judulHalaman),
-          const SizedBox(height: JarakApp.j16),
-          _bangunIsianNominal(nilaiAwal, (v) => setSheet(() => nominal = v)),
-          const SizedBox(height: JarakApp.j24),
-          TombolUtama(
-            teks: 'Simpan',
-            onTekan: nominal > 0
-                ? () {
-                    onSimpan(nominal);
-                    Navigator.pop(context);
-                  }
-                : null,
-          ),
-          if (budgetDihapus != null) ...[
-            const SizedBox(height: JarakApp.j8),
-            TextButton(
-              onPressed: () => _hapusBudget(budgetDihapus, context),
-              child: Text(
-                'Hapus kategori',
-                style: TeksApp.tombolKecil.copyWith(color: WarnaApp.bahaya),
-              ),
-            ),
-          ],
-        ]),
-      ),
-    );
-  }
-
-  Future<void> _hapusBudget(
-    BudgetItem budget,
-    BuildContext konteksSheet,
-  ) async {
-    final navigator = Navigator.of(konteksSheet);
+  Future<bool> _hapusBudget(BudgetItem budget) async {
     bool? hapus = await showDialog<bool>(
       context: context,
       builder: (context) =>
           DialogKonfirmasiHapus(judul: 'Hapus budget ${budget.kategori}?'),
     );
-    if (hapus != true) return;
+    if (hapus != true) return false;
     AppData.hapusBudget(budget);
-    navigator.pop();
+    return true;
   }
 
   void _bukaTambah() {

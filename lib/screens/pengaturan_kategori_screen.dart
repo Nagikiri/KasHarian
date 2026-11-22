@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../models/app_data.dart';
 import '../models/kategori.dart';
+import '../theme/app_theme.dart';
+import '../widgets/app_bar_turunan.dart';
+import '../widgets/dialog_konfirmasi_hapus.dart';
+import '../widgets/ikon_bulat.dart';
+import '../widgets/pilihan_segmen.dart';
+import '../widgets/tombol_utama.dart';
 
 class PengaturanKategoriScreen extends StatefulWidget {
   const PengaturanKategoriScreen({super.key});
@@ -12,232 +19,205 @@ class PengaturanKategoriScreen extends StatefulWidget {
 }
 
 class _PengaturanKategoriScreenState extends State<PengaturanKategoriScreen> {
-  final Color primaryGreen = const Color(0xFF14532D);
-  final Color bgGray = const Color(0xFFF1F5F9);
-  int _tabIndex = 0;
+  // 0 = Pengeluaran, 1 = Pemasukan, 2 = Transfer, sama dengan urutan PilihanSegmen.
+  int _tipe = 0;
 
-  void _dialogTambahKategori() {
-    final TextEditingController namaCtrl = TextEditingController();
-    IconData ikonPilihan = Icons.fastfood_outlined;
-    final List<IconData> opsiIkon = [
-      Icons.fastfood_outlined,
-      Icons.local_cafe_outlined,
-      Icons.sports_esports_outlined,
-      Icons.movie_outlined,
-      Icons.fitness_center_outlined,
-      Icons.pets_outlined,
-      Icons.shopping_bag_outlined,
-      Icons.account_balance_outlined,
-    ];
+  // Dicek tanpa membedakan huruf besar/kecil, karena kategori dicocokkan lewat nama.
+  bool _namaDipakai(String nama) {
+    String dicari = nama.trim().toLowerCase();
+    return AppData.daftarKategori.any((k) => k.nama.toLowerCase() == dicari);
+  }
 
-    showDialog(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AlertDialog(
-              backgroundColor: Colors.white,
-              title: const Text(
-                'Tambah Kategori Baru',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: namaCtrl,
-                    decoration: InputDecoration(
-                      labelText: 'Nama Kategori',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Wrap(
-                    spacing: 10,
-                    runSpacing: 10,
-                    children: opsiIkon.map((ic) {
-                      bool dipilih = ikonPilihan == ic;
-                      return InkWell(
-                        onTap: () => setDialogState(() => ikonPilihan = ic),
-                        child: CircleAvatar(
-                          backgroundColor: dipilih ? primaryGreen : bgGray,
-                          child: Icon(
-                            ic,
-                            color: dipilih ? Colors.white : Colors.black87,
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text(
-                    'Batal',
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryGreen,
-                    foregroundColor: Colors.white,
-                  ),
-                  onPressed: () {
-                    if (namaCtrl.text.trim().isNotEmpty) {
-                      AppData.tambahKategori(
-                        KategoriItem(
-                          nama: namaCtrl.text.trim(),
-                          ikon: ikonPilihan,
-                          warna: primaryGreen,
-                          isPemasukan: _tabIndex == 1,
-                          isTransfer: _tabIndex == 2,
-                        ),
-                      );
-                      setState(() {});
-                      Navigator.pop(context);
-                    }
-                  },
-                  child: const Text('Simpan'),
-                ),
-              ],
-            );
-          },
-        );
-      },
+  Future<void> _hapus(KategoriItem kategori) async {
+    bool punyaBudget = AppData.daftarBudget.any(
+      (b) => b.kategori == kategori.nama,
     );
+    bool? hapus = await showDialog<bool>(
+      context: context,
+      builder: (context) => DialogKonfirmasiHapus(
+        judul: 'Hapus kategori ini?',
+        pesan: punyaBudget ? 'Budget kategori ini ikut dihapus.' : null,
+      ),
+    );
+    if (hapus != true) return;
+    setState(() => AppData.hapusKategori(kategori));
+  }
+
+  void _simpanKategori(String nama, IconData ikon) {
+    setState(() {
+      AppData.tambahKategori(
+        KategoriItem(
+          nama: nama,
+          ikon: ikon,
+          warna: WarnaApp.primer,
+          isPemasukan: _tipe == 1,
+          isTransfer: _tipe == 2,
+        ),
+      );
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final list = AppData.daftarKategori.where((k) {
-      if (_tabIndex == 1) return k.isPemasukan;
-      if (_tabIndex == 2) return k.isTransfer;
-      return !k.isPemasukan && !k.isTransfer;
-    }).toList();
-
     return Scaffold(
-      backgroundColor: bgGray,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black87),
-        centerTitle: true,
-        title: const Text(
-          'Pengaturan Kategori',
-          style: TextStyle(
-            color: Colors.black87,
-            fontSize: 17,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
+      appBar: buatAppBarTurunan('Kategori'),
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(16),
-            child: Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: [
-                  _tabBtn('Pengeluaran', 0),
-                  _tabBtn('Pemasukan', 1),
-                  _tabBtn('Transfer', 2),
-                ],
-              ),
+            padding: const EdgeInsets.fromLTRB(
+              JarakApp.tepiHalaman,
+              JarakApp.j8,
+              JarakApp.tepiHalaman,
+              JarakApp.j8,
+            ),
+            child: PilihanSegmen(
+              pilihan: const ['Pengeluaran', 'Pemasukan', 'Transfer'],
+              indeksAktif: _tipe,
+              onPilih: (i) => setState(() => _tipe = i),
             ),
           ),
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: list.length,
-              itemBuilder: (context, index) {
-                final item = list[index];
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 10),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: item.warna.withValues(alpha: 0.12),
-                      child: Icon(item.ikon, color: item.warna, size: 20),
-                    ),
-                    title: Text(
-                      item.nama,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                      ),
-                    ),
-                    trailing: IconButton(
-                      icon: const Icon(
-                        Icons.delete_outline,
-                        color: Colors.redAccent,
-                      ),
-                      onPressed: () =>
-                          setState(() => AppData.hapusKategori(item)),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryGreen,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                onPressed: _dialogTambahKategori,
-                child: const Text(
-                  '+ Tambah Kategori Baru',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                ),
+          Expanded(child: _bangunDaftar()),
+        ],
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(JarakApp.tepiHalaman),
+          child: TombolUtama(teks: 'Tambah kategori', onTekan: _bukaTambah),
+        ),
+      ),
+    );
+  }
+
+  Widget _bangunDaftar() {
+    List<KategoriItem> daftar = AppData.kategoriTipe(_tipe);
+    if (daftar.isEmpty) {
+      return const Center(
+        child: Text('Belum ada kategori', style: TeksApp.kecil),
+      );
+    }
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(horizontal: JarakApp.tepiHalaman),
+      itemCount: daftar.length,
+      separatorBuilder: (context, i) => const Divider(height: 1),
+      itemBuilder: (context, i) => _bangunBaris(daftar[i]),
+    );
+  }
+
+  Widget _bangunBaris(KategoriItem kategori) {
+    // 'Setor Tabungan' dipakai estimasi wishlist dan anggaran, jadi tidak boleh dihapus.
+    bool bisaDihapus = kategori.nama != 'Setor Tabungan';
+
+    return SizedBox(
+      height: 64,
+      child: Row(
+        children: [
+          IkonBulat(ikon: kategori.ikon),
+          const SizedBox(width: JarakApp.j12),
+          Expanded(child: Text(kategori.nama, style: TeksApp.isi)),
+          if (bisaDihapus)
+            IconButton(
+              icon: const Icon(
+                LucideIcons.trash2,
+                size: 20,
+                color: WarnaApp.teksRedup,
               ),
+              onPressed: () => _hapus(kategori),
             ),
-          ),
         ],
       ),
     );
   }
 
-  Widget _tabBtn(String judul, int idx) {
-    bool aktif = _tabIndex == idx;
-    return Expanded(
-      child: InkWell(
-        onTap: () => setState(() => _tabIndex = idx),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: aktif ? primaryGreen : Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            judul,
-            style: TextStyle(
-              color: aktif ? Colors.white : Colors.black54,
-              fontWeight: FontWeight.bold,
-              fontSize: 12,
+  void _bukaTambah() {
+    // Isian disimpan di variabel biasa, jadi tidak perlu TextEditingController.
+    String nama = '';
+    IconData ikon = AppData.opsiIkonKategori.first;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setSheet) {
+          bool dipakai = _namaDipakai(nama);
+          bool bisaSimpan = nama.trim().isNotEmpty && !dipakai;
+
+          return Padding(
+            // viewInsets.bottom = tinggi keyboard, supaya isian tidak tertutup.
+            padding: EdgeInsets.fromLTRB(
+              JarakApp.tepiHalaman,
+              JarakApp.j24,
+              JarakApp.tepiHalaman,
+              JarakApp.j24 + MediaQuery.of(context).viewInsets.bottom,
             ),
-          ),
-        ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text('Tambah kategori', style: TeksApp.judulSeksi),
+                const SizedBox(height: JarakApp.j16),
+                TextField(
+                  decoration: const InputDecoration(hintText: 'Nama kategori'),
+                  onChanged: (v) => setSheet(() => nama = v),
+                ),
+                if (dipakai) ...[
+                  const SizedBox(height: JarakApp.j4),
+                  Text(
+                    'Nama sudah dipakai',
+                    style: TeksApp.kecil.copyWith(color: WarnaApp.bahaya),
+                  ),
+                ],
+                const SizedBox(height: JarakApp.j16),
+                const Text('Ikon', style: TeksApp.kecil),
+                const SizedBox(height: JarakApp.j8),
+                GridView.count(
+                  crossAxisCount: 4,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  mainAxisSpacing: JarakApp.j12,
+                  childAspectRatio: 1.4,
+                  children: [
+                    for (var pilihan in AppData.opsiIkonKategori)
+                      _bangunOpsiIkon(
+                        pilihan,
+                        pilihan == ikon,
+                        () => setSheet(() => ikon = pilihan),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: JarakApp.j24),
+                TombolUtama(
+                  teks: 'Simpan',
+                  onTekan: bisaSimpan
+                      ? () {
+                          _simpanKategori(nama.trim(), ikon);
+                          Navigator.pop(context);
+                        }
+                      : null,
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _bangunOpsiIkon(IconData ikon, bool aktif, VoidCallback onTekan) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTekan,
+      child: Center(
+        child: aktif
+            ? Container(
+                width: 48,
+                height: 48,
+                decoration: const BoxDecoration(
+                  color: WarnaApp.primer,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(ikon, size: 24, color: WarnaApp.diAtasPrimer),
+              )
+            : IkonBulat(ikon: ikon, ukuran: 48),
       ),
     );
   }
