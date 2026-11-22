@@ -6,10 +6,11 @@ import '../models/wishlist.dart';
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
 import '../utils/format_ribuan.dart';
-import '../widgets/dialog_konfirmasi_hapus.dart';
+import '../widgets/grid_kartu.dart';
 import '../widgets/judul_seksi.dart';
-import '../widgets/kartu_impian.dart';
+import '../widgets/kartu_progress.dart';
 import '../widgets/pilihan_segmen.dart';
+import '../widgets/sheet_detail_impian.dart';
 import '../widgets/sheet_impian_baru.dart';
 import '../widgets/sheet_input_nominal.dart';
 
@@ -78,15 +79,14 @@ class _WishlistScreenState extends State<WishlistScreen> {
     );
   }
 
-  Future<void> _hapus(WishlistItem impian) async {
-    bool? hapus = await showDialog<bool>(
+  // Sheet detail ditutup dulu, baru sheet nominal dibuka dari layar ini.
+  Future<void> _bukaDetail(WishlistItem impian) async {
+    bool? tabung = await showModalBottomSheet<bool>(
       context: context,
-      builder: (context) => const DialogKonfirmasiHapus(
-        judul: 'Hapus impian ini?',
-        pesan: 'Tabungan yang sudah tercatat tidak ikut dihapus.',
-      ),
+      isScrollControlled: true,
+      builder: (context) => SheetDetailImpian(impian: impian),
     );
-    if (hapus == true) AppData.hapusWishlist(impian);
+    if (tabung == true && mounted) _bukaTabung(impian);
   }
 
   @override
@@ -205,27 +205,36 @@ class _WishlistScreenState extends State<WishlistScreen> {
           aksi: '+ Tambah',
           onAksi: () => bukaSheetImpianBaru(context),
         ),
-        const SizedBox(height: JarakApp.j8),
-        if (daftar.isEmpty)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: JarakApp.j16),
-            child: Text(
-              'Belum ada impian. Tekan + Tambah untuk mulai.',
-              style: TeksApp.kecil,
-            ),
-          ),
-        for (int i = 0; i < daftar.length; i++) ...[
-          if (i > 0) const Divider(height: 1),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: JarakApp.j16),
-            child: KartuImpian(
-              impian: daftar[i],
-              onTabung: () => _bukaTabung(daftar[i]),
-              onHapus: () => _hapus(daftar[i]),
-            ),
-          ),
-        ],
+        const SizedBox(height: JarakApp.j12),
+        GridKartu(
+          teksKosong: 'Belum ada impian. Tekan + Tambah untuk mulai.',
+          daftar: [for (var impian in daftar) _bangunKartu(impian)],
+        ),
       ],
+    );
+  }
+
+  Widget _bangunKartu(WishlistItem impian) {
+    double persen = _persen(impian);
+    int estimasi = AppData.estimasiBulanWishlist(impian);
+    // Estimasi 0 berarti budget 'Tabungan' belum ada, jadi catatan bawah dikosongkan.
+    String? catatan;
+    if (_tercapai(impian)) {
+      catatan = 'Target tercapai';
+    } else if (estimasi > 0) {
+      catatan = formatEstimasiBulan(estimasi);
+    }
+
+    return KartuProgress(
+      ikon: impian.ikon,
+      persenTeks: '${(persen * 100).floor()}%',
+      judul: impian.nama,
+      nominal: formatRupiah(impian.terkumpulIdr),
+      keterangan: 'dari ${formatRupiah(impian.targetIdr)}',
+      persen: persen,
+      pakaiWarnaStatus: false,
+      catatanBawah: catatan,
+      onTekan: () => _bukaDetail(impian),
     );
   }
 }

@@ -4,7 +4,12 @@ import '../theme/app_theme.dart';
 import 'tombol_utama.dart';
 
 // Dipisah dari layar supaya keyboard tidak bertabrakan dengan numpad di Catat Transaksi.
-Future<String?> bukaCatatan(BuildContext context, String catatanAwal) {
+Future<String?> bukaCatatan(
+  BuildContext context,
+  String catatanAwal, {
+  String judul = 'Catatan',
+  String petunjuk = 'Tulis catatan',
+}) {
   String catatan = catatanAwal;
 
   return showModalBottomSheet<String>(
@@ -22,13 +27,13 @@ Future<String?> bukaCatatan(BuildContext context, String catatanAwal) {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('Catatan', style: TeksApp.judulSeksi),
+          Text(judul, style: TeksApp.judulSeksi),
           const SizedBox(height: JarakApp.j12),
           TextFormField(
             initialValue: catatanAwal,
             autofocus: true,
             textCapitalization: TextCapitalization.sentences,
-            decoration: const InputDecoration(hintText: 'Tulis catatan'),
+            decoration: InputDecoration(hintText: petunjuk),
             onChanged: (v) => catatan = v,
           ),
           const SizedBox(height: JarakApp.j16),

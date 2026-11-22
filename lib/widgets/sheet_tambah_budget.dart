@@ -7,6 +7,7 @@ import '../models/kategori.dart';
 import '../screens/pengaturan_kategori_screen.dart';
 import '../theme/app_theme.dart';
 import 'grid_kategori.dart';
+import 'header_sheet.dart';
 
 // Langkah pertama tambah budget: memilih kategori. Kategori dikembalikan lewat Navigator.pop.
 class SheetTambahBudget extends StatefulWidget {
@@ -52,14 +53,14 @@ class _SheetTambahBudgetState extends State<SheetTambahBudget> {
       ),
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.only(top: JarakApp.j24),
+          padding: const EdgeInsets.only(top: JarakApp.j8),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: JarakApp.tepiHalaman),
-                child: Text('Tambah budget', style: TeksApp.judulSeksi),
+                child: HeaderSheet(judul: 'Tambah budget'),
               ),
               if (pilihan.isEmpty)
                 const Padding(

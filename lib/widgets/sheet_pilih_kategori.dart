@@ -6,6 +6,7 @@ import '../models/kategori.dart';
 import '../screens/pengaturan_kategori_screen.dart';
 import '../theme/app_theme.dart';
 import 'grid_kategori.dart';
+import 'header_sheet.dart';
 
 // Grid lengkap dari tile "Lainnya". Mengembalikan kategori yang dipilih, atau null kalau ditutup.
 Future<KategoriItem?> bukaPilihKategori(
@@ -56,11 +57,11 @@ class _SheetPilihKategoriState extends State<SheetPilihKategori> {
             const Padding(
               padding: EdgeInsets.fromLTRB(
                 JarakApp.tepiHalaman,
-                JarakApp.j24,
+                JarakApp.j8,
                 JarakApp.tepiHalaman,
                 0,
               ),
-              child: Text('Pilih kategori', style: TeksApp.judulSeksi),
+              child: HeaderSheet(judul: 'Pilih kategori'),
             ),
             Expanded(
               child: GridKategori(

@@ -3,12 +3,14 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../main.dart';
 import '../models/app_data.dart';
+import '../models/budget.dart';
 import '../models/transaksi.dart';
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
 import '../widgets/baris_transaksi.dart';
+import '../widgets/grid_kartu.dart';
 import '../widgets/judul_seksi.dart';
-import '../widgets/grid_kantong.dart';
+import '../widgets/kartu_kantong.dart';
 import '../widgets/pemilih_bulan.dart';
 import '../widgets/progress_tipis.dart';
 import '../widgets/sheet_detail_transaksi.dart';
@@ -104,19 +106,12 @@ class _TransaksiScreenState extends State<TransaksiScreen> {
     child: isi,
   );
 
-  Widget _bangunTeksKosong(String teks) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: JarakApp.j16),
-    child: Text(teks, style: TeksApp.kecil),
+  Widget _bangunHeader() => const Row(
+    children: [
+      Expanded(child: Text('Transaksi', style: TeksApp.judulHalaman)),
+      PemilihBulan(),
+    ],
   );
-
-  Widget _bangunHeader() {
-    return const Row(
-      children: [
-        Expanded(child: Text('Transaksi', style: TeksApp.judulHalaman)),
-        PemilihBulan(),
-      ],
-    );
-  }
 
   Widget _bangunBudget() {
     int anggaran = AppData.anggaranBulanan;
@@ -167,10 +162,19 @@ class _TransaksiScreenState extends State<TransaksiScreen> {
           onAksi: _bukaBudget,
         ),
         const SizedBox(height: JarakApp.j12),
-        GridKantong(bulan: AppData.bulanDipilih, onTekanKartu: _bukaBudget),
+        GridKartu(
+          teksKosong: 'Belum ada kategori budget',
+          daftar: [for (var b in AppData.daftarBudget) _bangunKartu(b)],
+        ),
       ],
     );
   }
+
+  Widget _bangunKartu(BudgetItem b) => KartuKantong(
+    budget: b,
+    bulan: AppData.bulanDipilih,
+    onTekan: _bukaBudget,
+  );
 
   Widget _bangunPencarian() {
     return Column(
@@ -217,10 +221,14 @@ class _TransaksiScreenState extends State<TransaksiScreen> {
 
     if (daftar.isEmpty) {
       bool adaSaringan = _filter != 0 || _kataKunci.isNotEmpty;
-      return _bangunTeksKosong(
-        adaSaringan
-            ? 'Tidak ada transaksi yang sesuai'
-            : 'Belum ada transaksi di bulan ini',
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: JarakApp.j16),
+        child: Text(
+          adaSaringan
+              ? 'Tidak ada transaksi yang sesuai'
+              : 'Belum ada transaksi di bulan ini',
+          style: TeksApp.kecil,
+        ),
       );
     }
 

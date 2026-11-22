@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../theme/app_theme.dart';
 import '../utils/nominal.dart';
-import 'ikon_bulat.dart';
+import 'header_sheet.dart';
 import 'numpad_simpan.dart';
 import 'tampilan_nominal.dart';
 import 'template_nominal.dart';
@@ -39,34 +38,7 @@ Future<void> bukaInputNominal(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Center(
-                    child: Container(
-                      width: 32,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: WarnaApp.garis,
-                        borderRadius: BorderRadius.circular(RadiusApp.pill),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: JarakApp.j8),
-                  Row(
-                    children: [
-                      if (ikon != null) ...[
-                        IkonBulat(ikon: ikon),
-                        const SizedBox(width: JarakApp.j12),
-                      ],
-                      Expanded(child: Text(judul, style: TeksApp.judulSeksi)),
-                      IconButton(
-                        icon: const Icon(
-                          LucideIcons.x,
-                          size: 20,
-                          color: WarnaApp.teksUtama,
-                        ),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                    ],
-                  ),
+                  HeaderSheet(judul: judul, ikon: ikon),
                   const SizedBox(height: JarakApp.j16),
                   TampilanNominal(label: 'Nominal', nominal: nominal),
                   const SizedBox(height: JarakApp.j12),

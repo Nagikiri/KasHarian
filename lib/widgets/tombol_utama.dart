@@ -19,7 +19,7 @@ class TombolUtama extends StatelessWidget {
           backgroundColor: WarnaApp.primer,
           foregroundColor: WarnaApp.diAtasPrimer,
           disabledBackgroundColor: WarnaApp.garis,
-          disabledForegroundColor: WarnaApp.teksRedup,
+          disabledForegroundColor: WarnaApp.teksKedua,
           textStyle: TeksApp.tombol,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(RadiusApp.tombol),

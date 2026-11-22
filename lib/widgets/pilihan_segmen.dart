@@ -48,7 +48,7 @@ class PilihanSegmen extends StatelessWidget {
         child: Text(
           pilihan[indeks],
           style: TeksApp.tombolKecil.copyWith(
-            color: aktif ? WarnaApp.teksUtama : WarnaApp.teksRedup,
+            color: aktif ? WarnaApp.primer : WarnaApp.teksRedup,
           ),
         ),
       ),

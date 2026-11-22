@@ -132,23 +132,24 @@ class AppData {
     LucideIcons.pawPrint,
   ];
 
-  static final List<IconData> opsiIkonImpian = [
-    LucideIcons.smartphone,
-    LucideIcons.laptop,
-    LucideIcons.gamepad2,
-    LucideIcons.headphones,
-    LucideIcons.camera,
-    LucideIcons.watch,
-    LucideIcons.keyboard,
-    LucideIcons.mouse,
-    LucideIcons.car,
-    LucideIcons.bike,
-    LucideIcons.house,
-    LucideIcons.plane,
-    LucideIcons.ticket,
-    LucideIcons.shirt,
-    LucideIcons.gift,
-    LucideIcons.star,
+  // Ikon impian mengikuti kategorinya, jadi tidak dipilih sendiri.
+  static final List<KategoriItem> kategoriImpian = [
+    KategoriItem(nama: 'Gadget', ikon: LucideIcons.smartphone),
+    KategoriItem(nama: 'Komputer & Aksesori', ikon: LucideIcons.laptop),
+    KategoriItem(nama: 'Audio', ikon: LucideIcons.headphones),
+    KategoriItem(nama: 'Kamera', ikon: LucideIcons.camera),
+    KategoriItem(nama: 'Game & Hobi', ikon: LucideIcons.gamepad2),
+    KategoriItem(nama: 'Jam & Aksesori', ikon: LucideIcons.watch),
+    KategoriItem(nama: 'Fashion', ikon: LucideIcons.shirt),
+    KategoriItem(nama: 'Kendaraan', ikon: LucideIcons.car),
+    KategoriItem(nama: 'Motor & Sepeda', ikon: LucideIcons.motorbike),
+    KategoriItem(nama: 'Rumah & Perabot', ikon: LucideIcons.sofa),
+    KategoriItem(nama: 'Elektronik Rumah', ikon: LucideIcons.tv),
+    KategoriItem(nama: 'Liburan', ikon: LucideIcons.plane),
+    KategoriItem(nama: 'Konser & Acara', ikon: LucideIcons.ticket),
+    KategoriItem(nama: 'Pendidikan', ikon: LucideIcons.graduationCap),
+    KategoriItem(nama: 'Hadiah', ikon: LucideIcons.gift),
+    KategoriItem(nama: 'Lainnya', ikon: LucideIcons.star),
   ];
 
   // Nama ini dipakai sistem (budget, transfer, pelunasan utang), jadi tidak boleh jadi nama kategori.
@@ -357,6 +358,7 @@ class AppData {
   static final List<WishlistItem> daftarWishlist = [
     WishlistItem(
       nama: 'Sony PlayStation 5 Slim',
+      kategori: 'Game & Hobi',
       mataUang: 'USD',
       hargaAsing: 499,
       targetIdr: 7811346,
@@ -365,6 +367,7 @@ class AppData {
     ),
     WishlistItem(
       nama: 'Tiket Konser Luar Negeri',
+      kategori: 'Konser & Acara',
       mataUang: 'JPY',
       hargaAsing: 35000,
       targetIdr: 3640000,
@@ -373,19 +376,21 @@ class AppData {
     ),
     WishlistItem(
       nama: 'Mechanical Keyboard Keychron Q1',
+      kategori: 'Komputer & Aksesori',
       mataUang: 'USD',
       hargaAsing: 190,
       targetIdr: 2974260,
       terkumpulIdr: 1200000,
-      ikon: LucideIcons.keyboard,
+      ikon: LucideIcons.laptop,
     ),
     WishlistItem(
       nama: 'Mouse Logitech M331',
+      kategori: 'Komputer & Aksesori',
       mataUang: 'USD',
       hargaAsing: 25,
       targetIdr: 391350,
       terkumpulIdr: 391350,
-      ikon: LucideIcons.mouse,
+      ikon: LucideIcons.laptop,
     ),
   ];
 
@@ -516,7 +521,9 @@ class AppData {
     refreshNotifier.value++;
   }
 
+  // IDR tidak ada di kursKeIdr supaya perbaruiKurs dan konverter tidak ikut berubah.
   static int targetDariKurs(String mataUang, int harga) {
+    if (mataUang == 'IDR') return harga;
     return harga * (kursKeIdr[mataUang] ?? 0);
   }
 

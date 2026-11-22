@@ -6,11 +6,13 @@ import '../utils/format.dart';
 class TampilanNominal extends StatelessWidget {
   final String label;
   final int nominal;
+  final String prefix;
 
   const TampilanNominal({
     super.key,
     required this.label,
     required this.nominal,
+    this.prefix = 'Rp',
   });
 
   @override
@@ -26,7 +28,7 @@ class TampilanNominal extends StatelessWidget {
           fit: BoxFit.scaleDown,
           alignment: Alignment.centerLeft,
           child: Text(
-            'Rp ${formatTitik(nominal)}',
+            '$prefix ${formatTitik(nominal)}',
             style: TeksApp.angkaBesar.copyWith(
               color: nominal == 0 ? WarnaApp.teksRedup : null,
             ),

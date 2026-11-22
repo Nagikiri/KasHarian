@@ -4,8 +4,7 @@ import '../models/app_data.dart';
 import '../models/budget.dart';
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
-import 'ikon_bulat.dart';
-import 'progress_tipis.dart';
+import 'kartu_progress.dart';
 
 class KartuKantong extends StatelessWidget {
   final BudgetItem budget;
@@ -25,55 +24,18 @@ class KartuKantong extends StatelessWidget {
     // Limit 0 tidak bisa dibagi, jadi persennya dianggap 0.
     double persen = budget.limit > 0 ? terpakai / budget.limit : 0;
     int lebih = terpakai - budget.limit;
-    BorderRadius sudut = BorderRadius.circular(RadiusApp.input);
 
-    return Material(
-      color: WarnaApp.latar,
-      shape: RoundedRectangleBorder(
-        borderRadius: sudut,
-        side: const BorderSide(color: WarnaApp.garis),
-      ),
-      child: InkWell(
-        onTap: onTekan,
-        borderRadius: sudut,
-        child: Padding(
-          padding: const EdgeInsets.all(JarakApp.dalamKartu),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  IkonBulat(ikon: AppData.ikonKategori(budget.kategori)),
-                  const Spacer(),
-                  Text(
-                    '${(persen * 100).round()}%',
-                    style: TeksApp.angka.copyWith(color: warnaStatus(persen)),
-                  ),
-                ],
-              ),
-              const SizedBox(height: JarakApp.j12),
-              Text(
-                budget.kategori,
-                style: TeksApp.isi,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              Text(formatRupiah(terpakai), style: TeksApp.angka),
-              lebih > 0
-                  ? Text(
-                      'Lebih ${formatRupiah(lebih)}',
-                      style: TeksApp.kecil.copyWith(color: WarnaApp.bahaya),
-                    )
-                  : Text(
-                      'dari ${formatRupiah(budget.limit)}',
-                      style: TeksApp.kecil,
-                    ),
-              const SizedBox(height: JarakApp.j8),
-              ProgressTipis(persen: persen),
-            ],
-          ),
-        ),
-      ),
+    return KartuProgress(
+      ikon: AppData.ikonKategori(budget.kategori),
+      persenTeks: '${(persen * 100).round()}%',
+      judul: budget.kategori,
+      nominal: formatRupiah(terpakai),
+      keterangan: lebih > 0
+          ? 'Lebih ${formatRupiah(lebih)}'
+          : 'dari ${formatRupiah(budget.limit)}',
+      warnaKeterangan: lebih > 0 ? WarnaApp.bahaya : null,
+      persen: persen,
+      onTekan: onTekan,
     );
   }
 }

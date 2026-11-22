@@ -9,7 +9,7 @@ class GridKategori extends StatelessWidget {
   final List<KategoriItem> daftar;
   final KategoriItem? terpilih;
   final void Function(KategoriItem kategori) onPilih;
-  final VoidCallback onAtur;
+  final VoidCallback? onAtur;
   final bool shrinkWrap;
 
   const GridKategori({
@@ -17,7 +17,7 @@ class GridKategori extends StatelessWidget {
     required this.daftar,
     required this.terpilih,
     required this.onPilih,
-    required this.onAtur,
+    this.onAtur,
     this.shrinkWrap = false,
   });
 
@@ -36,11 +36,11 @@ class GridKategori extends StatelessWidget {
         crossAxisSpacing: JarakApp.j8,
         mainAxisSpacing: JarakApp.j12,
       ),
-      itemCount: daftar.length + 1,
+      itemCount: daftar.length + (onAtur == null ? 0 : 1),
       itemBuilder: (context, i) {
-        // Tile terakhir selalu "Atur" untuk membuka Pengaturan Kategori.
+        // Kalau onAtur diisi, tile terakhir adalah "Atur" untuk membuka Pengaturan Kategori.
         if (i == daftar.length) {
-          return _bangunTile(LucideIcons.settings2, 'Atur', false, onAtur);
+          return _bangunTile(LucideIcons.settings2, 'Atur', false, onAtur!);
         }
         KategoriItem k = daftar[i];
         return _bangunTile(k.ikon, k.nama, k == terpilih, () => onPilih(k));
