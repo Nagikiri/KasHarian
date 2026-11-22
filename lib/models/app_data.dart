@@ -1,197 +1,174 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-String formatTitik(int nilai) {
-  String s = nilai.abs().toString();
-  String hasil = '';
-  for (int i = 0; i < s.length; i++) {
-    if (i > 0 && (s.length - i) % 3 == 0) hasil += '.';
-    hasil += s[i];
-  }
-  return hasil;
-}
-
-class KategoriItem {
-  final String nama;
-  final IconData ikon;
-  final Color warna;
-  final bool isPemasukan;
-  final bool isTransfer;
-
-  KategoriItem({
-    required this.nama,
-    required this.ikon,
-    required this.warna,
-    this.isPemasukan = false,
-    this.isTransfer = false,
-  });
-}
-
-class CatatanTransaksi {
-  final String kategori;
-  final String catatan;
-  final int nominal;
-  final IconData ikon;
-  final Color warna;
-  final DateTime tanggal;
-  final bool isPemasukan;
-  final bool isTransfer;
-  final String sumberDana;
-
-  CatatanTransaksi({
-    required this.kategori,
-    required this.catatan,
-    required this.nominal,
-    required this.ikon,
-    required this.warna,
-    required this.tanggal,
-    this.isPemasukan = false,
-    this.isTransfer = false,
-    this.sumberDana = 'Kantong Utama',
-  });
-}
-
-class WishlistItem {
-  final String nama;
-  final String mataUang;
-  final int hargaAsing;
-  final int targetIdr;
-  int terkumpulIdr;
-  final IconData ikon;
-
-  WishlistItem({
-    required this.nama,
-    required this.mataUang,
-    required this.hargaAsing,
-    required this.targetIdr,
-    required this.terkumpulIdr,
-    required this.ikon,
-  });
-}
+import 'budget.dart';
+import 'kategori.dart';
+import 'transaksi.dart';
+import 'utang.dart';
+import 'wishlist.dart';
 
 class AppData {
   static final ValueNotifier<int> refreshNotifier = ValueNotifier<int>(0);
+  static final ValueNotifier<int> tabAktif = ValueNotifier<int>(0);
+  static DateTime bulanDipilih = DateTime.now();
+
+  static int saldoAwal = 2500000;
+  static int anggaranBulanan = 5000000;
+
+  // Kalau app dibuka di awal bulan, tanggal mundur bisa jatuh ke bulan lalu, jadi ditahan di tanggal 1.
+  static DateTime _bulanIni(int mundurHari) {
+    DateTime sekarang = DateTime.now();
+    DateTime t = sekarang.subtract(Duration(days: mundurHari));
+    if (t.month != sekarang.month) {
+      return DateTime(sekarang.year, sekarang.month, 1);
+    }
+    return t;
+  }
+
+  static DateTime _bulanLalu(int tanggal) {
+    DateTime sekarang = DateTime.now();
+    return DateTime(sekarang.year, sekarang.month - 1, tanggal);
+  }
+
+  static final List<String> daftarSumberDana = [
+    'Kantong Utama',
+    'Rekening Bank',
+    'Saku QRIS',
+    'Dompet Tunai',
+  ];
 
   static final List<KategoriItem> daftarKategori = [
     KategoriItem(
       nama: 'Makan',
-      ikon: Icons.restaurant_outlined,
+      ikon: LucideIcons.utensils,
       warna: const Color(0xFF10B981),
     ),
     KategoriItem(
       nama: 'Bensin',
-      ikon: Icons.local_gas_station_outlined,
+      ikon: LucideIcons.fuel,
       warna: const Color(0xFFF59E0B),
     ),
     KategoriItem(
       nama: 'Belanja',
-      ikon: Icons.shopping_bag_outlined,
+      ikon: LucideIcons.shoppingBag,
       warna: const Color(0xFF3B82F6),
     ),
     KategoriItem(
       nama: 'Tagihan',
-      ikon: Icons.receipt_long_outlined,
+      ikon: LucideIcons.receiptText,
       warna: const Color(0xFFEF4444),
     ),
     KategoriItem(
       nama: 'Hiburan',
-      ikon: Icons.movie_creation_outlined,
+      ikon: LucideIcons.clapperboard,
       warna: const Color(0xFF8B5CF6),
     ),
     KategoriItem(
       nama: 'Kopi',
-      ikon: Icons.coffee_outlined,
+      ikon: LucideIcons.coffee,
       warna: const Color(0xFF92400E),
     ),
     KategoriItem(
       nama: 'Kesehatan',
-      ikon: Icons.medical_services_outlined,
+      ikon: LucideIcons.stethoscope,
       warna: const Color(0xFFEC4899),
     ),
     KategoriItem(
       nama: 'Pendidikan',
-      ikon: Icons.menu_book_outlined,
+      ikon: LucideIcons.bookOpen,
       warna: const Color(0xFF6366F1),
     ),
     KategoriItem(
       nama: 'Transportasi',
-      ikon: Icons.directions_bus_outlined,
+      ikon: LucideIcons.bus,
       warna: const Color(0xFF14B8A6),
     ),
     KategoriItem(
       nama: 'Pakaian',
-      ikon: Icons.checkroom_outlined,
+      ikon: LucideIcons.shirt,
       warna: const Color(0xFFF97316),
     ),
     KategoriItem(
       nama: 'Elektronik',
-      ikon: Icons.devices_outlined,
+      ikon: LucideIcons.monitorSmartphone,
       warna: const Color(0xFF64748B),
     ),
     KategoriItem(
       nama: 'Rumah',
-      ikon: Icons.home_outlined,
+      ikon: LucideIcons.house,
       warna: const Color(0xFF0EA5E9),
     ),
     KategoriItem(
       nama: 'Gaji',
-      ikon: Icons.payments_outlined,
+      ikon: LucideIcons.banknote,
       warna: const Color(0xFF10B981),
       isPemasukan: true,
     ),
     KategoriItem(
       nama: 'Freelance',
-      ikon: Icons.laptop_mac_outlined,
+      ikon: LucideIcons.laptop,
       warna: const Color(0xFF0D9488),
       isPemasukan: true,
     ),
     KategoriItem(
       nama: 'Bonus',
-      ikon: Icons.workspace_premium_outlined,
+      ikon: LucideIcons.award,
       warna: const Color(0xFFF59E0B),
       isPemasukan: true,
     ),
     KategoriItem(
       nama: 'Investasi',
-      ikon: Icons.trending_up_outlined,
+      ikon: LucideIcons.trendingUp,
       warna: const Color(0xFF3B82F6),
       isPemasukan: true,
     ),
     KategoriItem(
       nama: 'Transfer Bank',
-      ikon: Icons.account_balance_outlined,
+      ikon: LucideIcons.landmark,
       warna: const Color(0xFF2563EB),
       isTransfer: true,
     ),
     KategoriItem(
       nama: 'Top Up E-Wallet',
-      ikon: Icons.account_balance_wallet_outlined,
+      ikon: LucideIcons.wallet,
       warna: const Color(0xFF0D9488),
       isTransfer: true,
     ),
     KategoriItem(
       nama: 'Tarik Tunai ATM',
-      ikon: Icons.local_atm_outlined,
+      ikon: LucideIcons.handCoins,
       warna: const Color(0xFF475569),
       isTransfer: true,
     ),
     KategoriItem(
       nama: 'Antar Kantong',
-      ikon: Icons.swap_horiz_outlined,
+      ikon: LucideIcons.arrowLeftRight,
       warna: const Color(0xFF14532D),
       isTransfer: true,
     ),
     KategoriItem(
       nama: 'Setor Tabungan',
-      ikon: Icons.savings_outlined,
+      ikon: LucideIcons.piggyBank,
       warna: const Color(0xFF059669),
       isTransfer: true,
     ),
     KategoriItem(
       nama: 'Bayar Kartu',
-      ikon: Icons.credit_card_outlined,
+      ikon: LucideIcons.creditCard,
       warna: const Color(0xFF7C3AED),
       isTransfer: true,
     ),
+  ];
+
+  static final List<IconData> opsiIkonKategori = [
+    LucideIcons.utensils,
+    LucideIcons.coffee,
+    LucideIcons.gamepad2,
+    LucideIcons.clapperboard,
+    LucideIcons.dumbbell,
+    LucideIcons.pawPrint,
+    LucideIcons.shoppingBag,
+    LucideIcons.landmark,
   ];
 
   static final List<CatatanTransaksi> daftarTransaksi = [
@@ -199,36 +176,35 @@ class AppData {
       kategori: 'Kopi',
       catatan: 'Kopi Kenangan & Roti',
       nominal: 35000,
-      ikon: Icons.coffee_outlined,
+      ikon: LucideIcons.coffee,
       warna: const Color(0xFF92400E),
-      tanggal: DateTime.now(),
+      tanggal: _bulanIni(0),
       sumberDana: 'Saku QRIS',
     ),
     CatatanTransaksi(
       kategori: 'Bensin',
       catatan: 'Pertamax Full Tank',
       nominal: 100000,
-      ikon: Icons.local_gas_station_outlined,
+      ikon: LucideIcons.fuel,
       warna: const Color(0xFFF59E0B),
-      tanggal: DateTime.now(),
-      sumberDana: 'Debit Utama',
+      tanggal: _bulanIni(0),
+      sumberDana: 'Rekening Bank',
     ),
     CatatanTransaksi(
       kategori: 'Belanja',
       catatan: 'Kebutuhan Harian Kos',
       nominal: 136000,
-      ikon: Icons.shopping_bag_outlined,
+      ikon: LucideIcons.shoppingBag,
       warna: const Color(0xFF3B82F6),
-      tanggal: DateTime.now(),
-      sumberDana: 'Kantong Utama',
+      tanggal: _bulanIni(0),
     ),
     CatatanTransaksi(
       kategori: 'Freelance',
       catatan: 'Proyek Desain Web',
-      nominal: 1500000,
-      ikon: Icons.laptop_mac_outlined,
+      nominal: 750000,
+      ikon: LucideIcons.laptop,
       warna: const Color(0xFF0D9488),
-      tanggal: DateTime.now().subtract(const Duration(days: 1)),
+      tanggal: _bulanIni(1),
       isPemasukan: true,
       sumberDana: 'Rekening Bank',
     ),
@@ -236,10 +212,118 @@ class AppData {
       kategori: 'Makan',
       catatan: 'Makan Malam Bersama',
       nominal: 45000,
-      ikon: Icons.restaurant_outlined,
+      ikon: LucideIcons.utensils,
       warna: const Color(0xFF10B981),
-      tanggal: DateTime.now().subtract(const Duration(days: 1)),
-      sumberDana: 'Kantong Utama',
+      tanggal: _bulanIni(1),
+    ),
+    CatatanTransaksi(
+      kategori: 'Makan',
+      catatan: 'Nasi Padang',
+      nominal: 28000,
+      ikon: LucideIcons.utensils,
+      warna: const Color(0xFF10B981),
+      tanggal: _bulanIni(3),
+      sumberDana: 'Dompet Tunai',
+    ),
+    CatatanTransaksi(
+      kategori: 'Tagihan',
+      catatan: 'Token Listrik',
+      nominal: 350000,
+      ikon: LucideIcons.receiptText,
+      warna: const Color(0xFFEF4444),
+      tanggal: _bulanIni(5),
+      sumberDana: 'Rekening Bank',
+    ),
+    CatatanTransaksi(
+      kategori: 'Tagihan',
+      catatan: 'Paket Internet',
+      nominal: 120000,
+      ikon: LucideIcons.receiptText,
+      warna: const Color(0xFFEF4444),
+      tanggal: _bulanIni(6),
+      sumberDana: 'Saku QRIS',
+    ),
+    CatatanTransaksi(
+      kategori: 'Bensin',
+      catatan: 'Pertalite',
+      nominal: 50000,
+      ikon: LucideIcons.fuel,
+      warna: const Color(0xFFF59E0B),
+      tanggal: _bulanIni(8),
+      sumberDana: 'Dompet Tunai',
+    ),
+    CatatanTransaksi(
+      kategori: 'Setor Tabungan',
+      catatan: 'Tabungan Bulanan',
+      nominal: 500000,
+      ikon: LucideIcons.piggyBank,
+      warna: const Color(0xFF059669),
+      tanggal: _bulanIni(10),
+      isTransfer: true,
+      sumberDana: 'Rekening Bank',
+    ),
+    CatatanTransaksi(
+      kategori: 'Gaji',
+      catatan: 'Gaji Bulanan',
+      nominal: 4500000,
+      ikon: LucideIcons.banknote,
+      warna: const Color(0xFF10B981),
+      tanggal: _bulanIni(12),
+      isPemasukan: true,
+      sumberDana: 'Rekening Bank',
+    ),
+    CatatanTransaksi(
+      kategori: 'Makan',
+      catatan: 'Makan Siang Kampus',
+      nominal: 62000,
+      ikon: LucideIcons.utensils,
+      warna: const Color(0xFF10B981),
+      tanggal: _bulanIni(14),
+    ),
+    CatatanTransaksi(
+      kategori: 'Hiburan',
+      catatan: 'Nonton Bioskop',
+      nominal: 60000,
+      ikon: LucideIcons.clapperboard,
+      warna: const Color(0xFF8B5CF6),
+      tanggal: _bulanLalu(24),
+      sumberDana: 'Saku QRIS',
+    ),
+    CatatanTransaksi(
+      kategori: 'Bensin',
+      catatan: 'Pertamax',
+      nominal: 100000,
+      ikon: LucideIcons.fuel,
+      warna: const Color(0xFFF59E0B),
+      tanggal: _bulanLalu(18),
+      sumberDana: 'Dompet Tunai',
+    ),
+    CatatanTransaksi(
+      kategori: 'Makan',
+      catatan: 'Makan Bersama Keluarga',
+      nominal: 75000,
+      ikon: LucideIcons.utensils,
+      warna: const Color(0xFF10B981),
+      tanggal: _bulanLalu(12),
+    ),
+    CatatanTransaksi(
+      kategori: 'Tagihan',
+      catatan: 'Bayar Kos',
+      nominal: 450000,
+      ikon: LucideIcons.receiptText,
+      warna: const Color(0xFFEF4444),
+      tanggal: _bulanLalu(5),
+      sumberDana: 'Rekening Bank',
+    ),
+    CatatanTransaksi(
+      kategori: 'Gaji',
+      catatan: 'Gaji Bulanan',
+      nominal: 4500000,
+      ikon: LucideIcons.banknote,
+      warna: const Color(0xFF10B981),
+      tanggal: _bulanLalu(1),
+      isPemasukan: true,
+      sumberDana: 'Rekening Bank',
     ),
   ];
 
@@ -250,7 +334,7 @@ class AppData {
       hargaAsing: 499,
       targetIdr: 7811346,
       terkumpulIdr: 5200000,
-      ikon: Icons.sports_esports_outlined,
+      ikon: LucideIcons.gamepad2,
     ),
     WishlistItem(
       nama: 'Tiket Konser Luar Negeri',
@@ -258,7 +342,7 @@ class AppData {
       hargaAsing: 35000,
       targetIdr: 3640000,
       terkumpulIdr: 2800000,
-      ikon: Icons.confirmation_number_outlined,
+      ikon: LucideIcons.ticket,
     ),
     WishlistItem(
       nama: 'Mechanical Keyboard Keychron Q1',
@@ -266,9 +350,52 @@ class AppData {
       hargaAsing: 190,
       targetIdr: 2974260,
       terkumpulIdr: 2974260,
-      ikon: Icons.keyboard_outlined,
+      ikon: LucideIcons.keyboard,
     ),
   ];
+
+  static final List<BudgetItem> daftarBudget = [
+    BudgetItem(kategori: 'Makan', limit: 1800000),
+    BudgetItem(kategori: 'Bensin', limit: 600000),
+    BudgetItem(kategori: 'Tagihan', limit: 1200000),
+    BudgetItem(kategori: 'Setor Tabungan', limit: 1000000),
+  ];
+
+  static final List<UtangItem> daftarUtang = [
+    UtangItem(
+      jenis: 'Piutang',
+      nama: 'Budi',
+      nominal: 50000,
+      keterangan: 'Nalangin makan siang',
+      tanggal: _bulanIni(2),
+    ),
+    UtangItem(
+      jenis: 'Piutang',
+      nama: 'Rian',
+      nominal: 85000,
+      keterangan: 'Tiket bioskop',
+      tanggal: _bulanIni(4),
+    ),
+    UtangItem(
+      jenis: 'Utang',
+      nama: 'Dimas',
+      nominal: 120000,
+      keterangan: 'Patungan kafe',
+      tanggal: _bulanIni(6),
+    ),
+  ];
+
+  static final Map<String, int> kursCadangan = {
+    'USD': 15654,
+    'SGD': 11642,
+    'JPY': 104,
+    'EUR': 16950,
+  };
+
+  static const String contohSaranAi =
+      'Pengeluaran terbesarmu bulan ini ada di Tagihan, jadi coba cek lagi paket internet yang mungkin bisa diganti lebih murah. '
+      'Uang jajan kopi dan makan di luar juga lumayan, kalau dikurangi sedikit tiap minggu sisanya bisa langsung masuk ke tabungan PlayStation 5 Slim. '
+      'Targetnya sudah lewat setengah jalan, tinggal konsisten beberapa bulan lagi.';
 
   static final List<String> tipsKeuangan = [
     'Alokasikan minimal 20% penghasilan ke Kantong Tabungan di awal bulan agar target tahunan tercapai tepat waktu.',
@@ -314,21 +441,53 @@ class AppData {
     refreshNotifier.value++;
   }
 
-  static int get totalPemasukan {
-    int dasar = 7400000;
-    for (var t in daftarTransaksi) {
-      if (t.isPemasukan) dasar += t.nominal;
-    }
-    return dasar;
+  static bool _bulanSama(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month;
   }
 
-  static int get totalPengeluaran {
-    int dasar = 3174000;
+  static int pemasukanBulan(DateTime bulan) {
+    int total = 0;
     for (var t in daftarTransaksi) {
-      if (!t.isPemasukan && !t.isTransfer) dasar += t.nominal;
+      if (t.isPemasukan && _bulanSama(t.tanggal, bulan)) total += t.nominal;
     }
-    return dasar;
+    return total;
   }
 
-  static int get saldoTersedia => 13000200 + totalPemasukan - totalPengeluaran;
+  static int pengeluaranBulan(DateTime bulan) {
+    int total = 0;
+    for (var t in daftarTransaksi) {
+      bool pengeluaran = !t.isPemasukan && !t.isTransfer;
+      if (pengeluaran && _bulanSama(t.tanggal, bulan)) total += t.nominal;
+    }
+    return total;
+  }
+
+  static int get totalPemasukan => pemasukanBulan(DateTime.now());
+
+  static int get totalPengeluaran => pengeluaranBulan(DateTime.now());
+
+  // Saldo dihitung dari semua bulan, bukan hanya bulan berjalan.
+  static int get saldoTersedia {
+    int saldo = saldoAwal;
+    for (var t in daftarTransaksi) {
+      if (t.isPemasukan) {
+        saldo += t.nominal;
+      } else if (!t.isTransfer) {
+        saldo -= t.nominal;
+      }
+    }
+    return saldo;
+  }
+
+  // Transfer ikut dihitung supaya budget 'Setor Tabungan' terisi.
+  static int terpakaiBudget(String kategori) {
+    int total = 0;
+    for (var t in daftarTransaksi) {
+      bool bulanIni = _bulanSama(t.tanggal, DateTime.now());
+      if (!t.isPemasukan && t.kategori == kategori && bulanIni) {
+        total += t.nominal;
+      }
+    }
+    return total;
+  }
 }

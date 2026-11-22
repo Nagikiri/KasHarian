@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../models/app_data.dart';
+import '../models/wishlist.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
+import '../utils/format.dart';
 
 class WishlistScreen extends StatefulWidget {
   const WishlistScreen({super.key});
@@ -34,7 +36,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
   @override
   void initState() {
     super.initState();
-    _ambilKurs(); 
+    _ambilKurs();
   }
 
   Future<void> _ambilKurs() async {

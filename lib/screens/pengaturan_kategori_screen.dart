@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/app_data.dart';
+import '../models/kategori.dart';
 
 class PengaturanKategoriScreen extends StatefulWidget {
   const PengaturanKategoriScreen({super.key});
