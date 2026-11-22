@@ -161,7 +161,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ikon: LucideIcons.wallet,
               judul: 'Budget',
               info: sisa < 0
-                  ? 'Lebih ${_rupiah(-sisa)} dari anggaran'
+                  ? 'Lebih ${_rupiah(-sisa)}'
                   : 'Sisa ${_rupiah(sisa)}',
               warnaInfo: sisa < 0 ? WarnaApp.bahaya : null,
               persen: anggaran > 0 ? terpakai / anggaran : 0,

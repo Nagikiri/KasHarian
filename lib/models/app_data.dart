@@ -28,9 +28,11 @@ class AppData {
     return t;
   }
 
-  static DateTime _bulanLalu(int tanggal) {
+  static DateTime _bulanLalu(int tanggal) => _mundurBulan(1, tanggal);
+
+  static DateTime _mundurBulan(int jumlahBulan, int tanggal) {
     DateTime sekarang = DateTime.now();
-    return DateTime(sekarang.year, sekarang.month - 1, tanggal);
+    return DateTime(sekarang.year, sekarang.month - jumlahBulan, tanggal);
   }
 
   static final List<String> daftarSumberDana = [
@@ -130,6 +132,25 @@ class AppData {
     LucideIcons.pawPrint,
   ];
 
+  static final List<IconData> opsiIkonImpian = [
+    LucideIcons.smartphone,
+    LucideIcons.laptop,
+    LucideIcons.gamepad2,
+    LucideIcons.headphones,
+    LucideIcons.camera,
+    LucideIcons.watch,
+    LucideIcons.keyboard,
+    LucideIcons.mouse,
+    LucideIcons.car,
+    LucideIcons.bike,
+    LucideIcons.house,
+    LucideIcons.plane,
+    LucideIcons.ticket,
+    LucideIcons.shirt,
+    LucideIcons.gift,
+    LucideIcons.star,
+  ];
+
   // Nama ini dipakai sistem (budget, transfer, pelunasan utang), jadi tidak boleh jadi nama kategori.
   static final List<String> namaKhusus = ['Tabungan', 'Transfer', 'Pelunasan'];
 
@@ -227,6 +248,16 @@ class AppData {
     ),
     CatatanTransaksi(
       kategori: 'Transfer',
+      catatan: 'Nabung untuk Mouse Logitech M331',
+      nominal: 391350,
+      ikon: LucideIcons.arrowLeftRight,
+      tanggal: _bulanIni(9),
+      isTransfer: true,
+      sumberDana: 'Rekening Bank',
+      sumberTujuan: 'Tabungan',
+    ),
+    CatatanTransaksi(
+      kategori: 'Transfer',
       catatan: 'Tabungan Bulanan',
       nominal: 500000,
       ikon: LucideIcons.arrowLeftRight,
@@ -250,6 +281,16 @@ class AppData {
       nominal: 62000,
       ikon: LucideIcons.utensils,
       tanggal: _bulanIni(14),
+    ),
+    CatatanTransaksi(
+      kategori: 'Transfer',
+      catatan: 'Nabung untuk Mechanical Keyboard Keychron Q1',
+      nominal: 1200000,
+      ikon: LucideIcons.arrowLeftRight,
+      tanggal: _bulanLalu(20),
+      isTransfer: true,
+      sumberDana: 'Rekening Bank',
+      sumberTujuan: 'Tabungan',
     ),
     CatatanTransaksi(
       kategori: 'Hiburan',
@@ -291,6 +332,26 @@ class AppData {
       isPemasukan: true,
       sumberDana: 'Rekening Bank',
     ),
+    CatatanTransaksi(
+      kategori: 'Transfer',
+      catatan: 'Nabung untuk Tiket Konser Luar Negeri',
+      nominal: 1500000,
+      ikon: LucideIcons.arrowLeftRight,
+      tanggal: _mundurBulan(2, 15),
+      isTransfer: true,
+      sumberDana: 'Rekening Bank',
+      sumberTujuan: 'Tabungan',
+    ),
+    CatatanTransaksi(
+      kategori: 'Transfer',
+      catatan: 'Nabung untuk Sony PlayStation 5 Slim',
+      nominal: 1500000,
+      ikon: LucideIcons.arrowLeftRight,
+      tanggal: _mundurBulan(3, 15),
+      isTransfer: true,
+      sumberDana: 'Rekening Bank',
+      sumberTujuan: 'Tabungan',
+    ),
   ];
 
   static final List<WishlistItem> daftarWishlist = [
@@ -299,7 +360,7 @@ class AppData {
       mataUang: 'USD',
       hargaAsing: 499,
       targetIdr: 7811346,
-      terkumpulIdr: 5200000,
+      terkumpulIdr: 1500000,
       ikon: LucideIcons.gamepad2,
     ),
     WishlistItem(
@@ -307,7 +368,7 @@ class AppData {
       mataUang: 'JPY',
       hargaAsing: 35000,
       targetIdr: 3640000,
-      terkumpulIdr: 2800000,
+      terkumpulIdr: 1500000,
       ikon: LucideIcons.ticket,
     ),
     WishlistItem(
@@ -315,16 +376,24 @@ class AppData {
       mataUang: 'USD',
       hargaAsing: 190,
       targetIdr: 2974260,
-      terkumpulIdr: 2974260,
+      terkumpulIdr: 1200000,
       ikon: LucideIcons.keyboard,
+    ),
+    WishlistItem(
+      nama: 'Mouse Logitech M331',
+      mataUang: 'USD',
+      hargaAsing: 25,
+      targetIdr: 391350,
+      terkumpulIdr: 391350,
+      ikon: LucideIcons.mouse,
     ),
   ];
 
   static final List<BudgetItem> daftarBudget = [
-    BudgetItem(kategori: 'Makan', limit: 1800000),
-    BudgetItem(kategori: 'Bensin', limit: 600000),
+    BudgetItem(kategori: 'Makan', limit: 1400000),
+    BudgetItem(kategori: 'Bensin', limit: 400000),
     BudgetItem(kategori: 'Tagihan', limit: 1200000),
-    BudgetItem(kategori: 'Tabungan', limit: 1000000),
+    BudgetItem(kategori: 'Tabungan', limit: 2000000),
   ];
 
   static final List<UtangItem> daftarUtang = [
@@ -369,13 +438,6 @@ class AppData {
       'Pengeluaran terbesarmu bulan ini ada di Tagihan, jadi coba cek lagi paket internet yang mungkin bisa diganti lebih murah. '
       'Uang jajan kopi dan makan di luar juga lumayan, kalau dikurangi sedikit tiap minggu sisanya bisa langsung masuk ke tabungan PlayStation 5 Slim. '
       'Targetnya sudah lewat setengah jalan, tinggal konsisten beberapa bulan lagi.';
-
-  static final List<String> tipsValas = [
-    'Saat menabung untuk barang berharga mata uang asing, sisihkan cadangan sekitar 3% untuk mengantisipasi fluktuasi kurs.',
-    'Beli atau konversi mata uang asing secara bertahap (cicil) ketika nilai tukar Rupiah sedang menguat.',
-    'Hindari menukar mata uang asing mendekati akhir pekan karena selisih kurs beli dan jual biasanya lebih lebar.',
-    'Manfaatkan kalkulator kurs sebelum membeli barang dari luar negeri untuk menghitung estimasi pajak dan biaya kirim.',
-  ];
 
   static void tambahTransaksi(CatatanTransaksi item) {
     daftarTransaksi.insert(0, item);
@@ -429,14 +491,33 @@ class AppData {
     refreshNotifier.value++;
   }
 
-  static void tambahTabunganWishlist(int index, int nominal) {
-    var item = daftarWishlist[index];
-    if (item.terkumpulIdr + nominal >= item.targetIdr) {
-      item.terkumpulIdr = item.targetIdr;
-    } else {
-      item.terkumpulIdr += nominal;
-    }
+  // Uang tabungan dipindah ke dompet Tabungan supaya ikut terhitung di budget Tabungan.
+  static int tambahTabunganWishlist(WishlistItem item, int nominal) {
+    int sisa = item.targetIdr - item.terkumpulIdr;
+    int disimpan = nominal > sisa ? sisa : nominal;
+    item.terkumpulIdr += disimpan;
+    tambahTransaksi(
+      CatatanTransaksi(
+        kategori: 'Transfer',
+        catatan: 'Nabung untuk ${item.nama}',
+        nominal: disimpan,
+        ikon: LucideIcons.arrowLeftRight,
+        tanggal: DateTime.now(),
+        isTransfer: true,
+        sumberDana: 'Kantong Utama',
+        sumberTujuan: 'Tabungan',
+      ),
+    );
+    return disimpan;
+  }
+
+  static void hapusWishlist(WishlistItem item) {
+    daftarWishlist.remove(item);
     refreshNotifier.value++;
+  }
+
+  static int targetDariKurs(String mataUang, int harga) {
+    return harga * (kursKeIdr[mataUang] ?? 0);
   }
 
   // Dipusatkan di sini supaya Beranda dan Wishlist memakai kurs yang sama.

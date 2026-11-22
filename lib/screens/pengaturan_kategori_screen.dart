@@ -6,6 +6,7 @@ import '../models/kategori.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_bar_turunan.dart';
 import '../widgets/dialog_konfirmasi_hapus.dart';
+import '../widgets/grid_pilih_ikon.dart';
 import '../widgets/ikon_bulat.dart';
 import '../widgets/pilihan_segmen.dart';
 import '../widgets/tombol_utama.dart';
@@ -163,20 +164,10 @@ class _PengaturanKategoriScreenState extends State<PengaturanKategoriScreen> {
                 const SizedBox(height: JarakApp.j16),
                 const Text('Ikon', style: TeksApp.kecil),
                 const SizedBox(height: JarakApp.j8),
-                GridView.count(
-                  crossAxisCount: 4,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  mainAxisSpacing: JarakApp.j12,
-                  childAspectRatio: 1.4,
-                  children: [
-                    for (var pilihan in AppData.opsiIkonKategori)
-                      _bangunOpsiIkon(
-                        pilihan,
-                        pilihan == ikon,
-                        () => setSheet(() => ikon = pilihan),
-                      ),
-                  ],
+                GridPilihIkon(
+                  daftarIkon: AppData.opsiIkonKategori,
+                  terpilih: ikon,
+                  onPilih: (pilihan) => setSheet(() => ikon = pilihan),
                 ),
                 const SizedBox(height: JarakApp.j24),
                 TombolUtama(
@@ -192,26 +183,6 @@ class _PengaturanKategoriScreenState extends State<PengaturanKategoriScreen> {
             ),
           );
         },
-      ),
-    );
-  }
-
-  Widget _bangunOpsiIkon(IconData ikon, bool aktif, VoidCallback onTekan) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTekan,
-      child: Center(
-        child: aktif
-            ? Container(
-                width: 48,
-                height: 48,
-                decoration: const BoxDecoration(
-                  color: WarnaApp.primer,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(ikon, size: 24, color: WarnaApp.diAtasPrimer),
-              )
-            : IkonBulat(ikon: ikon, ukuran: 48),
       ),
     );
   }

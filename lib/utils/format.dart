@@ -62,6 +62,13 @@ String formatTanggalPendek(DateTime t) {
   return '${t.day} ${namaBulan[t.month - 1]}';
 }
 
+// Lebih dari 12 bulan ditulis dalam tahun supaya lebih mudah dibayangkan.
+String formatEstimasiBulan(int bulan) {
+  if (bulan < 12) return 'sekitar $bulan bulan lagi';
+  if (bulan <= 36) return 'sekitar ${(bulan / 12).ceil()} tahun lagi';
+  return 'lebih dari 3 tahun lagi';
+}
+
 String formatTanggalPanjang(DateTime t) {
   return '${namaHari[t.weekday - 1]}, ${t.day} ${namaBulanPanjang[t.month - 1]} ${t.year}';
 }

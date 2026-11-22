@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../models/app_data.dart';
 import '../models/wishlist.dart';
-import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
+import '../utils/format_ribuan.dart';
+import '../widgets/dialog_konfirmasi_hapus.dart';
+import '../widgets/judul_seksi.dart';
+import '../widgets/kartu_impian.dart';
+import '../widgets/pilihan_segmen.dart';
+import '../widgets/sheet_impian_baru.dart';
+import '../widgets/sheet_input_nominal.dart';
 
 class WishlistScreen extends StatefulWidget {
   const WishlistScreen({super.key});
@@ -14,669 +21,211 @@ class WishlistScreen extends StatefulWidget {
 }
 
 class _WishlistScreenState extends State<WishlistScreen> {
-  String _mataUang = 'USD';
-  final TextEditingController _inputValasCtrl = TextEditingController(
-    text: '100',
-  );
-  int _indexTipsValas = 0;
-
-  final Map<String, int> _kursKeIdr = {
-    'USD': 15654,
-    'SGD': 11642,
-    'JPY': 104,
-    'EUR': 16950,
-  };
-
-  // Status API
-  final ApiService _apiService = ApiService();
+  final List<String> _daftarMataUang = AppData.kursKeIdr.keys.toList();
+  final TextEditingController _jumlahCtrl = TextEditingController(text: '100');
+  int _mataUang = 0;
   bool _sedangMemuat = false;
-  bool _kursLive = false;
-  String _infoKurs = 'Memakai kurs cadangan';
 
   @override
   void initState() {
     super.initState();
-    _ambilKurs();
+    // Kalau Beranda sudah mengambil kurs live, API tidak perlu dipanggil lagi.
+    if (!AppData.kursLive) _ambilKurs();
+  }
+
+  @override
+  void dispose() {
+    _jumlahCtrl.dispose();
+    super.dispose();
   }
 
   Future<void> _ambilKurs() async {
     setState(() => _sedangMemuat = true);
-
-    try {
-      final kurs = await _apiService.getKursIdr();
-
-      for (String kode in _kursKeIdr.keys.toList()) {
-        int nilai = kurs.keRupiah(kode);
-        if (nilai > 0) _kursKeIdr[kode] = nilai;
-      }
-
-      if (!mounted) return; // halaman sudah ditutup, jangan setState
-      setState(() {
-        _kursLive = true;
-        _infoKurs = 'Kurs live • ${kurs.waktuUpdate.substring(0, 16)}';
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _kursLive = false;
-        _infoKurs = 'Gagal ambil kurs, memakai kurs cadangan';
-      });
-    } finally {
-      if (mounted) setState(() => _sedangMemuat = false);
-    }
+    await AppData.perbaruiKurs();
+    if (mounted) setState(() => _sedangMemuat = false);
   }
 
-  int get _hasilKonversi {
-    int nominal = int.tryParse(_inputValasCtrl.text.replaceAll('.', '')) ?? 0;
-    return nominal * (_kursKeIdr[_mataUang] ?? 15654);
+  String get _kode => _daftarMataUang[_mataUang];
+
+  double _persen(WishlistItem w) => w.terkumpulIdr / w.targetIdr;
+
+  bool _tercapai(WishlistItem w) => w.terkumpulIdr >= w.targetIdr;
+
+  // Yang belum tercapai di atas dengan persen terbesar dulu, yang tercapai di bawah.
+  List<WishlistItem> _daftarUrut() {
+    List<WishlistItem> belum = AppData.daftarWishlist
+        .where((w) => !_tercapai(w))
+        .toList();
+    belum.sort((a, b) => _persen(b).compareTo(_persen(a)));
+    return [...belum, ...AppData.daftarWishlist.where(_tercapai)];
   }
 
-  void _dialogTambahWishlist() {
-    final TextEditingController namaCtrl = TextEditingController();
-    final TextEditingController hargaCtrl = TextEditingController();
-    String valasPilihan = 'USD';
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AlertDialog(
-              backgroundColor: Colors.white,
-              title: const Text(
-                'Tambah Impian Baru',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: namaCtrl,
-                    decoration: InputDecoration(
-                      labelText: 'Nama Barang Impian',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      DropdownButton<String>(
-                        value: valasPilihan,
-                        items: _kursKeIdr.keys
-                            .map(
-                              (k) => DropdownMenuItem(value: k, child: Text(k)),
-                            )
-                            .toList(),
-                        onChanged: (v) {
-                          if (v != null) setDialogState(() => valasPilihan = v);
-                        },
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: TextField(
-                          controller: hargaCtrl,
-                          keyboardType: TextInputType.number,
-                          decoration: InputDecoration(
-                            labelText: 'Harga Valas',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text(
-                    'Batal',
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryGreen,
-                    foregroundColor: Colors.white,
-                  ),
-                  onPressed: () {
-                    int harga = int.tryParse(hargaCtrl.text) ?? 0;
-                    if (namaCtrl.text.trim().isNotEmpty && harga > 0) {
-                      int kurs = _kursKeIdr[valasPilihan] ?? 15654;
-                      AppData.tambahWishlist(
-                        WishlistItem(
-                          nama: namaCtrl.text.trim(),
-                          mataUang: valasPilihan,
-                          hargaAsing: harga,
-                          targetIdr: harga * kurs,
-                          terkumpulIdr: 0,
-                          ikon: Icons.star_outline,
-                        ),
-                      );
-                      setState(() {});
-                      Navigator.pop(context);
-                    }
-                  },
-                  child: const Text('Simpan'),
-                ),
-              ],
-            );
-          },
+  void _bukaTabung(WishlistItem impian) {
+    bukaInputNominal(
+      context,
+      judul: 'Nabung untuk ${impian.nama}',
+      ikon: LucideIcons.piggyBank,
+      onSimpan: (nominal) {
+        int disimpan = AppData.tambahTabunganWishlist(impian, nominal);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '${formatRupiah(disimpan)} ditabung ke ${impian.nama}',
+            ),
+          ),
         );
       },
     );
+  }
+
+  Future<void> _hapus(WishlistItem impian) async {
+    bool? hapus = await showDialog<bool>(
+      context: context,
+      builder: (context) => const DialogKonfirmasiHapus(
+        judul: 'Hapus impian ini?',
+        pesan: 'Tabungan yang sudah tercatat tidak ikut dihapus.',
+      ),
+    );
+    if (hapus == true) AppData.hapusWishlist(impian);
   }
 
   @override
   Widget build(BuildContext context) {
-    double w = MediaQuery.of(context).size.width;
-    double x = w * 0.05;
-
-    return ValueListenableBuilder<int>(
-      valueListenable: AppData.refreshNotifier,
-      builder: (context, _, _) {
-        return Scaffold(
-          backgroundColor: bgGray,
-          body: SafeArea(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(x, 20, x, 100),
+    return Scaffold(
+      body: SafeArea(
+        child: ValueListenableBuilder<int>(
+          valueListenable: AppData.refreshNotifier,
+          builder: (context, nilai, child) {
+            return SingleChildScrollView(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _buildKonverterCard(),
-                  const SizedBox(height: 16),
-                  _buildTombolTambahImpian(),
-                  const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          const Text(
-                            'Target Wishlist',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.blue.shade50,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Text(
-                              '${AppData.daftarWishlist.length} Aktif',
-                              style: const TextStyle(
-                                color: Colors.blue,
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  ...List.generate(AppData.daftarWishlist.length, (index) {
-                    return _buildWishlistCard(
-                      AppData.daftarWishlist[index],
-                      index,
-                    );
-                  }),
-                  const SizedBox(height: 12),
-                  _buildTipsValasCard(),
+                  _seksi(_bangunHeader()),
+                  _seksi(_bangunKonverter()),
+                  _bangunPita(),
+                  _seksi(_bangunDaftarImpian()),
+                  const SizedBox(height: JarakApp.j24),
                 ],
               ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildKonverterCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: cardDecoration,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.currency_exchange,
-                  color: Colors.blue,
-                  size: 18,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Konverter Valas Cepat',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                  ),
-                  Text(
-                    'Estimasi harga barang luar negeri',
-                    style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
-                  ),
-                ],
-              ),
-              const Spacer(),
-              // Tombol untuk memanggil ulang API kurs
-              _sedangMemuat
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : IconButton(
-                      onPressed: _ambilKurs,
-                      icon: const Icon(Icons.refresh, size: 20),
-                      color: Colors.blue,
-                      tooltip: 'Perbarui kurs',
-                    ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '$_infoKurs  •  1 $_mataUang = Rp ${formatTitik(_kursKeIdr[_mataUang] ?? 0)}',
-            style: TextStyle(
-              fontSize: 11,
-              color: _kursLive ? primaryGreen : Colors.orange.shade800,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const Text(
-            'Rates By Exchange Rate API',
-            style: TextStyle(fontSize: 9, color: Colors.grey),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: bgGray,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Mata Uang Asing',
-                        style: TextStyle(fontSize: 10, color: Colors.grey),
-                      ),
-                      Row(
-                        children: [
-                          DropdownButton<String>(
-                            value: _mataUang,
-                            underline: const SizedBox(),
-                            isDense: true,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                              fontSize: 13,
-                            ),
-                            items: _kursKeIdr.keys
-                                .map(
-                                  (k) => DropdownMenuItem(
-                                    value: k,
-                                    child: Text(k),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: (val) {
-                              if (val != null) setState(() => _mataUang = val);
-                            },
-                          ),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: TextField(
-                              controller: _inputValasCtrl,
-                              keyboardType: TextInputType.number,
-                              onChanged: (_) => setState(() {}),
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
-                              decoration: const InputDecoration(
-                                border: InputBorder.none,
-                                isDense: true,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8),
-                child: Icon(Icons.arrow_forward, size: 18, color: Colors.grey),
-              ),
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFDCFCE7),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Rupiah (IDR)',
-                        style: TextStyle(fontSize: 10, color: Colors.black54),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Rp ${formatTitik(_hasilKonversi)}',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                          color: primaryGreen,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTombolTambahImpian() {
-    return InkWell(
-      onTap: _dialogTambahWishlist,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: primaryGreen,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.stars_outlined,
-                    color: Colors.greenAccent,
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '+ Tambah Impian Baru',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
-                    Text(
-                      'Kalkulasi otomatis dengan kurs terkini',
-                      style: TextStyle(color: Colors.white70, fontSize: 11),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const Icon(
-              Icons.add_circle_outline,
-              color: Colors.greenAccent,
-              size: 22,
-            ),
-          ],
+            );
+          },
         ),
       ),
     );
   }
 
-  Widget _buildWishlistCard(WishlistItem item, int index) {
-    double prog = (item.terkumpulIdr / item.targetIdr).clamp(0.0, 1.0);
-    bool lunas = prog >= 1.0;
+  Widget _seksi(Widget isi) => Padding(
+    padding: const EdgeInsets.symmetric(
+      horizontal: JarakApp.tepiHalaman,
+      vertical: JarakApp.j16,
+    ),
+    child: isi,
+  );
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 14),
-      padding: const EdgeInsets.all(16),
-      decoration: cardDecoration,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: primaryGreen.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(item.ikon, color: primaryGreen, size: 26),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: bgGray,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            '${item.mataUang} ${formatTitik(item.hargaAsing)}',
-                            style: const TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                            ),
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: lunas
-                                ? const Color(0xFFDCFCE7)
-                                : Colors.blue.shade50,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            '${(prog * 100).toInt()}%',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: lunas ? primaryGreen : Colors.blue,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      item.nama,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                      ),
-                    ),
-                    Text(
-                      'Estimasi: Rp ${formatTitik(item.targetIdr)}',
-                      style: TextStyle(
-                        color: Colors.grey.shade600,
-                        fontSize: 11,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+  Widget _bangunPita() => Container(height: 8, color: WarnaApp.latarSeksi);
+
+  Widget _bangunHeader() {
+    return const Text('Wishlist', style: TeksApp.judulHalaman);
+  }
+
+  Widget _bangunTombolRefresh() {
+    if (_sedangMemuat) {
+      return const SizedBox(
+        width: 20,
+        height: 20,
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          color: WarnaApp.primer,
+        ),
+      );
+    }
+    return GestureDetector(
+      onTap: _ambilKurs,
+      child: const Icon(
+        LucideIcons.refreshCw,
+        size: 20,
+        color: WarnaApp.teksKedua,
+      ),
+    );
+  }
+
+  Widget _bangunKonverter() {
+    int kurs = AppData.kursKeIdr[_kode] ?? 0;
+    int hasil = bacaAngka(_jumlahCtrl.text) * kurs;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        JudulSeksi(judul: 'Konverter valas', ujung: _bangunTombolRefresh()),
+        const SizedBox(height: JarakApp.j16),
+        PilihanSegmen(
+          pilihan: _daftarMataUang,
+          indeksAktif: _mataUang,
+          onPilih: (i) => setState(() => _mataUang = i),
+        ),
+        const SizedBox(height: JarakApp.j12),
+        TextField(
+          controller: _jumlahCtrl,
+          keyboardType: TextInputType.number,
+          inputFormatters: [FormatRibuan()],
+          decoration: InputDecoration(
+            hintText: 'Jumlah',
+            prefixText: '$_kode ',
           ),
-          const SizedBox(height: 14),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Terkumpul: Rp ${formatTitik(item.terkumpulIdr)}',
-                style: TextStyle(
-                  color: primaryGreen,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 11,
-                ),
-              ),
-              Text(
-                'Target: Rp ${formatTitik(item.targetIdr)}',
-                style: TextStyle(color: Colors.grey.shade600, fontSize: 11),
-              ),
-            ],
+          onChanged: (_) => setState(() {}),
+        ),
+        const SizedBox(height: JarakApp.j16),
+        // Angka besar dikecilkan kalau tidak muat, bukan dipotong.
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text('Rp ${formatTitik(hasil)}', style: TeksApp.angkaBesar),
+        ),
+        const SizedBox(height: JarakApp.j8),
+        Text(
+          '1 $_kode = ${formatRupiah(kurs)} · ${AppData.infoKurs}',
+          style: TeksApp.kecil.copyWith(
+            color: AppData.kursLive ? WarnaApp.primer : WarnaApp.teksRedup,
           ),
-          const SizedBox(height: 6),
-          LinearProgressIndicator(
-            value: prog,
-            backgroundColor: Colors.grey.shade200,
-            valueColor: AlwaysStoppedAnimation<Color>(primaryGreen),
-            minHeight: 7,
-            borderRadius: BorderRadius.circular(4),
+        ),
+        const SizedBox(height: JarakApp.j4),
+        const Text('Rates By Exchange Rate API', style: TeksApp.mini),
+      ],
+    );
+  }
+
+  Widget _bangunDaftarImpian() {
+    List<WishlistItem> daftar = _daftarUrut();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        JudulSeksi(
+          judul: 'Impianku',
+          aksi: '+ Tambah',
+          onAksi: () => bukaSheetImpianBaru(context),
+        ),
+        const SizedBox(height: JarakApp.j8),
+        if (daftar.isEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: JarakApp.j16),
+            child: Text(
+              'Belum ada impian. Tekan + Tambah untuk mulai.',
+              style: TeksApp.kecil,
+            ),
           ),
-          const SizedBox(height: 14),
-          SizedBox(
-            width: double.infinity,
-            height: 40,
-            child: ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: lunas ? Colors.teal : primaryGreen,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              onPressed: () {
-                if (!lunas) {
-                  AppData.tambahTabunganWishlist(index, 250000);
-                }
-              },
-              icon: Icon(
-                lunas ? Icons.check_circle_outline : Icons.add_circle_outline,
-                size: 16,
-              ),
-              label: Text(
-                lunas ? 'Target Tabungan Tercapai' : '+ Nabung Rp 250.000',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
-              ),
+        for (int i = 0; i < daftar.length; i++) ...[
+          if (i > 0) const Divider(height: 1),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: JarakApp.j16),
+            child: KartuImpian(
+              impian: daftar[i],
+              onTabung: () => _bukaTabung(daftar[i]),
+              onHapus: () => _hapus(daftar[i]),
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildTipsValasCard() {
-    return InkWell(
-      onTap: () {
-        setState(() {
-          _indexTipsValas = (_indexTipsValas + 1) % AppData.tipsValas.length;
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0xFFE0F2FE),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.trending_up, color: primaryGreen, size: 18),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'Tips Valas & Tabungan',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                ),
-                Text(
-                  'Ketuk ganti (${_indexTipsValas + 1}/${AppData.tipsValas.length})',
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: primaryGreen,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Text(
-              AppData.tipsValas[_indexTipsValas],
-              style: const TextStyle(
-                fontSize: 12,
-                color: Colors.black87,
-                height: 1.4,
-              ),
-            ),
-          ],
-        ),
-      ),
+      ],
     );
   }
 }

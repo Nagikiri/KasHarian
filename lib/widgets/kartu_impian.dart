@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../models/app_data.dart';
 import '../models/wishlist.dart';
@@ -9,55 +10,104 @@ import 'progress_tipis.dart';
 
 class KartuImpian extends StatelessWidget {
   final WishlistItem impian;
+  final VoidCallback? onTabung;
+  final VoidCallback? onHapus;
 
-  const KartuImpian({super.key, required this.impian});
+  const KartuImpian({
+    super.key,
+    required this.impian,
+    this.onTabung,
+    this.onHapus,
+  });
 
   @override
   Widget build(BuildContext context) {
     double persen = impian.terkumpulIdr / impian.targetIdr;
     int estimasi = AppData.estimasiBulanWishlist(impian);
 
-    return Column(
+    // Progress dan baris di bawahnya ikut kolom teks, jadi semuanya sejajar dengan nama.
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            IkonBulat(ikon: impian.ikon),
-            const SizedBox(width: JarakApp.j12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        IkonBulat(ikon: impian.ikon),
+        const SizedBox(width: JarakApp.j12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 children: [
-                  Text(impian.nama, style: TeksApp.isi),
-                  const SizedBox(height: JarakApp.j4),
+                  Expanded(child: Text(impian.nama, style: TeksApp.judulSeksi)),
+                  if (onHapus != null)
+                    GestureDetector(
+                      onTap: onHapus,
+                      child: const Icon(
+                        LucideIcons.trash2,
+                        size: 18,
+                        color: WarnaApp.teksRedup,
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: JarakApp.j4),
+              Text(formatRupiah(impian.targetIdr), style: TeksApp.angka),
+              Text(
+                '${impian.mataUang} ${formatTitik(impian.hargaAsing)}',
+                style: TeksApp.kecil,
+              ),
+              const SizedBox(height: JarakApp.j12),
+              ProgressTipis(persen: persen, pakaiWarnaStatus: false, tebal: 8),
+              const SizedBox(height: JarakApp.j8),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      '${formatRupiah(impian.terkumpulIdr)} terkumpul',
+                      style: TeksApp.isi.copyWith(color: WarnaApp.teksUtama),
+                    ),
+                  ),
                   Text(
-                    '${impian.mataUang} ${formatTitik(impian.hargaAsing)}'
-                    ' · ${formatRupiah(impian.targetIdr)}',
-                    style: TeksApp.kecil,
+                    '${(persen * 100).floor()}%',
+                    style: TeksApp.angka.copyWith(color: WarnaApp.primer),
                   ),
                 ],
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: JarakApp.j12),
-        ProgressTipis(persen: persen, pakaiWarnaStatus: false),
-        const SizedBox(height: JarakApp.j8),
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                '${formatRupiah(impian.terkumpulIdr)} terkumpul'
-                ' · ${(persen * 100).floor()}%',
-                style: TeksApp.kecil,
+              const SizedBox(height: JarakApp.j8),
+              Row(
+                children: [
+                  // Estimasi 0 berarti budget 'Tabungan' belum ada atau target sudah tercapai.
+                  Expanded(
+                    child: Text(
+                      estimasi > 0 ? formatEstimasiBulan(estimasi) : '',
+                      style: TeksApp.kecil,
+                    ),
+                  ),
+                  _bangunAksi(persen >= 1),
+                ],
               ),
-            ),
-            // Estimasi 0 berarti budget 'Tabungan' belum ada.
-            if (estimasi > 0)
-              Text('± $estimasi bulan lagi', style: TeksApp.kecil),
-          ],
+            ],
+          ),
         ),
       ],
+    );
+  }
+
+  Widget _bangunAksi(bool tercapai) {
+    TextStyle gaya = TeksApp.tombolKecil.copyWith(color: WarnaApp.primer);
+    if (tercapai) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(LucideIcons.circleCheck, size: 16, color: WarnaApp.primer),
+          const SizedBox(width: JarakApp.j4),
+          Text('Target tercapai', style: gaya),
+        ],
+      );
+    }
+    if (onTabung == null) return const SizedBox.shrink();
+    return GestureDetector(
+      onTap: onTabung,
+      child: Text('Tambah tabungan', style: gaya),
     );
   }
 }

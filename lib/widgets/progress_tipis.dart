@@ -5,11 +5,13 @@ import '../theme/app_theme.dart';
 class ProgressTipis extends StatelessWidget {
   final double persen;
   final bool pakaiWarnaStatus;
+  final double tebal;
 
   const ProgressTipis({
     super.key,
     required this.persen,
     this.pakaiWarnaStatus = true,
+    this.tebal = 6,
   });
 
   @override
@@ -20,10 +22,10 @@ class ProgressTipis extends StatelessWidget {
     double lebarIsi = persen.clamp(0.0, 1.0).toDouble();
 
     return Container(
-      height: 6,
+      height: tebal,
       alignment: Alignment.centerLeft,
       decoration: BoxDecoration(
-        color: WarnaApp.latarSeksi,
+        color: WarnaApp.garis,
         borderRadius: BorderRadius.circular(RadiusApp.pill),
       ),
       child: FractionallySizedBox(

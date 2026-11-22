@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../models/app_data.dart';
 import '../models/utang.dart';
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
 import '../widgets/app_bar_turunan.dart';
+import '../widgets/baris_isian.dart';
 import '../widgets/baris_utang.dart';
 import '../widgets/kolom_angka.dart';
 import '../widgets/pilihan_segmen.dart';
+import '../widgets/sheet_input_nominal.dart';
 import '../widgets/tombol_utama.dart';
 
 class UtangScreen extends StatefulWidget {
@@ -125,7 +127,7 @@ class _UtangScreenState extends State<UtangScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text('Catat Utang', style: TeksApp.judulHalaman),
+                const Text('Catat Utang', style: TeksApp.judulSeksi),
                 const SizedBox(height: JarakApp.j16),
                 PilihanSegmen(
                   pilihan: const ['Utang', 'Piutang'],
@@ -139,21 +141,24 @@ class _UtangScreenState extends State<UtangScreen> {
                 ),
                 const SizedBox(height: JarakApp.j12),
                 TextField(
-                  decoration: const InputDecoration(hintText: 'Nominal'),
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    LengthLimitingTextInputFormatter(10),
-                  ],
-                  onChanged: (v) =>
-                      setSheet(() => nominal = int.tryParse(v) ?? 0),
-                ),
-                const SizedBox(height: JarakApp.j12),
-                TextField(
                   decoration: const InputDecoration(hintText: 'Keterangan'),
                   onChanged: (v) => keterangan = v,
                 ),
-                const SizedBox(height: JarakApp.j24),
+                const SizedBox(height: JarakApp.j4),
+                BarisIsian(
+                  ikon: LucideIcons.banknote,
+                  label: 'Nominal',
+                  nilai: nominal > 0 ? formatRupiah(nominal) : 'Isi nominal',
+                  warnaNilai: nominal > 0 ? null : WarnaApp.teksRedup,
+                  onTekan: () => bukaInputNominal(
+                    context,
+                    judul: jenis == 0 ? 'Nominal utang' : 'Nominal piutang',
+                    ikon: LucideIcons.handCoins,
+                    nominalAwal: nominal,
+                    onSimpan: (n) => setSheet(() => nominal = n),
+                  ),
+                ),
+                const SizedBox(height: JarakApp.j16),
                 TombolUtama(
                   teks: 'Simpan',
                   onTekan: bisaSimpan
