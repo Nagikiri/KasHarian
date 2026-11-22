@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../services/api_service.dart';
+import '../theme/app_theme.dart';
+import '../utils/format.dart';
 import 'budget.dart';
 import 'kategori.dart';
 import 'transaksi.dart';
@@ -392,6 +395,13 @@ class AppData {
     'EUR': 16950,
   };
 
+  // Diawali kurs cadangan, lalu ditimpa hasil API saat berhasil.
+  static final Map<String, int> kursKeIdr = Map.of(kursCadangan);
+  static String infoKurs = 'Kurs cadangan';
+  static bool kursLive = false;
+  // Tetap true walau refresh berikutnya gagal, supaya tahu kursKeIdr berisi hasil API.
+  static bool kursPernahLive = false;
+
   static const String contohSaranAi =
       'Pengeluaran terbesarmu bulan ini ada di Tagihan, jadi coba cek lagi paket internet yang mungkin bisa diganti lebih murah. '
       'Uang jajan kopi dan makan di luar juga lumayan, kalau dikurangi sedikit tiap minggu sisanya bisa langsung masuk ke tabungan PlayStation 5 Slim. '
@@ -441,8 +451,108 @@ class AppData {
     refreshNotifier.value++;
   }
 
+  // Dipusatkan di sini supaya Beranda dan Wishlist memakai kurs yang sama.
+  static Future<void> perbaruiKurs() async {
+    try {
+      final kurs = await ApiService().getKursIdr();
+      for (String kode in kursKeIdr.keys.toList()) {
+        int nilai = kurs.keRupiah(kode);
+        if (nilai > 0) kursKeIdr[kode] = nilai;
+      }
+      kursLive = true;
+      kursPernahLive = true;
+      infoKurs =
+          'Kurs live · diperbarui ${formatTanggalPendek(DateTime.now())}';
+    } catch (_) {
+      kursLive = false;
+      infoKurs = kursPernahLive
+          ? 'Gagal memperbarui, memakai kurs terakhir'
+          : 'Gagal ambil kurs, memakai kurs cadangan';
+    }
+    refreshNotifier.value++;
+  }
+
+  static void tambahUtang(UtangItem item) {
+    daftarUtang.insert(0, item);
+    refreshNotifier.value++;
+  }
+
+  // Pelunasan dicatat sebagai transaksi supaya saldo ikut berubah.
+  static void lunasiUtang(UtangItem item) {
+    item.lunas = true;
+    bool piutang = item.jenis == 'Piutang';
+    tambahTransaksi(
+      CatatanTransaksi(
+        kategori: 'Pelunasan',
+        catatan: piutang
+            ? 'Pelunasan dari ${item.nama}'
+            : 'Bayar utang ke ${item.nama}',
+        nominal: item.nominal,
+        ikon: LucideIcons.handCoins,
+        warna: WarnaApp.teksUtama,
+        tanggal: DateTime.now(),
+        isPemasukan: piutang,
+        sumberDana: 'Kantong Utama',
+      ),
+    );
+  }
+
+  // Hasil 0 berarti budget 'Setor Tabungan' belum ada, jadi estimasi tidak bisa dihitung.
+  static int estimasiBulanWishlist(WishlistItem item) {
+    int limit = 0;
+    for (var b in daftarBudget) {
+      if (b.kategori == 'Setor Tabungan') limit = b.limit;
+    }
+    if (limit <= 0) return 0;
+    int sisa = item.targetIdr - item.terkumpulIdr;
+    // Dibulatkan ke atas: sisa 1,2 bulan tetap dihitung 2 bulan.
+    return (sisa / limit).ceil();
+  }
+
+  static int totalBelumLunas(String jenis) {
+    int total = 0;
+    for (var u in daftarUtang) {
+      if (u.jenis == jenis && !u.lunas) total += u.nominal;
+    }
+    return total;
+  }
+
   static bool _bulanSama(DateTime a, DateTime b) {
     return a.year == b.year && a.month == b.month;
+  }
+
+  // Tahun dan bulan diubah jadi satu angka supaya mudah dibandingkan lebih kecil atau lebih besar.
+  static int _nomorBulan(DateTime t) => t.year * 12 + t.month - 1;
+
+  static bool punyaTransaksi(DateTime bulan) {
+    for (var t in daftarTransaksi) {
+      if (_bulanSama(t.tanggal, bulan)) return true;
+    }
+    return false;
+  }
+
+  static DateTime? bulanBerdataSebelum(DateTime bulan) {
+    DateTime? hasil;
+    for (var t in daftarTransaksi) {
+      int nomor = _nomorBulan(t.tanggal);
+      bool sebelum = nomor < _nomorBulan(bulan);
+      if (sebelum && (hasil == null || nomor > _nomorBulan(hasil))) {
+        hasil = DateTime(t.tanggal.year, t.tanggal.month);
+      }
+    }
+    return hasil;
+  }
+
+  static DateTime? bulanBerdataSesudah(DateTime bulan) {
+    DateTime? hasil;
+    for (var t in daftarTransaksi) {
+      int nomor = _nomorBulan(t.tanggal);
+      bool sesudah = nomor > _nomorBulan(bulan);
+      if (sesudah && (hasil == null || nomor < _nomorBulan(hasil))) {
+        hasil = DateTime(t.tanggal.year, t.tanggal.month);
+      }
+    }
+    return hasil;
   }
 
   static int pemasukanBulan(DateTime bulan) {

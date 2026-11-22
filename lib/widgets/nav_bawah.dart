@@ -17,24 +17,37 @@ class NavBawah extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: WarnaApp.latar,
-        border: Border(top: BorderSide(color: WarnaApp.garis)),
-      ),
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          height: 64,
-          child: Row(
-            children: [
-              _bangunItem(LucideIcons.house, 'Beranda', 0),
-              _bangunItem(LucideIcons.receiptText, 'Transaksi', 1),
-              Expanded(child: Center(child: _bangunTombolTambah())),
-              _bangunItem(LucideIcons.heart, 'Wishlist', 2),
-              _bangunItem(LucideIcons.chartPie, 'Ringkasan', 3),
-            ],
-          ),
+    // Area transparan 16 di atas bar 64 menampung tombol + supaya tetap bisa ditekan.
+    return SafeArea(
+      top: false,
+      child: SizedBox(
+        height: 80,
+        child: Stack(
+          alignment: Alignment.topCenter,
+          children: [
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: 64,
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: WarnaApp.latar,
+                  border: Border(top: BorderSide(color: WarnaApp.garis)),
+                ),
+                child: Row(
+                  children: [
+                    _bangunItem(LucideIcons.house, 'Beranda', 0),
+                    _bangunItem(LucideIcons.receiptText, 'Transaksi', 1),
+                    const Expanded(child: SizedBox.shrink()),
+                    _bangunItem(LucideIcons.heart, 'Wishlist', 2),
+                    _bangunItem(LucideIcons.chartPie, 'Ringkasan', 3),
+                  ],
+                ),
+              ),
+            ),
+            _bangunTombolTambah(),
+          ],
         ),
       ),
     );
@@ -52,11 +65,15 @@ class NavBawah extends StatelessWidget {
           children: [
             Icon(ikon, size: 22, color: warna),
             const SizedBox(height: JarakApp.j4),
-            Text(
-              label,
-              style: TeksApp.labelNav.copyWith(
-                color: warna,
-                fontWeight: aktif ? FontWeight.w600 : FontWeight.w500,
+            // Label dikecilkan otomatis di layar sempit supaya tidak terpotong.
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                label,
+                style: TeksApp.labelNav.copyWith(
+                  color: warna,
+                  fontWeight: aktif ? FontWeight.w600 : FontWeight.w500,
+                ),
               ),
             ),
           ],
@@ -66,16 +83,27 @@ class NavBawah extends StatelessWidget {
   }
 
   Widget _bangunTombolTambah() {
-    return Material(
-      color: WarnaApp.primer,
-      shape: const CircleBorder(),
-      child: InkWell(
-        onTap: onTambah,
-        customBorder: const CircleBorder(),
-        child: const SizedBox(
-          width: 44,
-          height: 44,
-          child: Icon(LucideIcons.plus, size: 22, color: WarnaApp.diAtasPrimer),
+    return Container(
+      padding: const EdgeInsets.all(JarakApp.j4),
+      decoration: const BoxDecoration(
+        color: WarnaApp.latar,
+        shape: BoxShape.circle,
+      ),
+      child: Material(
+        color: WarnaApp.primer,
+        shape: const CircleBorder(),
+        child: InkWell(
+          onTap: onTambah,
+          customBorder: const CircleBorder(),
+          child: const SizedBox(
+            width: 56,
+            height: 56,
+            child: Icon(
+              LucideIcons.plus,
+              size: 26,
+              color: WarnaApp.diAtasPrimer,
+            ),
+          ),
         ),
       ),
     );

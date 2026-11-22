@@ -4,12 +4,18 @@ import '../theme/app_theme.dart';
 
 class ProgressTipis extends StatelessWidget {
   final double persen;
+  final bool pakaiWarnaStatus;
 
-  const ProgressTipis({super.key, required this.persen});
+  const ProgressTipis({
+    super.key,
+    required this.persen,
+    this.pakaiWarnaStatus = true,
+  });
 
   @override
   Widget build(BuildContext context) {
-    Color warnaIsi = persen >= 0.9 ? WarnaApp.bahaya : WarnaApp.aksen;
+    // Tabungan memakai primer saja, karena persen tinggi di sana itu kabar baik.
+    Color warnaIsi = pakaiWarnaStatus ? warnaStatus(persen) : WarnaApp.primer;
     // Dibatasi 0 sampai 100% supaya isi tidak keluar dari track.
     double lebarIsi = persen.clamp(0.0, 1.0).toDouble();
 

@@ -12,6 +12,15 @@ class WarnaApp {
   static const Color aksenLembut = Color(0xFFEEF8E6);
   static const Color bahaya = Color(0xFFC8372D);
   static const Color diAtasPrimer = Color(0xFFFFFFFF);
+  static const Color peringatan = Color(0xFFD97706);
+  static const Color garisAksen = Color(0xFFD6EBC6);
+}
+
+// Satu aturan warna untuk semua progress dan persen di aplikasi.
+Color warnaStatus(double persen) {
+  if (persen >= 0.9) return WarnaApp.bahaya;
+  if (persen >= 0.8) return WarnaApp.peringatan;
+  return WarnaApp.primer;
 }
 
 class TeksApp {
@@ -66,6 +75,12 @@ class TeksApp {
     fontWeight: FontWeight.w600,
     color: WarnaApp.teksUtama,
   );
+  static const TextStyle mini = TextStyle(
+    fontFamily: _font,
+    fontSize: 10,
+    fontWeight: FontWeight.w400,
+    color: WarnaApp.teksRedup,
+  );
   static const TextStyle labelNav = TextStyle(
     fontFamily: _font,
     fontSize: 11,
@@ -82,6 +97,7 @@ class JarakApp {
   static const double j24 = 24;
   static const double j32 = 32;
   static const double tepiHalaman = 20;
+  static const double dalamKartu = 14;
 }
 
 class RadiusApp {
@@ -89,6 +105,11 @@ class RadiusApp {
   static const double tombol = 14;
   static const double pill = 999;
 }
+
+const OutlineInputBorder _garisInput = OutlineInputBorder(
+  borderSide: BorderSide.none,
+  borderRadius: BorderRadius.all(Radius.circular(RadiusApp.input)),
+);
 
 ThemeData buatTema() {
   return ThemeData(
@@ -104,6 +125,15 @@ ThemeData buatTema() {
       titleTextStyle: TeksApp.judulHalaman,
     ),
     dividerTheme: const DividerThemeData(color: WarnaApp.garis, thickness: 1),
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: WarnaApp.latarSeksi,
+      contentPadding: const EdgeInsets.all(JarakApp.j16),
+      hintStyle: TeksApp.isi.copyWith(color: WarnaApp.teksRedup),
+      border: _garisInput,
+      enabledBorder: _garisInput,
+      focusedBorder: _garisInput,
+    ),
     bottomSheetTheme: const BottomSheetThemeData(
       backgroundColor: WarnaApp.latar,
       shape: RoundedRectangleBorder(

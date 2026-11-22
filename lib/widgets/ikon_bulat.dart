@@ -14,10 +14,10 @@ class IkonBulat extends StatelessWidget {
       width: ukuran,
       height: ukuran,
       decoration: const BoxDecoration(
-        color: WarnaApp.latarSeksi,
+        color: WarnaApp.aksenLembut,
         shape: BoxShape.circle,
       ),
-      child: Icon(ikon, size: 20, color: WarnaApp.teksUtama),
+      child: Icon(ikon, size: 20, color: WarnaApp.primer),
     );
   }
 }

@@ -57,3 +57,7 @@ String formatRupiah(int nilai) {
 String formatTanggal(DateTime t) {
   return '${namaHari[t.weekday - 1]}, ${t.day} ${namaBulan[t.month - 1]}';
 }
+
+String formatTanggalPendek(DateTime t) {
+  return '${t.day} ${namaBulan[t.month - 1]}';
+}

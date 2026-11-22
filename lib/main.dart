@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'models/app_data.dart';
 import 'theme/app_theme.dart';
@@ -10,6 +11,15 @@ import 'screens/tambah_transaksi_screen.dart';
 import 'widgets/nav_bawah.dart';
 
 void main() {
+  // Ikon status bar dan tombol HP dibuat gelap supaya terlihat di atas latar putih.
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark,
+      systemNavigationBarColor: WarnaApp.latar,
+      systemNavigationBarIconBrightness: Brightness.dark,
+    ),
+  );
   runApp(const MyApp());
 }
 

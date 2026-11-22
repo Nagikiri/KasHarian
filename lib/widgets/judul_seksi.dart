@@ -6,8 +6,15 @@ class JudulSeksi extends StatelessWidget {
   final String judul;
   final String? aksi;
   final VoidCallback? onAksi;
+  final Widget? ujung;
 
-  const JudulSeksi({super.key, required this.judul, this.aksi, this.onAksi});
+  const JudulSeksi({
+    super.key,
+    required this.judul,
+    this.aksi,
+    this.onAksi,
+    this.ujung,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -22,6 +29,7 @@ class JudulSeksi extends StatelessWidget {
               style: TeksApp.tombolKecil.copyWith(color: WarnaApp.primer),
             ),
           ),
+        ?ujung,
       ],
     );
   }
