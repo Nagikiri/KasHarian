@@ -27,7 +27,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: buatAppBarTurunan('Budget'),
+      appBar: buatAppBarTurunan('Anggaran'),
       body: ValueListenableBuilder<int>(
         valueListenable: AppData.refreshNotifier,
         builder: (context, nilai, child) {
@@ -45,7 +45,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
         child: Padding(
           padding: const EdgeInsets.all(JarakApp.tepiHalaman),
           child: TombolUtama(
-            teks: 'Tambah kategori budget',
+            teks: 'Tambah kategori anggaran',
             onTekan: _bukaTambah,
           ),
         ),
@@ -115,7 +115,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
         if (daftar.isEmpty)
           const Padding(
             padding: EdgeInsets.symmetric(vertical: JarakApp.j16),
-            child: Text('Belum ada kategori budget', style: TeksApp.kecil),
+            child: Text('Belum ada kategori anggaran', style: TeksApp.kecil),
           ),
         for (int i = 0; i < daftar.length; i++) ...[
           if (i > 0) const Divider(height: 1),
@@ -143,7 +143,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
       nominalAwal: budget.limit,
       onSimpan: (limit) => AppData.ubahLimitBudget(budget, limit),
       onHapus: () => _hapusBudget(budget),
-      labelHapus: 'Hapus budget',
+      labelHapus: 'Hapus anggaran',
     );
   }
 
@@ -151,7 +151,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
     bool? hapus = await showDialog<bool>(
       context: context,
       builder: (context) =>
-          DialogKonfirmasiHapus(judul: 'Hapus budget ${budget.kategori}?'),
+          DialogKonfirmasiHapus(judul: 'Hapus anggaran ${budget.kategori}?'),
     );
     if (hapus != true) return false;
     AppData.hapusBudget(budget);

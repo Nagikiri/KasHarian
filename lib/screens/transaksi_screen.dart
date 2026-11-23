@@ -13,6 +13,7 @@ import '../widgets/daftar_transaksi.dart';
 import '../widgets/dialog_pilih_bulan.dart';
 import '../widgets/dialog_pilih_rentang.dart';
 import '../widgets/grid_kartu.dart';
+import '../widgets/header_rentang.dart';
 import '../widgets/judul_seksi.dart';
 import '../widgets/kartu_kantong.dart';
 import '../widgets/sheet_detail_transaksi.dart';
@@ -127,7 +128,13 @@ class _TransaksiScreenState extends State<TransaksiScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _tepi(const Text('Transaksi', style: TeksApp.judulHalaman)),
+                  _tepi(
+                    HeaderRentang(
+                      judul: 'Transaksi',
+                      rentangAktif: _rentang != null,
+                      onRentang: _bukaDialogRentang,
+                    ),
+                  ),
                   _tepi(_bangunPeriode()),
                   if (_rentang == null) ...[
                     _tepi(
@@ -174,7 +181,6 @@ class _TransaksiScreenState extends State<TransaksiScreen> {
       onSebelum: _aksiPanah(AppData.bulanBerdataSebelum(bulan)),
       onSesudah: _aksiPanah(AppData.bulanBerdataSesudah(bulan)),
       onPilih: _bukaDialogBulan,
-      onRentang: _bukaDialogRentang,
     );
   }
 
@@ -189,7 +195,7 @@ class _TransaksiScreenState extends State<TransaksiScreen> {
         ),
         const SizedBox(height: JarakApp.j12),
         GridKartu(
-          teksKosong: 'Belum ada kategori budget',
+          teksKosong: 'Belum ada kategori anggaran',
           daftar: [for (var b in AppData.daftarBudget) _bangunKartu(b)],
         ),
       ],
@@ -255,29 +261,36 @@ class _TransaksiScreenState extends State<TransaksiScreen> {
     );
   }
 
-  String _teksBulan(DateTime b) => '${namaBulan[b.month - 1]} ${b.year}';
-
   Widget _bangunNavigasiBulan() {
-    DateTime? sebelum = AppData.bulanBerdataSebelum(AppData.bulanDipilih);
-    DateTime? sesudah = AppData.bulanBerdataSesudah(AppData.bulanDipilih);
-
     return Row(
       children: [
-        if (sebelum != null)
-          TombolPill(
-            teks: _teksBulan(sebelum),
-            ikon: LucideIcons.arrowLeft,
-            onTekan: () => _pilihBulan(sebelum),
-          ),
-        const Spacer(),
-        if (sesudah != null)
-          TombolPill(
-            teks: _teksBulan(sesudah),
-            ikon: LucideIcons.arrowRight,
-            ikonDiKanan: true,
-            onTekan: () => _pilihBulan(sesudah),
-          ),
+        _bangunTombolBulan(AppData.bulanBerdataSebelum(AppData.bulanDipilih)),
+        const SizedBox(width: JarakApp.j8),
+        _bangunTombolBulan(
+          AppData.bulanBerdataSesudah(AppData.bulanDipilih),
+          kanan: true,
+        ),
       ],
+    );
+  }
+
+  // Setiap tombol mendapat separuh lebar dan dikecilkan kalau nama bulannya panjang.
+  Widget _bangunTombolBulan(DateTime? bulan, {bool kanan = false}) {
+    return Expanded(
+      child: Align(
+        alignment: kanan ? Alignment.centerRight : Alignment.centerLeft,
+        child: bulan == null
+            ? null
+            : FittedBox(
+                fit: BoxFit.scaleDown,
+                child: TombolPill(
+                  teks: '${namaBulanPanjang[bulan.month - 1]} ${bulan.year}',
+                  ikon: kanan ? LucideIcons.arrowRight : LucideIcons.arrowLeft,
+                  ikonDiKanan: kanan,
+                  onTekan: () => _pilihBulan(bulan),
+                ),
+              ),
+      ),
     );
   }
 }

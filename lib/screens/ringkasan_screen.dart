@@ -12,6 +12,7 @@ import '../widgets/dialog_pilih_rentang.dart';
 import '../widgets/dialog_pilih_tahun.dart';
 import '../widgets/distribusi_kategori.dart';
 import '../widgets/grafik_tren.dart';
+import '../widgets/header_rentang.dart';
 import '../widgets/judul_seksi.dart';
 import '../widgets/kalender.dart';
 import '../widgets/kartu_navigasi.dart';
@@ -77,7 +78,8 @@ class _RingkasanScreenState extends State<RingkasanScreen> {
         awal: _acuan,
         batasAwal: batasAwal,
         batasAkhir: batasAkhir,
-        judul: 'Pilih tanggal dalam pekan',
+        judul: 'Pilih pekan',
+        pekan: true,
       );
     } else if (_jenis == 1) {
       hasil = await showDialog<DateTime>(
@@ -136,7 +138,13 @@ class _RingkasanScreenState extends State<RingkasanScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _tepi(const Text('Ringkasan', style: TeksApp.judulHalaman)),
+                  _tepi(
+                    HeaderRentang(
+                      judul: 'Ringkasan',
+                      rentangAktif: _jenis == 3,
+                      onRentang: _pilihRentang,
+                    ),
+                  ),
                   _tepi(
                     PilihanSegmen(
                       pilihan: const ['Pekan', 'Bulan', 'Tahun'],
@@ -152,7 +160,6 @@ class _RingkasanScreenState extends State<RingkasanScreen> {
                       onSebelum: _bisaMundur() ? () => _geser(-1) : null,
                       onSesudah: _bisaMaju() ? () => _geser(1) : null,
                       onPilih: _pilihWaktu,
-                      onRentang: _pilihRentang,
                     ),
                   ),
                   _tepi(_bangunAngka(awal, akhir, keluar)),

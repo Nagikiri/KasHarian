@@ -147,7 +147,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Expanded(
             child: KartuNavigasi(
               ikon: LucideIcons.wallet,
-              judul: 'Budget',
+              judul: 'Anggaran',
               info: sisa < 0
                   ? 'Lebih ${_rupiah(-sisa)}'
                   : 'Sisa ${_rupiah(sisa)}',

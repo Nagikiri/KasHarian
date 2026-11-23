@@ -1,18 +1,3 @@
-const List<String> namaBulan = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'Mei',
-  'Jun',
-  'Jul',
-  'Agu',
-  'Sep',
-  'Okt',
-  'Nov',
-  'Des',
-];
-
 const List<String> namaBulanPanjang = [
   'Januari',
   'Februari',
@@ -67,11 +52,11 @@ String formatRingkas(int nilai) {
 
 // weekday di Dart dimulai dari 1 (Senin), sedangkan indeks list dari 0.
 String formatTanggal(DateTime t) {
-  return '${namaHari[t.weekday - 1]}, ${t.day} ${namaBulan[t.month - 1]}';
+  return '${namaHari[t.weekday - 1]}, ${t.day} ${namaBulanPanjang[t.month - 1]}';
 }
 
 String formatTanggalPendek(DateTime t) {
-  return '${t.day} ${namaBulan[t.month - 1]}';
+  return '${t.day} ${namaBulanPanjang[t.month - 1]}';
 }
 
 // Lebih dari 12 bulan ditulis dalam tahun supaya lebih mudah dibayangkan.

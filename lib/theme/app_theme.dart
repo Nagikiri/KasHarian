@@ -14,6 +14,8 @@ class WarnaApp {
   static const Color diAtasPrimer = Color(0xFFFFFFFF);
   static const Color peringatan = Color(0xFFD97706);
   static const Color garisAksen = Color(0xFFD6EBC6);
+  // Tanggal, bulan, atau tahun di luar batas: abu yang masih terbaca.
+  static const Color teksNonaktif = Color(0xFFADADA9);
   // Warna kalem per kategori, hanya untuk grafik. Yang terakhir abu khusus "Lainnya".
   static const List<Color> paletKategori = [
     Color(0xFF2F7D4F),
@@ -74,6 +76,27 @@ class TeksApp {
     fontWeight: FontWeight.w400,
     color: WarnaApp.teksRedup,
   );
+  // Pilihan saat ini di dialog pemilih waktu, misalnya "November 2026".
+  static const TextStyle judulDialog = TextStyle(
+    fontFamily: _font,
+    fontSize: 24,
+    fontWeight: FontWeight.w600,
+    color: WarnaApp.teksUtama,
+  );
+  // Angka tanggal di kalender dan nama bulan/tahun di grid pemilih waktu.
+  static const TextStyle selKalender = TextStyle(
+    fontFamily: _font,
+    fontSize: 16,
+    fontWeight: FontWeight.w400,
+    color: WarnaApp.teksUtama,
+  );
+  // Label "November 2026" di kepala kalender dan grid pemilih waktu.
+  static const TextStyle kepalaKalender = TextStyle(
+    fontFamily: _font,
+    fontSize: 14,
+    fontWeight: FontWeight.w500,
+    color: WarnaApp.teksKedua,
+  );
   static const TextStyle tombol = TextStyle(
     fontFamily: _font,
     fontSize: 15,
@@ -99,6 +122,43 @@ class TeksApp {
     color: WarnaApp.teksRedup,
   );
 }
+
+// Ukuran ini sama dengan CalendarDatePicker bawaan Flutter (Material 3, posisi tegak),
+// supaya grid bulan dan tahun buatan sendiri sama persis dengan kalender.
+class KalenderApp {
+  static const double tinggiKepala = 52;
+  static const double tinggiGrid = 336;
+  static const double tinggiSel = 40;
+  static const double tepiGrid = 12;
+}
+
+// Satu aturan warna sel untuk kalender bawaan dan grid bulan/tahun buatan sendiri.
+Color warnaTeksSel({
+  required bool terpilih,
+  required bool nonaktif,
+  bool sekarang = false,
+}) {
+  if (terpilih) return WarnaApp.diAtasPrimer;
+  if (nonaktif) return WarnaApp.teksNonaktif;
+  return sekarang ? WarnaApp.primer : WarnaApp.teksUtama;
+}
+
+Color? latarSel(bool terpilih) => terpilih ? WarnaApp.primer : null;
+
+WidgetStateProperty<Color?> _warnaSelKalender(bool sekarang) {
+  return WidgetStateProperty.resolveWith(
+    (status) => warnaTeksSel(
+      terpilih: status.contains(WidgetState.selected),
+      nonaktif: status.contains(WidgetState.disabled),
+      sekarang: sekarang,
+    ),
+  );
+}
+
+final WidgetStateProperty<Color?> _latarSelKalender =
+    WidgetStateProperty.resolveWith(
+      (status) => latarSel(status.contains(WidgetState.selected)),
+    );
 
 class JarakApp {
   static const double j4 = 4;
@@ -155,10 +215,22 @@ ThemeData buatTema() {
       surfaceTintColor: Colors.transparent,
       shape: _bentukDialog,
     ),
-    datePickerTheme: const DatePickerThemeData(
+    // Gaya kalender bawaan diambil dari token yang sama dengan grid bulan dan tahun.
+    datePickerTheme: DatePickerThemeData(
       backgroundColor: WarnaApp.latar,
       surfaceTintColor: Colors.transparent,
       shape: _bentukDialog,
+      toggleButtonTextStyle: TeksApp.kepalaKalender,
+      subHeaderForegroundColor: WarnaApp.teksKedua,
+      dayStyle: TeksApp.selKalender,
+      dayForegroundColor: _warnaSelKalender(false),
+      dayBackgroundColor: _latarSelKalender,
+      todayForegroundColor: _warnaSelKalender(true),
+      todayBackgroundColor: _latarSelKalender,
+      todayBorder: const BorderSide(color: WarnaApp.primer),
+      yearStyle: TeksApp.selKalender,
+      yearForegroundColor: _warnaSelKalender(false),
+      yearBackgroundColor: _latarSelKalender,
     ),
     bottomSheetTheme: const BottomSheetThemeData(
       backgroundColor: WarnaApp.latar,

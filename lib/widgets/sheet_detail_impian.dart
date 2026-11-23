@@ -76,7 +76,7 @@ class SheetDetailImpian extends StatelessWidget {
                     'Estimasi',
                     estimasi > 0
                         ? formatEstimasiBulan(estimasi)
-                        : 'Belum ada budget Tabungan',
+                        : 'Belum ada anggaran Tabungan',
                   ),
             const SizedBox(height: JarakApp.j12),
             ProgressTipis(persen: persen, pakaiWarnaStatus: false, tebal: 8),

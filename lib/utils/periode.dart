@@ -28,7 +28,7 @@ DateTime geserPeriode(int jenis, DateTime acuan, int arah) {
 }
 
 String labelPeriode(int jenis, DateTime acuan) {
-  if (jenis == 1) return '${namaBulan[acuan.month - 1]} ${acuan.year}';
+  if (jenis == 1) return '${namaBulanPanjang[acuan.month - 1]} ${acuan.year}';
   if (jenis == 2) return '${acuan.year}';
   DateTime awal = awalPeriode(0, acuan);
   return labelRentang(awal, DateTime(awal.year, awal.month, awal.day + 6));
@@ -83,10 +83,14 @@ List<DateTime> slotTren(int jenis, DateTime awal, DateTime akhir) {
 }
 
 // Label yang kosong tidak ditampilkan, supaya label di bawah grafik tidak berdempetan.
+// Per bulan: tiap batang ketiga, jadi mode Tahun menampilkan Januari, April, Juli, Oktober.
 List<String> labelTren(int jenis, DateTime awal, DateTime akhir) {
   List<DateTime> slot = slotTren(jenis, awal, akhir);
   bool perHari = trenPerHari(jenis, awal, akhir);
-  int jarak = jenis == 0 ? 1 : (perHari ? 7 : (slot.length / 12).ceil());
+  int jarakBulan = (slot.length / 4).ceil();
+  int jarak = jenis == 0
+      ? 1
+      : (perHari ? 7 : (jarakBulan > 3 ? jarakBulan : 3));
   return [
     for (int i = 0; i < slot.length; i++)
       i % jarak == 0 ? _labelSlot(jenis, slot[i], perHari) : '',
@@ -96,5 +100,5 @@ List<String> labelTren(int jenis, DateTime awal, DateTime akhir) {
 String _labelSlot(int jenis, DateTime t, bool perHari) {
   if (jenis == 0) return namaHari[t.weekday - 1].substring(0, 3);
   if (perHari) return '${t.day}';
-  return namaBulan[t.month - 1];
+  return namaBulanPanjang[t.month - 1];
 }

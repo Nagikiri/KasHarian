@@ -24,7 +24,7 @@ class BudgetBulan extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        JudulSeksi(judul: 'Budget', aksi: 'Atur', onAksi: onAtur),
+        JudulSeksi(judul: 'Anggaran', aksi: 'Atur', onAksi: onAtur),
         const SizedBox(height: JarakApp.j12),
         Text.rich(
           TextSpan(

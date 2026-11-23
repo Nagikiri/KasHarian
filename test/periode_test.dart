@@ -48,19 +48,25 @@ void main() {
 
   group('labelPeriode', () {
     test('Pekan dalam satu bulan', () {
-      expect(labelPeriode(0, DateTime(2026, 11, 19)), '16–22 Nov 2026');
+      expect(labelPeriode(0, DateTime(2026, 11, 19)), '16–22 November 2026');
     });
 
     test('Pekan lintas bulan', () {
-      expect(labelPeriode(0, DateTime(2026, 10, 29)), '26 Okt–1 Nov 2026');
+      expect(
+        labelPeriode(0, DateTime(2026, 10, 29)),
+        '26 Oktober–1 November 2026',
+      );
     });
 
     test('Pekan lintas tahun', () {
-      expect(labelPeriode(0, DateTime(2025, 12, 31)), '29 Des 2025–4 Jan 2026');
+      expect(
+        labelPeriode(0, DateTime(2025, 12, 31)),
+        '29 Desember 2025–4 Januari 2026',
+      );
     });
 
     test('Bulan dan Tahun', () {
-      expect(labelPeriode(1, DateTime(2026, 11, 23)), 'Nov 2026');
+      expect(labelPeriode(1, DateTime(2026, 11, 23)), 'November 2026');
       expect(labelPeriode(2, DateTime(2026, 11, 23)), '2026');
     });
   });
@@ -97,19 +103,19 @@ void main() {
     test('Satu bulan, lintas bulan, lintas tahun, dan satu hari', () {
       expect(
         labelRentang(DateTime(2026, 11, 1), DateTime(2026, 11, 15)),
-        '1–15 Nov 2026',
+        '1–15 November 2026',
       );
       expect(
         labelRentang(DateTime(2026, 10, 28), DateTime(2026, 11, 5)),
-        '28 Okt–5 Nov 2026',
+        '28 Oktober–5 November 2026',
       );
       expect(
         labelRentang(DateTime(2025, 12, 20), DateTime(2026, 1, 5)),
-        '20 Des 2025–5 Jan 2026',
+        '20 Desember 2025–5 Januari 2026',
       );
       expect(
         labelRentang(DateTime(2026, 11, 5), DateTime(2026, 11, 5)),
-        '5 Nov 2026',
+        '5 November 2026',
       );
     });
   });
@@ -191,6 +197,18 @@ void main() {
         'Jum',
         'Sab',
         'Min',
+      ]);
+    });
+
+    test('Sumbu mode Tahun hanya Januari, April, Juli, Oktober', () {
+      DateTime tahun = DateTime(2026);
+      List<String> label = labelTren(2, tahun, akhirPeriode(2, tahun));
+      expect(label.length, 12);
+      expect(label.where((l) => l.isNotEmpty), [
+        'Januari',
+        'April',
+        'Juli',
+        'Oktober',
       ]);
     });
   });

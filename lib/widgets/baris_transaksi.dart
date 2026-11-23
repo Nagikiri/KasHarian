@@ -8,8 +8,15 @@ import 'ikon_bulat.dart';
 class BarisTransaksi extends StatelessWidget {
   final CatatanTransaksi transaksi;
   final VoidCallback? onTekan;
+  // false kalau daftarnya sudah dikelompokkan per tanggal, supaya tanggal tidak tertulis dua kali.
+  final bool tampilkanTanggal;
 
-  const BarisTransaksi({super.key, required this.transaksi, this.onTekan});
+  const BarisTransaksi({
+    super.key,
+    required this.transaksi,
+    this.onTekan,
+    this.tampilkanTanggal = true,
+  });
 
   // Transfer hanya memindahkan uang antar-kantong, jadi tanpa tanda + atau -.
   static String teksNominal(CatatanTransaksi t) {
@@ -72,11 +79,13 @@ class BarisTransaksi extends StatelessWidget {
                 teksNominal(transaksi),
                 style: TeksApp.angka.copyWith(color: warnaNominal(transaksi)),
               ),
-              const SizedBox(height: JarakApp.j4),
-              Text(
-                formatTanggalPendek(transaksi.tanggal),
-                style: TeksApp.kecil,
-              ),
+              if (tampilkanTanggal) ...[
+                const SizedBox(height: JarakApp.j4),
+                Text(
+                  formatTanggalPendek(transaksi.tanggal),
+                  style: TeksApp.kecil,
+                ),
+              ],
             ],
           ),
         ],

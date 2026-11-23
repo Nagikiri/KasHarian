@@ -4,7 +4,6 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../theme/app_theme.dart';
 import '../utils/periode.dart';
 import 'tombol_panah.dart';
-import 'tombol_pill.dart';
 
 // Dipakai di Transaksi dan Ringkasan. onSebelum atau onSesudah null berarti panah itu nonaktif.
 class BarisPeriode extends StatelessWidget {
@@ -14,7 +13,6 @@ class BarisPeriode extends StatelessWidget {
   final VoidCallback? onSebelum;
   final VoidCallback? onSesudah;
   final VoidCallback onPilih;
-  final VoidCallback onRentang;
 
   const BarisPeriode({
     super.key,
@@ -24,7 +22,6 @@ class BarisPeriode extends StatelessWidget {
     required this.onSebelum,
     required this.onSesudah,
     required this.onPilih,
-    required this.onRentang,
   });
 
   @override
@@ -43,25 +40,32 @@ class BarisPeriode extends StatelessWidget {
             : TombolPanah(ikon: LucideIcons.chevronLeft, onTekan: onSebelum),
         Expanded(
           child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
             onTap: onPilih,
-            // Label panjang dikecilkan di layar sempit, bukan turun ke baris kedua.
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(label, style: TeksApp.judulSeksi),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Label panjang dikecilkan di layar sempit, bukan turun ke baris kedua.
+                Flexible(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(label, style: TeksApp.judulSeksi),
+                  ),
+                ),
+                const SizedBox(width: JarakApp.j4),
+                // Tanda bahwa label bisa diketuk untuk memilih waktu.
+                const Icon(
+                  LucideIcons.chevronDown,
+                  size: 16,
+                  color: WarnaApp.teksRedup,
+                ),
+              ],
             ),
           ),
         ),
         rentang
             ? const SizedBox(width: 40)
             : TombolPanah(ikon: LucideIcons.chevronRight, onTekan: onSesudah),
-        const SizedBox(width: JarakApp.j4),
-        TombolPill(
-          teks: 'Rentang',
-          ikon: LucideIcons.calendarRange,
-          kecil: true,
-          terpilih: rentang,
-          onTekan: onRentang,
-        ),
       ],
     );
   }

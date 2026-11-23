@@ -31,7 +31,7 @@ class TemplateNominal extends StatelessWidget {
             ),
             const SizedBox(width: JarakApp.j8),
           ],
-          TombolPill(teks: 'Reset', kecil: true, onTekan: onReset),
+          TombolPill(teks: 'Kosongkan', kecil: true, onTekan: onReset),
         ],
       ),
     );

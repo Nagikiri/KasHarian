@@ -126,7 +126,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
   Widget _bangunPita() => Container(height: 8, color: WarnaApp.latarSeksi);
 
   Widget _bangunHeader() {
-    return const Text('Wishlist', style: TeksApp.judulHalaman);
+    return const Text('Impian', style: TeksApp.judulHalaman);
   }
 
   Widget _bangunTombolRefresh() {

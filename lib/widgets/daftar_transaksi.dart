@@ -42,7 +42,11 @@ class DaftarTransaksi extends StatelessWidget {
             _bangunJudulTanggal(urut[i].tanggal, urut)
           else
             const Divider(height: 1),
-          BarisTransaksi(transaksi: urut[i], onTekan: () => onTekan(urut[i])),
+          BarisTransaksi(
+            transaksi: urut[i],
+            onTekan: () => onTekan(urut[i]),
+            tampilkanTanggal: false,
+          ),
         ],
       ],
     );

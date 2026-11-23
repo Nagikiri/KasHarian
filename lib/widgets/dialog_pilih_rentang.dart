@@ -5,9 +5,9 @@ import '../theme/app_theme.dart';
 import '../utils/format.dart';
 import '../utils/periode.dart';
 import 'baris_isian.dart';
+import 'dialog_waktu.dart';
 import 'kalender.dart';
 import 'tombol_pill.dart';
-import 'tombol_teks.dart';
 
 // Mengembalikan DateTimeRange lewat Navigator.pop. end = hari terakhir (ikut dihitung).
 class DialogPilihRentang extends StatefulWidget {
@@ -70,68 +70,47 @@ class _DialogPilihRentangState extends State<DialogPilihRentang> {
   @override
   Widget build(BuildContext context) {
     DateTime hariIni = widget.batasAkhir;
-    return Dialog(
-      // Lebih lebar dari bawaan supaya tanggal di BarisIsian tidak terpotong.
-      insetPadding: const EdgeInsets.all(JarakApp.tepiHalaman),
-      child: Padding(
-        padding: const EdgeInsets.all(JarakApp.tepiHalaman),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text('Pilih rentang', style: TeksApp.judulSeksi),
-            const SizedBox(height: JarakApp.j12),
-            Wrap(
-              spacing: JarakApp.j8,
-              runSpacing: JarakApp.j8,
-              children: [
-                _bangunPilihan(
-                  '7 hari terakhir',
-                  DateTime(hariIni.year, hariIni.month, hariIni.day - 6),
-                ),
-                _bangunPilihan(
-                  '30 hari terakhir',
-                  DateTime(hariIni.year, hariIni.month, hariIni.day - 29),
-                ),
-                _bangunPilihan(
-                  'Bulan ini',
-                  DateTime(hariIni.year, hariIni.month),
-                ),
-              ],
-            ),
-            const SizedBox(height: JarakApp.j8),
-            BarisIsian(
-              ikon: LucideIcons.calendar,
-              label: 'Waktu mulai',
-              nilai: _teks(_mulai),
-              onTekan: _pilihMulai,
-            ),
-            const Divider(height: 1),
-            BarisIsian(
-              ikon: LucideIcons.calendar,
-              label: 'Waktu selesai',
-              nilai: _teks(_selesai),
-              onTekan: _pilihSelesai,
-            ),
-            const SizedBox(height: JarakApp.j12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TombolTeks(
-                  teks: 'Batal',
-                  onTekan: () => Navigator.pop(context),
-                ),
-                TombolTeks(
-                  teks: 'Terapkan',
-                  onTekan: () => Navigator.pop(
-                    context,
-                    DateTimeRange(start: _mulai, end: _selesai),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+    return DialogWaktu(
+      judul: 'Pilih rentang',
+      teksPilihan: labelRentang(_mulai, _selesai),
+      onPilih: () =>
+          Navigator.pop(context, DateTimeRange(start: _mulai, end: _selesai)),
+      isi: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Wrap(
+            spacing: JarakApp.j8,
+            runSpacing: JarakApp.j8,
+            children: [
+              _bangunPilihan(
+                '7 hari terakhir',
+                DateTime(hariIni.year, hariIni.month, hariIni.day - 6),
+              ),
+              _bangunPilihan(
+                '30 hari terakhir',
+                DateTime(hariIni.year, hariIni.month, hariIni.day - 29),
+              ),
+              _bangunPilihan(
+                'Bulan ini',
+                DateTime(hariIni.year, hariIni.month),
+              ),
+            ],
+          ),
+          const SizedBox(height: JarakApp.j8),
+          BarisIsian(
+            ikon: LucideIcons.calendar,
+            label: 'Waktu mulai',
+            nilai: _teks(_mulai),
+            onTekan: _pilihMulai,
+          ),
+          const Divider(height: 1),
+          BarisIsian(
+            ikon: LucideIcons.calendar,
+            label: 'Waktu selesai',
+            nilai: _teks(_selesai),
+            onTekan: _pilihSelesai,
+          ),
+        ],
       ),
     );
   }

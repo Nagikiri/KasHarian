@@ -69,7 +69,7 @@ class AppData {
     KategoriItem(nama: 'Pendidikan', ikon: LucideIcons.bookOpen),
     KategoriItem(nama: 'Kursus', ikon: LucideIcons.graduationCap),
     KategoriItem(nama: 'Hiburan', ikon: LucideIcons.clapperboard),
-    KategoriItem(nama: 'Game', ikon: LucideIcons.gamepad2),
+    KategoriItem(nama: 'Gim', ikon: LucideIcons.gamepad2),
     KategoriItem(nama: 'Langganan', ikon: LucideIcons.tv),
     KategoriItem(nama: 'Liburan', ikon: LucideIcons.plane),
     KategoriItem(nama: 'Hadiah', ikon: LucideIcons.gift),
@@ -84,7 +84,7 @@ class AppData {
     KategoriItem(nama: 'Lainnya', ikon: LucideIcons.ellipsis),
     KategoriItem(nama: 'Gaji', ikon: LucideIcons.banknote, isPemasukan: true),
     KategoriItem(
-      nama: 'Freelance',
+      nama: 'Kerja Lepas',
       ikon: LucideIcons.laptop,
       isPemasukan: true,
     ),
@@ -102,7 +102,7 @@ class AppData {
     ),
     KategoriItem(nama: 'Bunga', ikon: LucideIcons.percent, isPemasukan: true),
     KategoriItem(
-      nama: 'Refund',
+      nama: 'Pengembalian Dana',
       ikon: LucideIcons.rotateCcw,
       isPemasukan: true,
     ),
@@ -135,13 +135,13 @@ class AppData {
 
   // Ikon impian mengikuti kategorinya, jadi tidak dipilih sendiri.
   static final List<KategoriItem> kategoriImpian = [
-    KategoriItem(nama: 'Gadget', ikon: LucideIcons.smartphone),
+    KategoriItem(nama: 'Ponsel & Tablet', ikon: LucideIcons.smartphone),
     KategoriItem(nama: 'Komputer & Aksesori', ikon: LucideIcons.laptop),
     KategoriItem(nama: 'Audio', ikon: LucideIcons.headphones),
     KategoriItem(nama: 'Kamera', ikon: LucideIcons.camera),
-    KategoriItem(nama: 'Game & Hobi', ikon: LucideIcons.gamepad2),
+    KategoriItem(nama: 'Gim & Hobi', ikon: LucideIcons.gamepad2),
     KategoriItem(nama: 'Jam & Aksesori', ikon: LucideIcons.watch),
-    KategoriItem(nama: 'Fashion', ikon: LucideIcons.shirt),
+    KategoriItem(nama: 'Busana', ikon: LucideIcons.shirt),
     KategoriItem(nama: 'Kendaraan', ikon: LucideIcons.car),
     KategoriItem(nama: 'Motor & Sepeda', ikon: LucideIcons.motorbike),
     KategoriItem(nama: 'Rumah & Perabot', ikon: LucideIcons.sofa),
@@ -181,7 +181,7 @@ class AppData {
       tanggal: _bulanIni(0),
     ),
     CatatanTransaksi(
-      kategori: 'Freelance',
+      kategori: 'Kerja Lepas',
       catatan: 'Proyek Desain Web',
       nominal: 750000,
       ikon: LucideIcons.laptop,
@@ -206,7 +206,7 @@ class AppData {
     ),
     CatatanTransaksi(
       kategori: 'Transfer',
-      catatan: 'Top Up Saku QRIS',
+      catatan: 'Isi Saldo Saku QRIS',
       nominal: 500000,
       ikon: LucideIcons.arrowLeftRight,
       tanggal: _bulanIni(4),
@@ -359,7 +359,7 @@ class AppData {
   static final List<WishlistItem> daftarWishlist = [
     WishlistItem(
       nama: 'Sony PlayStation 5 Slim',
-      kategori: 'Game & Hobi',
+      kategori: 'Gim & Hobi',
       mataUang: 'USD',
       hargaAsing: 499,
       targetIdr: 7811346,
@@ -539,7 +539,7 @@ class AppData {
       kursLive = true;
       kursPernahLive = true;
       infoKurs =
-          'Kurs live · diperbarui ${formatTanggalPendek(DateTime.now())}';
+          'Kurs terbaru · diperbarui ${formatTanggalPendek(DateTime.now())}';
     } catch (_) {
       kursLive = false;
       infoKurs = kursPernahLive
@@ -668,13 +668,6 @@ class AppData {
 
   // Tahun dan bulan diubah jadi satu angka supaya mudah dibandingkan lebih kecil atau lebih besar.
   static int _nomorBulan(DateTime t) => t.year * 12 + t.month - 1;
-
-  static bool punyaTransaksi(DateTime bulan) {
-    for (var t in daftarTransaksi) {
-      if (_bulanSama(t.tanggal, bulan)) return true;
-    }
-    return false;
-  }
 
   static DateTime? bulanBerdataSebelum(DateTime bulan) {
     DateTime? hasil;

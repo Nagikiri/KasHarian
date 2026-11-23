@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
-import '../theme/app_theme.dart';
-import 'tombol_teks.dart';
+import 'dialog_waktu.dart';
+import 'grid_kalender.dart';
+import 'kepala_kalender.dart';
+import 'sel_kalender.dart';
 
-// Mengembalikan tahun yang diketuk lewat Navigator.pop.
-class DialogPilihTahun extends StatelessWidget {
+// Mengembalikan tahun yang dipilih lewat Navigator.pop.
+class DialogPilihTahun extends StatefulWidget {
   final int awal;
   final int tahunPertama;
   final int tahunTerakhir;
@@ -17,62 +19,43 @@ class DialogPilihTahun extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      child: Padding(
-        padding: const EdgeInsets.all(JarakApp.tepiHalaman),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text(
-              'Pilih tahun',
-              style: TeksApp.judulSeksi,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: JarakApp.j12),
-            GridView.count(
-              crossAxisCount: 3,
-              childAspectRatio: 2,
-              mainAxisSpacing: JarakApp.j8,
-              crossAxisSpacing: JarakApp.j8,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              children: [
-                for (int t = tahunPertama; t <= tahunTerakhir; t++)
-                  _bangunSelTahun(context, t),
-              ],
-            ),
-            const SizedBox(height: JarakApp.j12),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TombolTeks(
-                teks: 'Batal',
-                onTekan: () => Navigator.pop(context),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  State<DialogPilihTahun> createState() => _DialogPilihTahunState();
+}
 
-  Widget _bangunSelTahun(BuildContext context, int tahun) {
-    bool terpilih = tahun == awal;
-    return GestureDetector(
-      onTap: () => Navigator.pop(context, tahun),
-      child: Container(
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: terpilih ? WarnaApp.primer : null,
-          borderRadius: BorderRadius.circular(RadiusApp.pill),
-        ),
-        child: Text(
-          '$tahun',
-          style: TeksApp.tombolKecil.copyWith(
-            color: terpilih ? WarnaApp.diAtasPrimer : WarnaApp.teksUtama,
+class _DialogPilihTahunState extends State<DialogPilihTahun> {
+  // Pilihan sementara, ditahan di dalam batas, baru dikirim saat tombol Pilih ditekan.
+  late int _pilihan = widget.awal.clamp(
+    widget.tahunPertama,
+    widget.tahunTerakhir,
+  );
+
+  // Label kepala berisi rentang tahun yang tampil di grid.
+  String get _labelRentang => widget.tahunPertama == widget.tahunTerakhir
+      ? '${widget.tahunPertama}'
+      : '${widget.tahunPertama}–${widget.tahunTerakhir}';
+
+  @override
+  Widget build(BuildContext context) {
+    return DialogWaktu(
+      judul: 'Pilih tahun',
+      teksPilihan: '$_pilihan',
+      onPilih: () => Navigator.pop(context, _pilihan),
+      isi: Column(
+        children: [
+          KepalaKalender(label: _labelRentang),
+          GridKalender(
+            daftarSel: [
+              for (int t = widget.tahunPertama; t <= widget.tahunTerakhir; t++)
+                SelKalender(
+                  teks: '$t',
+                  terpilih: t == _pilihan,
+                  nonaktif: false,
+                  sekarang: t == DateTime.now().year,
+                  onTekan: () => setState(() => _pilihan = t),
+                ),
+            ],
           ),
-        ),
+        ],
       ),
     );
   }

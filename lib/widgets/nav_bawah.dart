@@ -40,7 +40,7 @@ class NavBawah extends StatelessWidget {
                     _bangunItem(LucideIcons.house, 'Beranda', 0),
                     _bangunItem(LucideIcons.receiptText, 'Transaksi', 1),
                     const Expanded(child: SizedBox.shrink()),
-                    _bangunItem(LucideIcons.heart, 'Wishlist', 2),
+                    _bangunItem(LucideIcons.heart, 'Impian', 2),
                     _bangunItem(LucideIcons.chartPie, 'Ringkasan', 3),
                   ],
                 ),
