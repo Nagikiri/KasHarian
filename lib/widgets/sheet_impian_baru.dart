@@ -10,6 +10,7 @@ import 'isian_impian.dart';
 Future<void> bukaSheetImpianBaru(BuildContext context) {
   return showModalBottomSheet<void>(
     context: context,
+    useSafeArea: true,
     isScrollControlled: true,
     builder: (context) => const SheetImpianBaru(),
   );

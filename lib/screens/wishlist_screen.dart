@@ -83,6 +83,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
   Future<void> _bukaDetail(WishlistItem impian) async {
     bool? tabung = await showModalBottomSheet<bool>(
       context: context,
+      useSafeArea: true,
       isScrollControlled: true,
       builder: (context) => SheetDetailImpian(impian: impian),
     );

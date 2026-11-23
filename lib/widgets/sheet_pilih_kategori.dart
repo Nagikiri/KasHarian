@@ -16,6 +16,7 @@ Future<KategoriItem?> bukaPilihKategori(
 }) {
   return showModalBottomSheet<KategoriItem>(
     context: context,
+    useSafeArea: true,
     isScrollControlled: true,
     builder: (context) =>
         SheetPilihKategori(pemasukan: pemasukan, terpilih: terpilih),

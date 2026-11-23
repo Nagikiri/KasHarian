@@ -14,13 +14,16 @@ class WarnaApp {
   static const Color diAtasPrimer = Color(0xFFFFFFFF);
   static const Color peringatan = Color(0xFFD97706);
   static const Color garisAksen = Color(0xFFD6EBC6);
-  // Satu keluarga hijau untuk segmen grafik, yang terakhir abu untuk "Lainnya".
-  static const List<Color> grafik = [
-    primer,
-    Color(0xFF3F8F5A),
-    Color(0xFF7BC47F),
-    Color(0xFFC5E8B0),
-    garis,
+  // Warna kalem per kategori, hanya untuk grafik. Yang terakhir abu khusus "Lainnya".
+  static const List<Color> paletKategori = [
+    Color(0xFF2F7D4F),
+    Color(0xFFE0A93B),
+    Color(0xFF4A86B8),
+    Color(0xFFD2734F),
+    Color(0xFF8C7BBF),
+    Color(0xFF3A9E92),
+    Color(0xFFCF6F8D),
+    Color(0xFFA8A8A4),
   ];
 }
 
@@ -112,7 +115,12 @@ class RadiusApp {
   static const double input = 12;
   static const double tombol = 14;
   static const double pill = 999;
+  static const double dialog = 16;
 }
+
+const RoundedRectangleBorder _bentukDialog = RoundedRectangleBorder(
+  borderRadius: BorderRadius.all(Radius.circular(RadiusApp.dialog)),
+);
 
 const OutlineInputBorder _garisInput = OutlineInputBorder(
   borderSide: BorderSide.none,
@@ -141,6 +149,16 @@ ThemeData buatTema() {
       border: _garisInput,
       enabledBorder: _garisInput,
       focusedBorder: _garisInput,
+    ),
+    dialogTheme: const DialogThemeData(
+      backgroundColor: WarnaApp.latar,
+      surfaceTintColor: Colors.transparent,
+      shape: _bentukDialog,
+    ),
+    datePickerTheme: const DatePickerThemeData(
+      backgroundColor: WarnaApp.latar,
+      surfaceTintColor: Colors.transparent,
+      shape: _bentukDialog,
     ),
     bottomSheetTheme: const BottomSheetThemeData(
       backgroundColor: WarnaApp.latar,

@@ -112,71 +112,74 @@ class _UtangScreenState extends State<UtangScreen> {
 
     showModalBottomSheet(
       context: context,
+      useSafeArea: true,
       isScrollControlled: true,
       builder: (context) => StatefulBuilder(
         builder: (context, setSheet) {
           bool bisaSimpan = nama.trim().isNotEmpty && nominal > 0;
-          return Padding(
-            padding: EdgeInsets.fromLTRB(
-              JarakApp.tepiHalaman,
-              JarakApp.j24,
-              JarakApp.tepiHalaman,
-              JarakApp.j24 + MediaQuery.of(context).viewInsets.bottom,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Text('Catat Utang', style: TeksApp.judulSeksi),
-                const SizedBox(height: JarakApp.j16),
-                PilihanSegmen(
-                  pilihan: const ['Utang', 'Piutang'],
-                  indeksAktif: jenis,
-                  onPilih: (i) => setSheet(() => jenis = i),
-                ),
-                const SizedBox(height: JarakApp.j12),
-                TextField(
-                  decoration: const InputDecoration(hintText: 'Nama'),
-                  onChanged: (v) => setSheet(() => nama = v),
-                ),
-                const SizedBox(height: JarakApp.j12),
-                TextField(
-                  decoration: const InputDecoration(hintText: 'Keterangan'),
-                  onChanged: (v) => keterangan = v,
-                ),
-                const SizedBox(height: JarakApp.j4),
-                BarisIsian(
-                  ikon: LucideIcons.banknote,
-                  label: 'Nominal',
-                  nilai: nominal > 0 ? formatRupiah(nominal) : 'Isi nominal',
-                  warnaNilai: nominal > 0 ? null : WarnaApp.teksRedup,
-                  onTekan: () => bukaInputNominal(
-                    context,
-                    judul: jenis == 0 ? 'Nominal utang' : 'Nominal piutang',
-                    ikon: LucideIcons.handCoins,
-                    nominalAwal: nominal,
-                    onSimpan: (n) => setSheet(() => nominal = n),
+          return SafeArea(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                JarakApp.tepiHalaman,
+                JarakApp.j24,
+                JarakApp.tepiHalaman,
+                JarakApp.j24 + MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Text('Catat Utang', style: TeksApp.judulSeksi),
+                  const SizedBox(height: JarakApp.j16),
+                  PilihanSegmen(
+                    pilihan: const ['Utang', 'Piutang'],
+                    indeksAktif: jenis,
+                    onPilih: (i) => setSheet(() => jenis = i),
                   ),
-                ),
-                const SizedBox(height: JarakApp.j16),
-                TombolUtama(
-                  teks: 'Simpan',
-                  onTekan: bisaSimpan
-                      ? () {
-                          AppData.tambahUtang(
-                            UtangItem(
-                              jenis: jenis == 0 ? 'Utang' : 'Piutang',
-                              nama: nama.trim(),
-                              nominal: nominal,
-                              keterangan: keterangan.trim(),
-                              tanggal: DateTime.now(),
-                            ),
-                          );
-                          Navigator.pop(context);
-                        }
-                      : null,
-                ),
-              ],
+                  const SizedBox(height: JarakApp.j12),
+                  TextField(
+                    decoration: const InputDecoration(hintText: 'Nama'),
+                    onChanged: (v) => setSheet(() => nama = v),
+                  ),
+                  const SizedBox(height: JarakApp.j12),
+                  TextField(
+                    decoration: const InputDecoration(hintText: 'Keterangan'),
+                    onChanged: (v) => keterangan = v,
+                  ),
+                  const SizedBox(height: JarakApp.j4),
+                  BarisIsian(
+                    ikon: LucideIcons.banknote,
+                    label: 'Nominal',
+                    nilai: nominal > 0 ? formatRupiah(nominal) : 'Isi nominal',
+                    warnaNilai: nominal > 0 ? null : WarnaApp.teksRedup,
+                    onTekan: () => bukaInputNominal(
+                      context,
+                      judul: jenis == 0 ? 'Nominal utang' : 'Nominal piutang',
+                      ikon: LucideIcons.handCoins,
+                      nominalAwal: nominal,
+                      onSimpan: (n) => setSheet(() => nominal = n),
+                    ),
+                  ),
+                  const SizedBox(height: JarakApp.j16),
+                  TombolUtama(
+                    teks: 'Simpan',
+                    onTekan: bisaSimpan
+                        ? () {
+                            AppData.tambahUtang(
+                              UtangItem(
+                                jenis: jenis == 0 ? 'Utang' : 'Piutang',
+                                nama: nama.trim(),
+                                nominal: nominal,
+                                keterangan: keterangan.trim(),
+                                tanggal: DateTime.now(),
+                              ),
+                            );
+                            Navigator.pop(context);
+                          }
+                        : null,
+                  ),
+                ],
+              ),
             ),
           );
         },

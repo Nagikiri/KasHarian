@@ -53,6 +53,18 @@ String formatRupiah(int nilai) {
   return '${tanda}Rp ${formatTitik(nilai)}';
 }
 
+// Untuk tempat sempit seperti tengah donat. Dibulatkan ke bawah supaya 999.999 tidak tertulis "1000rb".
+String formatRingkas(int nilai) {
+  String tanda = nilai < 0 ? '-' : '';
+  int n = nilai.abs();
+  if (n < 1000) return '${tanda}Rp $n';
+  if (n < 1000000) return '${tanda}Rp ${n ~/ 1000}rb';
+  int persepuluhJuta = n ~/ 100000;
+  int desimal = persepuluhJuta % 10;
+  String teksDesimal = desimal == 0 ? '' : ',$desimal';
+  return '${tanda}Rp ${formatTitik(persepuluhJuta ~/ 10)}${teksDesimal}jt';
+}
+
 // weekday di Dart dimulai dari 1 (Senin), sedangkan indeks list dari 0.
 String formatTanggal(DateTime t) {
   return '${namaHari[t.weekday - 1]}, ${t.day} ${namaBulan[t.month - 1]}';

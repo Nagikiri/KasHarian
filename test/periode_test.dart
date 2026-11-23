@@ -92,4 +92,117 @@ void main() {
       expect(perKategori[terbesar]! >= nominal, isTrue);
     }
   });
+
+  group('labelRentang', () {
+    test('Satu bulan, lintas bulan, lintas tahun, dan satu hari', () {
+      expect(
+        labelRentang(DateTime(2026, 11, 1), DateTime(2026, 11, 15)),
+        '1–15 Nov 2026',
+      );
+      expect(
+        labelRentang(DateTime(2026, 10, 28), DateTime(2026, 11, 5)),
+        '28 Okt–5 Nov 2026',
+      );
+      expect(
+        labelRentang(DateTime(2025, 12, 20), DateTime(2026, 1, 5)),
+        '20 Des 2025–5 Jan 2026',
+      );
+      expect(
+        labelRentang(DateTime(2026, 11, 5), DateTime(2026, 11, 5)),
+        '5 Nov 2026',
+      );
+    });
+  });
+
+  group('trenPengeluaran', () {
+    test('Jumlah nilai sesuai mode', () {
+      DateTime senin = DateTime(2026, 11, 16);
+      expect(
+        AppData.trenPengeluaran(0, senin, akhirPeriode(0, senin)).length,
+        7,
+      );
+      DateTime feb = DateTime(2026, 2);
+      expect(AppData.trenPengeluaran(1, feb, akhirPeriode(1, feb)).length, 28);
+      DateTime nov = DateTime(2026, 11);
+      expect(AppData.trenPengeluaran(1, nov, akhirPeriode(1, nov)).length, 30);
+      DateTime tahun = DateTime(2026);
+      expect(
+        AppData.trenPengeluaran(2, tahun, akhirPeriode(2, tahun)).length,
+        12,
+      );
+    });
+
+    test('Rentang 31 hari per hari, lebih dari itu per bulan', () {
+      DateTime awal = DateTime(2026, 10, 1);
+      expect(
+        AppData.trenPengeluaran(3, awal, DateTime(2026, 11, 1)).length,
+        31,
+      );
+      expect(AppData.trenPengeluaran(3, awal, DateTime(2026, 11, 2)).length, 2);
+      expect(
+        AppData.trenPengeluaran(
+          3,
+          DateTime(2026, 8, 15),
+          DateTime(2026, 11, 2),
+        ).length,
+        4,
+      );
+    });
+
+    test('Total tren sama dengan pengeluaranAntara di setiap mode', () {
+      DateTime sekarang = DateTime.now();
+      List<List<DateTime>> daftarPeriode = [
+        for (int jenis = 0; jenis < 3; jenis++)
+          [awalPeriode(jenis, sekarang), akhirPeriode(jenis, sekarang)],
+      ];
+      for (int jenis = 0; jenis < 3; jenis++) {
+        DateTime awal = daftarPeriode[jenis][0];
+        DateTime akhir = daftarPeriode[jenis][1];
+        List<int> tren = AppData.trenPengeluaran(jenis, awal, akhir);
+        expect(
+          tren.fold(0, (jumlah, n) => jumlah + n),
+          AppData.pengeluaranAntara(awal, akhir),
+        );
+      }
+      DateTime awalRentang = DateTime(sekarang.year, sekarang.month - 3, 10);
+      DateTime akhirRentang = DateTime(
+        sekarang.year,
+        sekarang.month,
+        sekarang.day + 1,
+      );
+      List<int> tren = AppData.trenPengeluaran(3, awalRentang, akhirRentang);
+      expect(
+        tren.fold(0, (jumlah, n) => jumlah + n),
+        AppData.pengeluaranAntara(awalRentang, akhirRentang),
+      );
+    });
+
+    test('Label tren sejajar dengan nilainya', () {
+      DateTime nov = DateTime(2026, 11);
+      List<String> label = labelTren(1, nov, akhirPeriode(1, nov));
+      expect(label.length, 30);
+      expect(label.where((l) => l.isNotEmpty), ['1', '8', '15', '22', '29']);
+      DateTime senin = DateTime(2026, 11, 16);
+      expect(labelTren(0, senin, akhirPeriode(0, senin)), [
+        'Sen',
+        'Sel',
+        'Rab',
+        'Kam',
+        'Jum',
+        'Sab',
+        'Min',
+      ]);
+    });
+  });
+
+  test('formatRingkas', () {
+    expect(formatRingkas(0), 'Rp 0');
+    expect(formatRingkas(950), 'Rp 950');
+    expect(formatRingkas(271500), 'Rp 271rb');
+    expect(formatRingkas(999999), 'Rp 999rb');
+    expect(formatRingkas(1200000), 'Rp 1,2jt');
+    expect(formatRingkas(2000000), 'Rp 2jt');
+    expect(formatRingkas(1500000000), 'Rp 1.500jt');
+    expect(formatRingkas(-271000), '-Rp 271rb');
+  });
 }

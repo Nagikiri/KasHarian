@@ -45,6 +45,7 @@ class _TransaksiScreenState extends State<TransaksiScreen> {
   void _bukaDetail(CatatanTransaksi transaksi) {
     showModalBottomSheet(
       context: context,
+      useSafeArea: true,
       isScrollControlled: true,
       builder: (context) => SheetDetailTransaksi(transaksi: transaksi),
     );

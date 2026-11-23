@@ -12,6 +12,7 @@ Future<void> bukaSaranAi(BuildContext context, DateTime bulan) {
 
   return showModalBottomSheet<void>(
     context: context,
+    useSafeArea: true,
     isScrollControlled: true,
     builder: (context) => StatefulBuilder(
       builder: (context, setSheet) {

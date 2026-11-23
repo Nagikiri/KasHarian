@@ -6,15 +6,17 @@ import '../models/app_data.dart';
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
 import '../utils/periode.dart';
-import '../widgets/bar_distribusi.dart';
-import '../widgets/baris_distribusi.dart';
+import '../widgets/baris_periode.dart';
+import '../widgets/dialog_pilih_bulan.dart';
+import '../widgets/dialog_pilih_tahun.dart';
+import '../widgets/distribusi_kategori.dart';
+import '../widgets/grafik_tren.dart';
 import '../widgets/judul_seksi.dart';
 import '../widgets/kartu_navigasi.dart';
 import '../widgets/kolom_angka.dart';
 import '../widgets/lingkaran_anggaran.dart';
 import '../widgets/pilihan_segmen.dart';
 import '../widgets/sheet_saran_ai.dart';
-import '../widgets/tombol_panah.dart';
 import 'budget_screen.dart';
 
 class RingkasanScreen extends StatefulWidget {
@@ -25,9 +27,18 @@ class RingkasanScreen extends StatefulWidget {
 }
 
 class _RingkasanScreenState extends State<RingkasanScreen> {
-  // _jenis: 0 = Pekan, 1 = Bulan, 2 = Tahun.
+  // _jenis: 0 = Pekan, 1 = Bulan, 2 = Tahun, 3 = Rentang.
   int _jenis = 1;
   DateTime _acuan = DateTime.now();
+  // Hanya dipakai di mode Rentang. _akhirRentang eksklusif, sama seperti akhirPeriode.
+  DateTime _awalRentang = DateTime.now();
+  DateTime _akhirRentang = DateTime.now();
+
+  DateTime get _awal =>
+      _jenis == 3 ? _awalRentang : awalPeriode(_jenis, _acuan);
+
+  DateTime get _akhir =>
+      _jenis == 3 ? _akhirRentang : akhirPeriode(_jenis, _acuan);
 
   void _gantiJenis(int jenis) {
     setState(() {
@@ -54,6 +65,60 @@ class _RingkasanScreenState extends State<RingkasanScreen> {
     return !awalPeriode(_jenis, berikut).isAfter(DateTime.now());
   }
 
+  // Semua pemilih di Ringkasan dibatasi sampai hari ini.
+  Future<void> _pilihWaktu() async {
+    DateTime sekarang = DateTime.now();
+    DateTime? hasil;
+    if (_jenis == 0) {
+      hasil = await showDatePicker(
+        context: context,
+        initialDate: _acuan,
+        firstDate: DateTime(2024),
+        lastDate: sekarang,
+        helpText: 'Pilih tanggal dalam pekan',
+      );
+    } else if (_jenis == 1) {
+      hasil = await showDialog<DateTime>(
+        context: context,
+        builder: (context) => DialogPilihBulan(awal: _acuan, batas: sekarang),
+      );
+    } else {
+      int? tahun = await showDialog<int>(
+        context: context,
+        builder: (context) =>
+            DialogPilihTahun(awal: _acuan.year, tahunTerakhir: sekarang.year),
+      );
+      if (tahun != null) hasil = DateTime(tahun);
+    }
+    if (hasil != null) setState(() => _acuan = hasil!);
+  }
+
+  Future<void> _pilihRentang() async {
+    DateTime sekarang = DateTime.now();
+    DateTime? dari = await showDatePicker(
+      context: context,
+      initialDate: _awal,
+      firstDate: DateTime(2024),
+      lastDate: sekarang,
+      helpText: 'Dari tanggal',
+    );
+    if (dari == null || !mounted) return;
+    // firstDate = dari, jadi tanggal kedua tidak bisa sebelum tanggal pertama.
+    DateTime? sampai = await showDatePicker(
+      context: context,
+      initialDate: dari,
+      firstDate: dari,
+      lastDate: sekarang,
+      helpText: 'Sampai tanggal',
+    );
+    if (sampai == null) return;
+    setState(() {
+      _jenis = 3;
+      _awalRentang = dari;
+      _akhirRentang = DateTime(sampai.year, sampai.month, sampai.day + 1);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -61,8 +126,9 @@ class _RingkasanScreenState extends State<RingkasanScreen> {
         child: ValueListenableBuilder<int>(
           valueListenable: AppData.refreshNotifier,
           builder: (context, nilai, child) {
-            DateTime awal = awalPeriode(_jenis, _acuan);
-            DateTime akhir = akhirPeriode(_jenis, _acuan);
+            DateTime awal = _awal;
+            DateTime akhir = _akhir;
+            int keluar = AppData.pengeluaranAntara(awal, akhir);
             return SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -75,19 +141,48 @@ class _RingkasanScreenState extends State<RingkasanScreen> {
                       onPilih: _gantiJenis,
                     ),
                   ),
-                  _tepi(_bangunPeriode()),
-                  _tepi(_bangunAngka(awal, akhir)),
-                  const SizedBox(height: JarakApp.j24),
-                  _bangunPita(),
-                  if (_jenis == 1) ...[
-                    _tepi(_bangunAnggaran()),
-                    const SizedBox(height: JarakApp.j24),
-                    _bangunPita(),
-                  ],
-                  _tepi(_bangunDistribusi(awal, akhir)),
-                  const SizedBox(height: JarakApp.j24),
-                  _bangunPita(),
-                  _tepi(_bangunBendahara()),
+                  _tepi(
+                    BarisPeriode(
+                      jenis: _jenis,
+                      awal: awal,
+                      akhir: akhir,
+                      onSebelum: _bisaMundur() ? () => _geser(-1) : null,
+                      onSesudah: _bisaMaju() ? () => _geser(1) : null,
+                      onPilih: _pilihWaktu,
+                      onRentang: _pilihRentang,
+                    ),
+                  ),
+                  _tepi(_bangunAngka(awal, akhir, keluar)),
+                  ..._bangunBagian(
+                    const JudulSeksi(judul: 'Pengeluaran per kategori'),
+                    DistribusiKategori(
+                      perKategori: AppData.pengeluaranPerKategori(awal, akhir),
+                    ),
+                  ),
+                  if (keluar > 0)
+                    ..._bangunBagian(
+                      const JudulSeksi(judul: 'Tren pengeluaran'),
+                      GrafikTren(
+                        nilai: AppData.trenPengeluaran(_jenis, awal, akhir),
+                        label: labelTren(_jenis, awal, akhir),
+                      ),
+                    ),
+                  if (_jenis == 1)
+                    ..._bangunBagian(
+                      JudulSeksi(
+                        judul: 'Anggaran',
+                        aksi: 'Atur',
+                        onAksi: () => Navigator.push(
+                          context,
+                          buatTransisiHalaman(const BudgetScreen()),
+                        ),
+                      ),
+                      _bangunAnggaran(),
+                    ),
+                  ..._bangunBagian(
+                    const JudulSeksi(judul: 'Bendahara AI'),
+                    _bangunBendahara(),
+                  ),
                   const SizedBox(height: JarakApp.j24),
                 ],
               ),
@@ -109,33 +204,16 @@ class _RingkasanScreenState extends State<RingkasanScreen> {
     child: isi,
   );
 
-  Widget _bangunPita() => Container(height: 8, color: WarnaApp.latarSeksi);
+  // Setiap bagian diawali jarak dan pita pemisah, lalu judul seksi dan isinya.
+  List<Widget> _bangunBagian(Widget judul, Widget isi) => [
+    const SizedBox(height: JarakApp.j24),
+    Container(height: 8, color: WarnaApp.latarSeksi),
+    _tepi(judul),
+    _tepi(isi),
+  ];
 
-  Widget _bangunPeriode() {
-    return Row(
-      children: [
-        TombolPanah(
-          ikon: LucideIcons.chevronLeft,
-          onTekan: _bisaMundur() ? () => _geser(-1) : null,
-        ),
-        Expanded(
-          child: Text(
-            labelPeriode(_jenis, _acuan),
-            style: TeksApp.judulSeksi,
-            textAlign: TextAlign.center,
-          ),
-        ),
-        TombolPanah(
-          ikon: LucideIcons.chevronRight,
-          onTekan: _bisaMaju() ? () => _geser(1) : null,
-        ),
-      ],
-    );
-  }
-
-  Widget _bangunAngka(DateTime awal, DateTime akhir) {
+  Widget _bangunAngka(DateTime awal, DateTime akhir, int keluar) {
     int masuk = AppData.pemasukanAntara(awal, akhir);
-    int keluar = AppData.pengeluaranAntara(awal, akhir);
     int selisih = masuk - keluar;
     return Row(
       children: [
@@ -163,102 +241,46 @@ class _RingkasanScreenState extends State<RingkasanScreen> {
     // Anggaran 0 tidak bisa dibagi, jadi persennya dianggap 0.
     double persen = anggaran > 0 ? terpakai / anggaran : 0;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
       children: [
-        JudulSeksi(
-          judul: 'Anggaran',
-          aksi: 'Atur',
-          onAksi: () => Navigator.push(
-            context,
-            buatTransisiHalaman(const BudgetScreen()),
+        LingkaranAnggaran(persen: persen),
+        const SizedBox(width: JarakApp.j24),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              KolomAngka(label: 'Terpakai', nilai: formatRupiah(terpakai)),
+              const SizedBox(height: JarakApp.j8),
+              KolomAngka(label: 'Anggaran', nilai: formatRupiah(anggaran)),
+              const SizedBox(height: JarakApp.j8),
+              // Budget adalah rencana, jadi kelebihan ditulis positif, bukan "Sisa -Rp".
+              KolomAngka(
+                label: sisa < 0 ? 'Lebih' : 'Sisa',
+                nilai: formatRupiah(sisa.abs()),
+                warnaNilai: sisa < 0 ? WarnaApp.bahaya : null,
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: JarakApp.j16),
-        Row(
-          children: [
-            LingkaranAnggaran(persen: persen),
-            const SizedBox(width: JarakApp.j24),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  KolomAngka(label: 'Terpakai', nilai: formatRupiah(terpakai)),
-                  const SizedBox(height: JarakApp.j8),
-                  KolomAngka(label: 'Anggaran', nilai: formatRupiah(anggaran)),
-                  const SizedBox(height: JarakApp.j8),
-                  // Budget adalah rencana, jadi kelebihan ditulis positif, bukan "Sisa -Rp".
-                  KolomAngka(
-                    label: sisa < 0 ? 'Lebih' : 'Sisa',
-                    nilai: formatRupiah(sisa.abs()),
-                    warnaNilai: sisa < 0 ? WarnaApp.bahaya : null,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _bangunDistribusi(DateTime awal, DateTime akhir) {
-    Map<String, int> perKategori = AppData.pengeluaranPerKategori(awal, akhir);
-    List<String> daftarNama = perKategori.keys.toList();
-    List<int> daftarNominal = perKategori.values.toList();
-    int total = daftarNominal.fold(0, (jumlah, n) => jumlah + n);
-
-    // Bar hanya menampilkan 4 terbesar, sisanya digabung jadi satu segmen "Lainnya".
-    List<int> nilaiBar = daftarNominal.take(4).toList();
-    if (daftarNominal.length > 4) {
-      nilaiBar.add(daftarNominal.skip(4).fold(0, (jumlah, n) => jumlah + n));
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const JudulSeksi(judul: 'Pengeluaran per kategori'),
-        const SizedBox(height: JarakApp.j12),
-        if (total == 0)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: JarakApp.j12),
-            child: Text(
-              'Belum ada pengeluaran di periode ini',
-              style: TeksApp.kecil,
-            ),
-          )
-        else ...[
-          BarDistribusi(daftarNilai: nilaiBar, daftarWarna: WarnaApp.grafik),
-          const SizedBox(height: JarakApp.j8),
-          for (int i = 0; i < daftarNama.length; i++) ...[
-            if (i > 0) const Divider(height: 1),
-            BarisDistribusi(
-              ikon: AppData.ikonKategori(daftarNama[i]),
-              nama: daftarNama[i],
-              nominal: daftarNominal[i],
-              persen: daftarNominal[i] / total,
-              warnaTitik: i < 4 ? WarnaApp.grafik[i] : null,
-            ),
-          ],
-        ],
       ],
     );
   }
 
   Widget _bangunBendahara() {
-    String bulan = '${namaBulanPanjang[_acuan.month - 1]} ${_acuan.year}';
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const JudulSeksi(judul: 'Bendahara AI'),
-        const SizedBox(height: JarakApp.j12),
-        KartuNavigasi(
-          ikon: LucideIcons.bot,
-          judul: 'Minta saran Bendahara AI',
-          info: 'Analisis catatan $bulan',
-          onTekan: () => bukaSaranAi(context, _acuan),
-        ),
-      ],
+    // Di mode Rentang yang dianalisis bulan dari hari terakhir rentang.
+    DateTime bulan = _jenis == 3
+        ? DateTime(
+            _akhirRentang.year,
+            _akhirRentang.month,
+            _akhirRentang.day - 1,
+          )
+        : _acuan;
+    String teksBulan = '${namaBulanPanjang[bulan.month - 1]} ${bulan.year}';
+    return KartuNavigasi(
+      ikon: LucideIcons.bot,
+      judul: 'Minta saran Bendahara AI',
+      info: 'Analisis catatan $teksBulan',
+      onTekan: () => bukaSaranAi(context, bulan),
     );
   }
 }

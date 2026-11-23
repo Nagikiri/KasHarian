@@ -22,6 +22,7 @@ Future<void> bukaInputNominal(
 
   return showModalBottomSheet<void>(
     context: context,
+    useSafeArea: true,
     isScrollControlled: true,
     builder: (context) => StatefulBuilder(
       builder: (context, setSheet) {

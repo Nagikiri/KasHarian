@@ -16,6 +16,7 @@ Future<String?> bukaSumberDana(
 }) {
   return showModalBottomSheet<String>(
     context: context,
+    useSafeArea: true,
     builder: (context) => SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(

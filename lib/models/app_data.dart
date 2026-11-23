@@ -3,6 +3,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../services/api_service.dart';
 import '../utils/format.dart';
+import '../utils/periode.dart';
 import 'bagian_teman.dart';
 import 'budget.dart';
 import 'kategori.dart';
@@ -743,6 +744,15 @@ class AppData {
     var urutan = total.entries.toList();
     urutan.sort((a, b) => b.value - a.value);
     return Map.fromEntries(urutan);
+  }
+
+  // Satu nilai per batang grafik, batasnya sama dengan slotTren supaya label dan nilai sejajar.
+  static List<int> trenPengeluaran(int jenis, DateTime awal, DateTime akhir) {
+    List<DateTime> slot = slotTren(jenis, awal, akhir);
+    return [
+      for (int i = 0; i < slot.length; i++)
+        pengeluaranAntara(slot[i], i + 1 < slot.length ? slot[i + 1] : akhir),
+    ];
   }
 
   static int pemasukanBulan(DateTime bulan) {

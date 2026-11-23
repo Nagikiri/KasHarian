@@ -137,6 +137,7 @@ class _TambahTransaksiScreenState extends State<TambahTransaksiScreen> {
   Future<void> _bukaBagiTeman() async {
     List<BagianTeman>? hasil = await showModalBottomSheet<List<BagianTeman>>(
       context: context,
+      useSafeArea: true,
       isScrollControlled: true,
       builder: (context) => SheetBagiTeman(total: _nominal, awal: _daftarTeman),
     );

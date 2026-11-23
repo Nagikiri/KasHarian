@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'models/app_data.dart';
 import 'theme/app_theme.dart';
@@ -47,6 +48,10 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'KasHarian',
       theme: buatTema(),
+      // Supaya kalender dan teks bawaan Flutter berbahasa Indonesia.
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
+      supportedLocales: const [Locale('id')],
+      locale: const Locale('id'),
       home: const MainNavigation(),
     );
   }

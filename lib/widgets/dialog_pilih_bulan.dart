@@ -6,27 +6,33 @@ import '../theme/app_theme.dart';
 import '../utils/format.dart';
 import 'tombol_panah.dart';
 
-class SheetPilihBulan extends StatefulWidget {
-  const SheetPilihBulan({super.key});
+// Mengembalikan bulan yang dipilih lewat Navigator.pop. batas = bulan terakhir yang boleh dipilih.
+class DialogPilihBulan extends StatefulWidget {
+  final DateTime awal;
+  final DateTime? batas;
+
+  const DialogPilihBulan({super.key, required this.awal, this.batas});
 
   @override
-  State<SheetPilihBulan> createState() => _SheetPilihBulanState();
+  State<DialogPilihBulan> createState() => _DialogPilihBulanState();
 }
 
-class _SheetPilihBulanState extends State<SheetPilihBulan> {
-  // Pilihan sementara, baru disimpan ke AppData saat tombol Pilih ditekan.
-  DateTime _pilihan = AppData.bulanDipilih;
-  int _tahun = AppData.bulanDipilih.year;
+class _DialogPilihBulanState extends State<DialogPilihBulan> {
+  // Pilihan sementara, baru dikirim saat tombol Pilih ditekan.
+  late DateTime _pilihan = DateTime(widget.awal.year, widget.awal.month);
+  late int _tahun = widget.awal.year;
 
-  void _simpan() {
-    AppData.bulanDipilih = _pilihan;
-    AppData.refreshNotifier.value++;
-    Navigator.pop(context);
+  int get _tahunTerakhir => widget.batas?.year ?? 2030;
+
+  bool _bolehDipilih(DateTime bulan) {
+    DateTime? batas = widget.batas;
+    if (batas == null) return true;
+    return !bulan.isAfter(DateTime(batas.year, batas.month));
   }
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
+    return Dialog(
       child: Padding(
         padding: const EdgeInsets.all(JarakApp.tepiHalaman),
         child: Column(
@@ -44,7 +50,7 @@ class _SheetPilihBulanState extends State<SheetPilihBulan> {
                 Text('$_tahun', style: TeksApp.judulSeksi),
                 TombolPanah(
                   ikon: LucideIcons.chevronRight,
-                  onTekan: _tahun < 2030
+                  onTekan: _tahun < _tahunTerakhir
                       ? () => setState(() => _tahun++)
                       : null,
                 ),
@@ -68,7 +74,10 @@ class _SheetPilihBulanState extends State<SheetPilihBulan> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 _bangunTombolTeks('Batal', () => Navigator.pop(context)),
-                _bangunTombolTeks('Pilih', _simpan),
+                _bangunTombolTeks(
+                  'Pilih',
+                  () => Navigator.pop(context, _pilihan),
+                ),
               ],
             ),
           ],
@@ -78,14 +87,18 @@ class _SheetPilihBulanState extends State<SheetPilihBulan> {
   }
 
   Widget _bangunSelBulan(DateTime bulan) {
+    bool boleh = _bolehDipilih(bulan);
     bool terpilih =
         bulan.year == _pilihan.year && bulan.month == _pilihan.month;
-    Color warnaTeks = AppData.punyaTransaksi(bulan)
+    // Bulan tanpa transaksi diredupkan, bulan di luar batas hampir tidak terlihat.
+    Color warnaTeks = !boleh
+        ? WarnaApp.garis
+        : AppData.punyaTransaksi(bulan)
         ? WarnaApp.teksUtama
         : WarnaApp.teksRedup;
 
     return GestureDetector(
-      onTap: () => setState(() => _pilihan = bulan),
+      onTap: boleh ? () => setState(() => _pilihan = bulan) : null,
       child: Container(
         alignment: Alignment.center,
         decoration: BoxDecoration(

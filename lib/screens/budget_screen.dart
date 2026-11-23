@@ -162,6 +162,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
   Future<void> _bukaTambah() async {
     KategoriItem? kategori = await showModalBottomSheet<KategoriItem>(
       context: context,
+      useSafeArea: true,
       isScrollControlled: true,
       builder: (context) => const SheetTambahBudget(),
     );

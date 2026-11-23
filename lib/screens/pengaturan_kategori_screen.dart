@@ -130,56 +130,61 @@ class _PengaturanKategoriScreenState extends State<PengaturanKategoriScreen> {
 
     showModalBottomSheet(
       context: context,
+      useSafeArea: true,
       isScrollControlled: true,
       builder: (context) => StatefulBuilder(
         builder: (context, setSheet) {
           bool dipakai = _namaDipakai(nama);
           bool bisaSimpan = nama.trim().isNotEmpty && !dipakai;
 
-          return Padding(
-            // viewInsets.bottom = tinggi keyboard, supaya isian tidak tertutup.
-            padding: EdgeInsets.fromLTRB(
-              JarakApp.tepiHalaman,
-              JarakApp.j24,
-              JarakApp.tepiHalaman,
-              JarakApp.j24 + MediaQuery.of(context).viewInsets.bottom,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Text('Tambah kategori', style: TeksApp.judulSeksi),
-                const SizedBox(height: JarakApp.j16),
-                TextField(
-                  decoration: const InputDecoration(hintText: 'Nama kategori'),
-                  onChanged: (v) => setSheet(() => nama = v),
-                ),
-                if (dipakai) ...[
-                  const SizedBox(height: JarakApp.j4),
-                  Text(
-                    'Nama sudah dipakai',
-                    style: TeksApp.kecil.copyWith(color: WarnaApp.bahaya),
+          return SafeArea(
+            child: Padding(
+              // viewInsets.bottom = tinggi keyboard, supaya isian tidak tertutup.
+              padding: EdgeInsets.fromLTRB(
+                JarakApp.tepiHalaman,
+                JarakApp.j24,
+                JarakApp.tepiHalaman,
+                JarakApp.j24 + MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Text('Tambah kategori', style: TeksApp.judulSeksi),
+                  const SizedBox(height: JarakApp.j16),
+                  TextField(
+                    decoration: const InputDecoration(
+                      hintText: 'Nama kategori',
+                    ),
+                    onChanged: (v) => setSheet(() => nama = v),
+                  ),
+                  if (dipakai) ...[
+                    const SizedBox(height: JarakApp.j4),
+                    Text(
+                      'Nama sudah dipakai',
+                      style: TeksApp.kecil.copyWith(color: WarnaApp.bahaya),
+                    ),
+                  ],
+                  const SizedBox(height: JarakApp.j16),
+                  const Text('Ikon', style: TeksApp.kecil),
+                  const SizedBox(height: JarakApp.j8),
+                  GridPilihIkon(
+                    daftarIkon: AppData.opsiIkonKategori,
+                    terpilih: ikon,
+                    onPilih: (pilihan) => setSheet(() => ikon = pilihan),
+                  ),
+                  const SizedBox(height: JarakApp.j24),
+                  TombolUtama(
+                    teks: 'Simpan',
+                    onTekan: bisaSimpan
+                        ? () {
+                            _simpanKategori(nama.trim(), ikon);
+                            Navigator.pop(context);
+                          }
+                        : null,
                   ),
                 ],
-                const SizedBox(height: JarakApp.j16),
-                const Text('Ikon', style: TeksApp.kecil),
-                const SizedBox(height: JarakApp.j8),
-                GridPilihIkon(
-                  daftarIkon: AppData.opsiIkonKategori,
-                  terpilih: ikon,
-                  onPilih: (pilihan) => setSheet(() => ikon = pilihan),
-                ),
-                const SizedBox(height: JarakApp.j24),
-                TombolUtama(
-                  teks: 'Simpan',
-                  onTekan: bisaSimpan
-                      ? () {
-                          _simpanKategori(nama.trim(), ikon);
-                          Navigator.pop(context);
-                        }
-                      : null,
-                ),
-              ],
+              ),
             ),
           );
         },
