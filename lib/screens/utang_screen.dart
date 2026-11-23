@@ -11,6 +11,7 @@ import '../widgets/baris_utang.dart';
 import '../widgets/kolom_angka.dart';
 import '../widgets/pilihan_segmen.dart';
 import '../widgets/sheet_input_nominal.dart';
+import '../widgets/tampilan_kosong.dart';
 import '../widgets/tombol_utama.dart';
 
 class UtangScreen extends StatefulWidget {
@@ -23,6 +24,12 @@ class UtangScreen extends StatefulWidget {
 class _UtangScreenState extends State<UtangScreen> {
   final List<String> _pilihanFilter = const ['Semua', 'Utang', 'Piutang'];
   int _filter = 0;
+  // Urutannya sama dengan _pilihanFilter.
+  final List<String> _judulKosong = const [
+    'Belum ada catatan',
+    'Belum ada utang',
+    'Belum ada piutang',
+  ];
 
   List<UtangItem> _daftarTampil() {
     List<UtangItem> cocok = AppData.daftarUtang
@@ -61,9 +68,10 @@ class _UtangScreenState extends State<UtangScreen> {
               _bangunTotal(),
               const SizedBox(height: JarakApp.j8),
               if (daftar.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: JarakApp.j16),
-                  child: Text('Belum ada catatan', style: TeksApp.kecil),
+                TampilanKosong(
+                  ikon: LucideIcons.handCoins,
+                  judul: _judulKosong[_filter],
+                  kalimat: 'Catat lewat tombol Catat Utang di bawah.',
                 ),
               for (int i = 0; i < daftar.length; i++) ...[
                 if (i > 0) const Divider(height: 1),
@@ -88,19 +96,25 @@ class _UtangScreenState extends State<UtangScreen> {
         Expanded(
           child: KolomAngka(
             label: 'Piutang',
-            nilai: formatRupiah(AppData.totalBelumLunas('Piutang')),
+            nilai: _teksTotal('Piutang', '+'),
             warnaNilai: WarnaApp.primer,
           ),
         ),
         Expanded(
           child: KolomAngka(
             label: 'Utang',
-            nilai: formatRupiah(AppData.totalBelumLunas('Utang')),
-            warnaNilai: WarnaApp.bahaya,
+            nilai: _teksTotal('Utang', '-'),
+            warnaNilai: WarnaApp.teksUtama,
           ),
         ),
       ],
     );
+  }
+
+  // Total 0 ditulis tanpa tanda, supaya tidak muncul "-Rp 0".
+  String _teksTotal(String jenis, String tanda) {
+    int total = AppData.totalBelumLunas(jenis);
+    return total == 0 ? 'Rp 0' : '$tanda${formatRupiah(total)}';
   }
 
   void _bukaFormUtang() {

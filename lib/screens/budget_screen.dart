@@ -3,7 +3,6 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../models/app_data.dart';
 import '../models/budget.dart';
-import '../models/kategori.dart';
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
 import '../widgets/app_bar_turunan.dart';
@@ -13,6 +12,7 @@ import '../widgets/judul_seksi.dart';
 import '../widgets/kolom_angka.dart';
 import '../widgets/sheet_input_nominal.dart';
 import '../widgets/sheet_tambah_budget.dart';
+import '../widgets/tampilan_kosong.dart';
 import '../widgets/tombol_pill.dart';
 import '../widgets/tombol_utama.dart';
 
@@ -46,7 +46,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
           padding: const EdgeInsets.all(JarakApp.tepiHalaman),
           child: TombolUtama(
             teks: 'Tambah kategori anggaran',
-            onTekan: _bukaTambah,
+            onTekan: () => bukaTambahBudget(context),
           ),
         ),
       ),
@@ -113,9 +113,10 @@ class _BudgetScreenState extends State<BudgetScreen> {
         const JudulSeksi(judul: 'Per kategori'),
         const SizedBox(height: JarakApp.j4),
         if (daftar.isEmpty)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: JarakApp.j16),
-            child: Text('Belum ada kategori anggaran', style: TeksApp.kecil),
+          const TampilanKosong(
+            ikon: LucideIcons.wallet,
+            judul: 'Belum ada kategori anggaran',
+            kalimat: 'Tambahkan lewat tombol di bawah.',
           ),
         for (int i = 0; i < daftar.length; i++) ...[
           if (i > 0) const Divider(height: 1),
@@ -156,24 +157,5 @@ class _BudgetScreenState extends State<BudgetScreen> {
     if (hapus != true) return false;
     AppData.hapusBudget(budget);
     return true;
-  }
-
-  // Dua langkah: pilih kategori di sheet grid, lalu isi limit lewat sheet nominal.
-  Future<void> _bukaTambah() async {
-    KategoriItem? kategori = await showModalBottomSheet<KategoriItem>(
-      context: context,
-      useSafeArea: true,
-      isScrollControlled: true,
-      builder: (context) => const SheetTambahBudget(),
-    );
-    if (kategori == null || !mounted) return;
-    bukaInputNominal(
-      context,
-      judul: 'Limit ${kategori.nama} per bulan',
-      ikon: kategori.ikon,
-      onSimpan: (limit) => AppData.tambahBudget(
-        BudgetItem(kategori: kategori.nama, limit: limit),
-      ),
-    );
   }
 }

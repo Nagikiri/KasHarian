@@ -17,6 +17,8 @@ import '../widgets/header_rentang.dart';
 import '../widgets/judul_seksi.dart';
 import '../widgets/kartu_kantong.dart';
 import '../widgets/sheet_detail_transaksi.dart';
+import '../widgets/sheet_tambah_budget.dart';
+import '../widgets/tampilan_kosong.dart';
 import '../widgets/tombol_pill.dart';
 import 'budget_screen.dart';
 
@@ -188,15 +190,20 @@ class _TransaksiScreenState extends State<TransaksiScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        JudulSeksi(
-          judul: 'Kantong alokasi',
-          aksi: '+ Kategori',
-          onAksi: _bukaBudget,
-        ),
+        const JudulSeksi(judul: 'Kantong alokasi'),
         const SizedBox(height: JarakApp.j12),
         GridKartu(
-          teksKosong: 'Belum ada kategori anggaran',
           daftar: [for (var b in AppData.daftarBudget) _bangunKartu(b)],
+          kosong: TampilanKosong(
+            ikon: LucideIcons.wallet,
+            judul: 'Belum ada kategori anggaran',
+            kalimat:
+                'Atur batas belanja per kategori supaya pengeluaran terpantau.',
+            labelTombol: 'Tambah kategori',
+            onTekan: () => bukaTambahBudget(context),
+          ),
+          labelTambah: 'Tambah kategori',
+          onTambah: () => bukaTambahBudget(context),
         ),
       ],
     );
@@ -250,13 +257,10 @@ class _TransaksiScreenState extends State<TransaksiScreen> {
       _awal,
       _akhir,
     ).where(_cocok).toList();
-    bool adaSaringan = _filter != 0 || _kataKunci.isNotEmpty;
-    String teksKosong = adaSaringan
-        ? 'Tidak ada transaksi yang sesuai'
-        : 'Belum ada transaksi di ${_rentang == null ? 'bulan' : 'rentang'} ini';
     return DaftarTransaksi(
       daftar: daftar,
-      teksKosong: teksKosong,
+      adaSaringan: _filter != 0 || _kataKunci.isNotEmpty,
+      modeRentang: _rentang != null,
       onTekan: _bukaDetail,
     );
   }

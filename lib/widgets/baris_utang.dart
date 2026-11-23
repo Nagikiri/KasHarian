@@ -24,7 +24,7 @@ class BarisUtang extends StatelessWidget {
   Widget build(BuildContext context) {
     bool piutang = utang.jenis == 'Piutang';
     String tanda = piutang ? '+' : '-';
-    Color warnaNominal = piutang ? WarnaApp.primer : WarnaApp.bahaya;
+    Color warnaNominal = piutang ? WarnaApp.primer : WarnaApp.teksUtama;
 
     return Opacity(
       opacity: utang.lunas ? 0.5 : 1,

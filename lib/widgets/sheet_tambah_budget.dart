@@ -3,11 +3,31 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../main.dart';
 import '../models/app_data.dart';
+import '../models/budget.dart';
 import '../models/kategori.dart';
 import '../screens/pengaturan_kategori_screen.dart';
 import '../theme/app_theme.dart';
 import 'grid_kategori.dart';
 import 'header_sheet.dart';
+import 'sheet_input_nominal.dart';
+
+// Dua langkah: pilih kategori di sheet grid, lalu isi limit lewat sheet nominal.
+Future<void> bukaTambahBudget(BuildContext context) async {
+  KategoriItem? kategori = await showModalBottomSheet<KategoriItem>(
+    context: context,
+    useSafeArea: true,
+    isScrollControlled: true,
+    builder: (context) => const SheetTambahBudget(),
+  );
+  if (kategori == null || !context.mounted) return;
+  bukaInputNominal(
+    context,
+    judul: 'Limit ${kategori.nama} per bulan',
+    ikon: kategori.ikon,
+    onSimpan: (limit) =>
+        AppData.tambahBudget(BudgetItem(kategori: kategori.nama, limit: limit)),
+  );
+}
 
 // Langkah pertama tambah budget: memilih kategori. Kategori dikembalikan lewat Navigator.pop.
 class SheetTambahBudget extends StatefulWidget {

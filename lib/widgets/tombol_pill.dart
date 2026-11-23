@@ -9,6 +9,8 @@ class TombolPill extends StatelessWidget {
   final bool terpilih;
   final bool kecil;
   final bool ikonDiKanan;
+  // Latar primer untuk satu aksi utama, misalnya tombol di TampilanKosong.
+  final bool penuh;
 
   const TombolPill({
     super.key,
@@ -18,17 +20,23 @@ class TombolPill extends StatelessWidget {
     this.terpilih = false,
     this.kecil = false,
     this.ikonDiKanan = false,
+    this.penuh = false,
   });
 
   @override
   Widget build(BuildContext context) {
     Color warnaTeks = terpilih ? WarnaApp.primer : WarnaApp.teksUtama;
+    Color warnaLatar = terpilih ? WarnaApp.aksenLembut : WarnaApp.latarSeksi;
+    if (penuh) {
+      warnaTeks = WarnaApp.diAtasPrimer;
+      warnaLatar = WarnaApp.primer;
+    }
     Widget? gambarIkon = ikon == null
         ? null
         : Icon(ikon, size: 16, color: warnaTeks);
 
     return Material(
-      color: terpilih ? WarnaApp.aksenLembut : WarnaApp.latarSeksi,
+      color: warnaLatar,
       borderRadius: BorderRadius.circular(RadiusApp.pill),
       child: InkWell(
         onTap: onTekan,

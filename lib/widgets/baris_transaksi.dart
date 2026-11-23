@@ -29,10 +29,11 @@ class BarisTransaksi extends StatelessWidget {
     return '${tanda}Rp ${formatTitik(t.nominal)}';
   }
 
+  // Merah hanya untuk peringatan, jadi uang keluar biasa cukup teksUtama dengan tanda -.
   static Color warnaNominal(CatatanTransaksi t) {
     if (t.isPemasukan) return WarnaApp.primer;
     if (t.isTransfer) return WarnaApp.teksKedua;
-    return WarnaApp.bahaya;
+    return WarnaApp.teksUtama;
   }
 
   // Transfer menampilkan arah perpindahan uang, transaksi lain menampilkan kategori.

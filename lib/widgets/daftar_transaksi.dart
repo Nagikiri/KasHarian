@@ -1,20 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../models/transaksi.dart';
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
 import 'baris_transaksi.dart';
+import 'tampilan_kosong.dart';
 
 // Daftar transaksi yang dikelompokkan per tanggal, terbaru di atas.
 class DaftarTransaksi extends StatelessWidget {
   final List<CatatanTransaksi> daftar;
-  final String teksKosong;
+  // Dua penanda ini hanya dipakai untuk memilih isi tampilan kosong.
+  final bool adaSaringan;
+  final bool modeRentang;
   final void Function(CatatanTransaksi transaksi) onTekan;
 
   const DaftarTransaksi({
     super.key,
     required this.daftar,
-    required this.teksKosong,
+    required this.adaSaringan,
+    required this.modeRentang,
     required this.onTekan,
   });
 
@@ -23,12 +28,7 @@ class DaftarTransaksi extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (daftar.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: JarakApp.j16),
-        child: Text(teksKosong, style: TeksApp.kecil),
-      );
-    }
+    if (daftar.isEmpty) return _bangunKosong();
 
     List<CatatanTransaksi> urut = List.of(daftar);
     urut.sort((a, b) => b.tanggal.compareTo(a.tanggal));
@@ -49,6 +49,21 @@ class DaftarTransaksi extends StatelessWidget {
           ),
         ],
       ],
+    );
+  }
+
+  Widget _bangunKosong() {
+    if (adaSaringan) {
+      return const TampilanKosong(
+        ikon: LucideIcons.searchX,
+        judul: 'Tidak ada yang cocok',
+        kalimat: 'Coba kata kunci atau filter lain.',
+      );
+    }
+    return TampilanKosong(
+      ikon: LucideIcons.receipt,
+      judul: 'Belum ada transaksi',
+      kalimat: 'Tidak ada catatan di ${modeRentang ? 'rentang' : 'bulan'} ini.',
     );
   }
 

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../models/app_data.dart';
 import '../theme/app_theme.dart';
 import 'baris_distribusi.dart';
 import 'donat_kategori.dart';
+import 'tampilan_kosong.dart';
 
 class DistribusiKategori extends StatelessWidget {
   // Sudah terurut dari yang terbesar (hasil AppData.pengeluaranPerKategori).
@@ -14,12 +16,10 @@ class DistribusiKategori extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (perKategori.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: JarakApp.j12),
-        child: Text(
-          'Belum ada pengeluaran di periode ini',
-          style: TeksApp.kecil,
-        ),
+      return const TampilanKosong(
+        ikon: LucideIcons.chartPie,
+        judul: 'Belum ada pengeluaran',
+        kalimat: 'Tidak ada pengeluaran di periode ini.',
       );
     }
 

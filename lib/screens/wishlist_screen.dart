@@ -13,6 +13,7 @@ import '../widgets/pilihan_segmen.dart';
 import '../widgets/sheet_detail_impian.dart';
 import '../widgets/sheet_impian_baru.dart';
 import '../widgets/sheet_input_nominal.dart';
+import '../widgets/tampilan_kosong.dart';
 
 class WishlistScreen extends StatefulWidget {
   const WishlistScreen({super.key});
@@ -201,15 +202,19 @@ class _WishlistScreenState extends State<WishlistScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        JudulSeksi(
-          judul: 'Impianku',
-          aksi: '+ Tambah',
-          onAksi: () => bukaSheetImpianBaru(context),
-        ),
+        const JudulSeksi(judul: 'Impianku'),
         const SizedBox(height: JarakApp.j12),
         GridKartu(
-          teksKosong: 'Belum ada impian. Tekan + Tambah untuk mulai.',
           daftar: [for (var impian in daftar) _bangunKartu(impian)],
+          kosong: TampilanKosong(
+            ikon: LucideIcons.star,
+            judul: 'Belum ada impian',
+            kalimat: 'Simpan barang incaran dan pantau tabungannya di sini.',
+            labelTombol: 'Tambah impian',
+            onTekan: () => bukaSheetImpianBaru(context),
+          ),
+          labelTambah: 'Tambah impian',
+          onTambah: () => bukaSheetImpianBaru(context),
         ),
       ],
     );

@@ -9,6 +9,7 @@ import '../widgets/dialog_konfirmasi_hapus.dart';
 import '../widgets/grid_pilih_ikon.dart';
 import '../widgets/ikon_bulat.dart';
 import '../widgets/pilihan_segmen.dart';
+import '../widgets/tampilan_kosong.dart';
 import '../widgets/tombol_utama.dart';
 
 class PengaturanKategoriScreen extends StatefulWidget {
@@ -90,8 +91,10 @@ class _PengaturanKategoriScreenState extends State<PengaturanKategoriScreen> {
   Widget _bangunDaftar() {
     List<KategoriItem> daftar = AppData.kategoriTipe(_tipe);
     if (daftar.isEmpty) {
-      return const Center(
-        child: Text('Belum ada kategori', style: TeksApp.kecil),
+      return const TampilanKosong(
+        ikon: LucideIcons.tag,
+        judul: 'Belum ada kategori',
+        kalimat: 'Tambahkan lewat tombol di bawah.',
       );
     }
     return ListView.separated(

@@ -12,6 +12,7 @@ import '../widgets/judul_seksi.dart';
 import '../widgets/kartu_impian.dart';
 import '../widgets/kartu_navigasi.dart';
 import '../widgets/kolom_angka.dart';
+import '../widgets/tampilan_kosong.dart';
 import 'budget_screen.dart';
 import 'utang_screen.dart';
 
@@ -85,11 +86,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   );
 
   Widget _bangunPita() => Container(height: 8, color: WarnaApp.latarSeksi);
-
-  Widget _bangunTeksKosong(String teks) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: JarakApp.j16),
-    child: Text(teks, style: TeksApp.kecil),
-  );
 
   Widget _barisKolom(List<Widget> kolom) =>
       Row(children: [for (Widget k in kolom) Expanded(child: k)]);
@@ -235,7 +231,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
           onAksi: () => AppData.tabAktif.value = 1,
         ),
         const SizedBox(height: JarakApp.j4),
-        if (daftar.isEmpty) _bangunTeksKosong('Belum ada transaksi bulan ini'),
+        if (daftar.isEmpty)
+          const TampilanKosong(
+            ikon: LucideIcons.receipt,
+            judul: 'Belum ada transaksi',
+            kalimat: 'Transaksi bulan ini akan tampil di sini.',
+          ),
         for (int i = 0; i < daftar.length && i < 5; i++) ...[
           if (i > 0) const Divider(height: 1),
           BarisTransaksi(transaksi: daftar[i]),
