@@ -1,8 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../main.dart';
 import '../models/app_data.dart';
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
+import '../utils/periode.dart';
+import '../widgets/bar_distribusi.dart';
+import '../widgets/baris_distribusi.dart';
+import '../widgets/judul_seksi.dart';
+import '../widgets/kartu_navigasi.dart';
+import '../widgets/kolom_angka.dart';
+import '../widgets/lingkaran_anggaran.dart';
+import '../widgets/pilihan_segmen.dart';
+import '../widgets/sheet_saran_ai.dart';
+import '../widgets/tombol_panah.dart';
+import 'budget_screen.dart';
 
 class RingkasanScreen extends StatefulWidget {
   const RingkasanScreen({super.key});
@@ -12,643 +25,240 @@ class RingkasanScreen extends StatefulWidget {
 }
 
 class _RingkasanScreenState extends State<RingkasanScreen> {
-  int _periodeIndex = 1;
-  final TextEditingController _pesanCtrl = TextEditingController();
-  final List<Map<String, String>> _riwayatChat = [];
+  // _jenis: 0 = Pekan, 1 = Bulan, 2 = Tahun.
+  int _jenis = 1;
+  DateTime _acuan = DateTime.now();
 
-  void _kirimPesan() {
-    String teks = _pesanCtrl.text.trim();
-    if (teks.isEmpty) return;
+  void _gantiJenis(int jenis) {
     setState(() {
-      _riwayatChat.add({'pengirim': 'user', 'isi': teks});
-      _pesanCtrl.clear();
+      _jenis = jenis;
+      _acuan = DateTime.now();
     });
   }
 
-  void _tampilkanNantiYa() {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('Nanti Ya')));
+  void _geser(int arah) {
+    setState(() => _acuan = geserPeriode(_jenis, _acuan, arah));
+  }
+
+  // Tidak bisa mundur kalau periode sebelumnya berakhir sebelum transaksi paling awal.
+  bool _bisaMundur() {
+    DateTime? pertama = AppData.tanggalTransaksiPertama();
+    if (pertama == null) return false;
+    DateTime sebelum = geserPeriode(_jenis, _acuan, -1);
+    return akhirPeriode(_jenis, sebelum).isAfter(pertama);
+  }
+
+  // Tidak bisa maju kalau periode berikutnya baru dimulai setelah hari ini.
+  bool _bisaMaju() {
+    DateTime berikut = geserPeriode(_jenis, _acuan, 1);
+    return !awalPeriode(_jenis, berikut).isAfter(DateTime.now());
   }
 
   @override
   Widget build(BuildContext context) {
-    double w = MediaQuery.of(context).size.width;
-    double x = w * 0.05;
-
-    return ValueListenableBuilder<int>(
-      valueListenable: AppData.refreshNotifier,
-      builder: (context, _, _) {
-        int masuk = AppData.totalPemasukan;
-        int keluar = AppData.totalPengeluaran;
-        int surplus = masuk - keluar;
-        int anggaranBulanan = 5000000;
-        int sisaAnggaran = (anggaranBulanan - keluar).clamp(0, anggaranBulanan);
-        double rasioAnggaran = (keluar / anggaranBulanan).clamp(0.0, 1.0);
-
-        return Scaffold(
-          backgroundColor: bgGray,
-          body: SafeArea(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(x, 20, x, 100),
+    return Scaffold(
+      body: SafeArea(
+        child: ValueListenableBuilder<int>(
+          valueListenable: AppData.refreshNotifier,
+          builder: (context, nilai, child) {
+            DateTime awal = awalPeriode(_jenis, _acuan);
+            DateTime akhir = akhirPeriode(_jenis, _acuan);
+            return SingleChildScrollView(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _buildFilterPeriode(),
-                  const SizedBox(height: 16),
-                  _buildKartuSurplus(masuk, keluar, surplus),
-                  const SizedBox(height: 16),
-                  _buildAnggaranDonutCard(
-                    anggaranBulanan,
-                    keluar,
-                    sisaAnggaran,
-                    rasioAnggaran,
+                  _tepi(const Text('Ringkasan', style: TeksApp.judulHalaman)),
+                  _tepi(
+                    PilihanSegmen(
+                      pilihan: const ['Pekan', 'Bulan', 'Tahun'],
+                      indeksAktif: _jenis,
+                      onPilih: _gantiJenis,
+                    ),
                   ),
-                  const SizedBox(height: 16),
-                  _buildDistribusiPengeluaran(),
-                  const SizedBox(height: 16),
-                  _buildChatbotCard(),
+                  _tepi(_bangunPeriode()),
+                  _tepi(_bangunAngka(awal, akhir)),
+                  const SizedBox(height: JarakApp.j24),
+                  _bangunPita(),
+                  if (_jenis == 1) ...[
+                    _tepi(_bangunAnggaran()),
+                    const SizedBox(height: JarakApp.j24),
+                    _bangunPita(),
+                  ],
+                  _tepi(_bangunDistribusi(awal, akhir)),
+                  const SizedBox(height: JarakApp.j24),
+                  _bangunPita(),
+                  _tepi(_bangunBendahara()),
+                  const SizedBox(height: JarakApp.j24),
                 ],
               ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildFilterPeriode() {
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          _tabPeriode('Pekan', 0),
-          _tabPeriode('Bulan', 1),
-          _tabPeriode('Tahun', 2),
-        ],
-      ),
-    );
-  }
-
-  Widget _tabPeriode(String label, int idx) {
-    bool aktif = _periodeIndex == idx;
-    return Expanded(
-      child: InkWell(
-        onTap: () => setState(() => _periodeIndex = idx),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: aktif ? primaryGreen : Colors.transparent,
-            borderRadius: BorderRadius.circular(9),
-          ),
-          child: Text(
-            label,
-            style: TextStyle(
-              color: aktif ? Colors.white : Colors.black54,
-              fontWeight: FontWeight.bold,
-              fontSize: 13,
-            ),
-          ),
+            );
+          },
         ),
       ),
     );
   }
 
-  Widget _buildKartuSurplus(int masuk, int keluar, int surplus) {
-    final surplusNegatif = surplus < 0;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: cardDecoration,
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.calendar_month_outlined,
-                    size: 18,
-                    color: Colors.black87,
-                  ),
-                  SizedBox(width: 6),
-                  InkWell(
-                    onTap: _tampilkanNantiYa,
-                    child: const Text(
-                      'Oktober 2026',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFDCFCE7),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  surplusNegatif ? 'Arus Kas Defisit' : 'Arus Kas Sehat',
-                  style: TextStyle(
-                    color: surplusNegatif ? Colors.red : primaryGreen,
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: bgGray,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Pemasukan',
-                        style: TextStyle(fontSize: 11, color: Colors.grey),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Rp ${formatTitik(masuk)}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                          color: Colors.black87,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: bgGray,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Pengeluaran',
-                        style: TextStyle(fontSize: 11, color: Colors.grey),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Rp ${formatTitik(keluar)}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                          color: Colors.black87,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            decoration: BoxDecoration(
-              color: surplusNegatif ? Colors.red.shade700 : primaryGreen,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Sisa Surplus Bersih',
-                      style: TextStyle(color: Colors.white70, fontSize: 11),
-                    ),
-                    Text(
-                      '${surplusNegatif ? '-' : '+'}Rp ${formatTitik(surplus)}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ],
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Text(
-                    surplusNegatif ? 'Alokasi Perlu Ditinjau' : 'Alokasi Aman',
-                    style: TextStyle(color: Colors.white, fontSize: 11),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // Pita pemisah harus selebar layar, jadi padding samping dipasang per bagian.
+  Widget _tepi(Widget isi) => Padding(
+    padding: const EdgeInsets.fromLTRB(
+      JarakApp.tepiHalaman,
+      JarakApp.j16,
+      JarakApp.tepiHalaman,
+      0,
+    ),
+    child: isi,
+  );
 
-  Widget _buildAnggaranDonutCard(
-    int anggaran,
-    int keluar,
-    int sisa,
-    double rasio,
-  ) {
-    final warnaStatus = rasio < 0.7
-        ? primaryGreen
-        : rasio <= 0.9
-        ? const Color(0xFFF59E0B)
-        : Colors.red;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: cardDecoration,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Anggaran & Proporsi Bulanan',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              SizedBox(
-                width: 96,
-                height: 96,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    CircularProgressIndicator(
-                      value: rasio,
-                      strokeWidth: 12,
-                      backgroundColor: Colors.grey.shade200,
-                      valueColor: AlwaysStoppedAnimation<Color>(warnaStatus),
-                    ),
-                    Center(
-                      child: Text(
-                        '${(rasio * 100).toInt()}%',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: warnaStatus,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 20),
-              Expanded(
-                child: Column(
-                  children: [
-                    _barisAnggaran(
-                      'Tersisa',
-                      'Rp ${formatTitik(sisa)}',
-                      primaryGreen,
-                    ),
-                    const Divider(height: 14),
-                    _barisAnggaran(
-                      'Anggaran',
-                      'Rp ${formatTitik(anggaran)}',
-                      Colors.black87,
-                    ),
-                    const SizedBox(height: 6),
-                    _barisAnggaran(
-                      'Pengeluaran',
-                      'Rp ${formatTitik(keluar)}',
-                      Colors.redAccent,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+  Widget _bangunPita() => Container(height: 8, color: WarnaApp.latarSeksi);
 
-  Widget _barisAnggaran(String label, String nilai, Color warna) {
+  Widget _bangunPeriode() {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          '$label :',
-          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+        TombolPanah(
+          ikon: LucideIcons.chevronLeft,
+          onTekan: _bisaMundur() ? () => _geser(-1) : null,
         ),
-        Text(
-          nilai,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-            color: warna,
+        Expanded(
+          child: Text(
+            labelPeriode(_jenis, _acuan),
+            style: TeksApp.judulSeksi,
+            textAlign: TextAlign.center,
+          ),
+        ),
+        TombolPanah(
+          ikon: LucideIcons.chevronRight,
+          onTekan: _bisaMaju() ? () => _geser(1) : null,
+        ),
+      ],
+    );
+  }
+
+  Widget _bangunAngka(DateTime awal, DateTime akhir) {
+    int masuk = AppData.pemasukanAntara(awal, akhir);
+    int keluar = AppData.pengeluaranAntara(awal, akhir);
+    int selisih = masuk - keluar;
+    return Row(
+      children: [
+        Expanded(
+          child: KolomAngka(label: 'Pemasukan', nilai: formatRupiah(masuk)),
+        ),
+        Expanded(
+          child: KolomAngka(label: 'Pengeluaran', nilai: formatRupiah(keluar)),
+        ),
+        Expanded(
+          child: KolomAngka(
+            label: 'Selisih',
+            nilai: formatRupiah(selisih),
+            warnaNilai: selisih < 0 ? WarnaApp.bahaya : WarnaApp.primer,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildDistribusiPengeluaran() {
-    final distribusi = _hitungDistribusi();
-    final total = distribusi.fold<int>(0, (sum, item) => sum + item.nominal);
-    final warnaSegmen = [
-      const Color(0xFF2A78D6),
-      const Color(0xFFE87BA4),
-      const Color(0xFFEDA100),
-      const Color(0xFF6250D6),
-    ];
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: cardDecoration,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Distribusi Pengeluaran',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-          ),
-          Text(
-            '4 Kategori Utama Terbesar',
-            style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
-          ),
-          const SizedBox(height: 12),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(6),
-            child: Row(
-              children: distribusi.asMap().entries.expand((entry) {
-                final index = entry.key;
-                final item = entry.value;
-                final widgets = <Widget>[
-                  Expanded(
-                    flex: item.nominal,
-                    child: Container(height: 10, color: warnaSegmen[index]),
-                  ),
-                ];
-                if (index < distribusi.length - 1) {
-                  widgets.add(const SizedBox(width: 2));
-                }
-                return widgets;
-              }).toList(),
-            ),
-          ),
-          const SizedBox(height: 14),
-          GridView.count(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisCount: 2,
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
-            childAspectRatio: 2.2,
-            children: distribusi.asMap().entries.map((entry) {
-              final item = entry.value;
-              final persen = total == 0
-                  ? 0
-                  : (item.nominal * 100 / total).round();
-              return _kotakDistribusi(
-                item.icon,
-                item.nama,
-                '$persen%',
-                'Rp ${formatTitik(item.nominal)}',
-                warnaSegmen[entry.key],
-              );
-            }).toList(),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget _bangunAnggaran() {
+    int anggaran = AppData.anggaranBulanan;
+    int terpakai = AppData.terpakaiAnggaran(_acuan);
+    int sisa = anggaran - terpakai;
+    // Anggaran 0 tidak bisa dibagi, jadi persennya dianggap 0.
+    double persen = anggaran > 0 ? terpakai / anggaran : 0;
 
-  List<_DistribusiData> _hitungDistribusi() {
-    final nominalPerKategori = <String, int>{};
-    final ikonPerKategori = <String, IconData>{};
-    for (final transaksi in AppData.daftarTransaksi) {
-      if (transaksi.isPemasukan || transaksi.isTransfer) continue;
-      nominalPerKategori.update(
-        transaksi.kategori,
-        (nilai) => nilai + transaksi.nominal,
-        ifAbsent: () {
-          ikonPerKategori[transaksi.kategori] = transaksi.ikon;
-          return transaksi.nominal;
-        },
-      );
-    }
-
-    final daftar =
-        nominalPerKategori.entries
-            .map(
-              (entry) => _DistribusiData(
-                entry.key,
-                ikonPerKategori[entry.key] ?? Icons.receipt_long_outlined,
-                entry.value,
-              ),
-            )
-            .toList()
-          ..sort((a, b) => b.nominal.compareTo(a.nominal));
-    return daftar.take(4).toList();
-  }
-
-  Widget _kotakDistribusi(
-    IconData icon,
-    String nama,
-    String pct,
-    String nominal,
-    Color warna,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: bgGray,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: warna, size: 18),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  '$nama ($pct)',
-                  style: const TextStyle(fontSize: 10, color: Colors.black54),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  nominal,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        JudulSeksi(
+          judul: 'Anggaran',
+          aksi: 'Atur',
+          onAksi: () => Navigator.push(
+            context,
+            buatTransisiHalaman(const BudgetScreen()),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildChatbotCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: cardDecoration,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              CircleAvatar(
-                backgroundColor: primaryGreen,
-                radius: 16,
-                child: const Icon(
-                  Icons.smart_toy_outlined,
-                  color: Colors.white,
-                  size: 18,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Column(
+        ),
+        const SizedBox(height: JarakApp.j16),
+        Row(
+          children: [
+            LingkaranAnggaran(persen: persen),
+            const SizedBox(width: JarakApp.j24),
+            Expanded(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Asisten Keuangan AI',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                  ),
-                  Text(
-                    'Konsultasi pengeluaran & saran alokasi kas',
-                    style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const Divider(height: 24),
-          if (_riwayatChat.isEmpty)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 16),
-              decoration: BoxDecoration(
-                color: bgGray,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                children: [
-                  Icon(
-                    Icons.chat_bubble_outline,
-                    color: Colors.grey.shade400,
-                    size: 32,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Belum ada percakapan.\nKetik pertanyaan di bawah untuk meminta ringkasan keuangan.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.grey.shade600,
-                      fontSize: 12,
-                      height: 1.4,
-                    ),
+                  KolomAngka(label: 'Terpakai', nilai: formatRupiah(terpakai)),
+                  const SizedBox(height: JarakApp.j8),
+                  KolomAngka(label: 'Anggaran', nilai: formatRupiah(anggaran)),
+                  const SizedBox(height: JarakApp.j8),
+                  // Budget adalah rencana, jadi kelebihan ditulis positif, bukan "Sisa -Rp".
+                  KolomAngka(
+                    label: sisa < 0 ? 'Lebih' : 'Sisa',
+                    nilai: formatRupiah(sisa.abs()),
+                    warnaNilai: sisa < 0 ? WarnaApp.bahaya : null,
                   ),
                 ],
               ),
-            )
-          else
-            Column(
-              children: _riwayatChat.map((pesan) {
-                return Align(
-                  alignment: Alignment.centerRight,
-                  child: Container(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: primaryGreen,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      pesan['isi'] ?? '',
-                      style: const TextStyle(color: Colors.white, fontSize: 12),
-                    ),
-                  ),
-                );
-              }).toList(),
             ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  decoration: BoxDecoration(
-                    color: bgGray,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: TextField(
-                    controller: _pesanCtrl,
-                    style: const TextStyle(fontSize: 13),
-                    decoration: const InputDecoration(
-                      hintText: 'Tanyakan analisis keuanganmu...',
-                      hintStyle: TextStyle(fontSize: 12, color: Colors.grey),
-                      border: InputBorder.none,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              InkWell(
-                onTap: _kirimPesan,
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: primaryGreen,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(Icons.send, color: Colors.white, size: 18),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+          ],
+        ),
+      ],
     );
   }
-}
 
-class _DistribusiData {
-  final String nama;
-  final IconData icon;
-  final int nominal;
+  Widget _bangunDistribusi(DateTime awal, DateTime akhir) {
+    Map<String, int> perKategori = AppData.pengeluaranPerKategori(awal, akhir);
+    List<String> daftarNama = perKategori.keys.toList();
+    List<int> daftarNominal = perKategori.values.toList();
+    int total = daftarNominal.fold(0, (jumlah, n) => jumlah + n);
 
-  const _DistribusiData(this.nama, this.icon, this.nominal);
+    // Bar hanya menampilkan 4 terbesar, sisanya digabung jadi satu segmen "Lainnya".
+    List<int> nilaiBar = daftarNominal.take(4).toList();
+    if (daftarNominal.length > 4) {
+      nilaiBar.add(daftarNominal.skip(4).fold(0, (jumlah, n) => jumlah + n));
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const JudulSeksi(judul: 'Pengeluaran per kategori'),
+        const SizedBox(height: JarakApp.j12),
+        if (total == 0)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: JarakApp.j12),
+            child: Text(
+              'Belum ada pengeluaran di periode ini',
+              style: TeksApp.kecil,
+            ),
+          )
+        else ...[
+          BarDistribusi(daftarNilai: nilaiBar, daftarWarna: WarnaApp.grafik),
+          const SizedBox(height: JarakApp.j8),
+          for (int i = 0; i < daftarNama.length; i++) ...[
+            if (i > 0) const Divider(height: 1),
+            BarisDistribusi(
+              ikon: AppData.ikonKategori(daftarNama[i]),
+              nama: daftarNama[i],
+              nominal: daftarNominal[i],
+              persen: daftarNominal[i] / total,
+              warnaTitik: i < 4 ? WarnaApp.grafik[i] : null,
+            ),
+          ],
+        ],
+      ],
+    );
+  }
+
+  Widget _bangunBendahara() {
+    String bulan = '${namaBulanPanjang[_acuan.month - 1]} ${_acuan.year}';
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const JudulSeksi(judul: 'Bendahara AI'),
+        const SizedBox(height: JarakApp.j12),
+        KartuNavigasi(
+          ikon: LucideIcons.bot,
+          judul: 'Minta saran Bendahara AI',
+          info: 'Analisis catatan $bulan',
+          onTekan: () => bukaSaranAi(context, _acuan),
+        ),
+      ],
+    );
+  }
 }

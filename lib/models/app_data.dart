@@ -603,6 +603,56 @@ class AppData {
     return (sisa / limit).ceil();
   }
 
+  static double _persenImpian(WishlistItem w) => w.terkumpulIdr / w.targetIdr;
+
+  // Impian yang belum tercapai dengan persen terkumpul paling besar.
+  static WishlistItem? impianTerdekat() {
+    WishlistItem? hasil;
+    for (var w in daftarWishlist) {
+      if (w.terkumpulIdr >= w.targetIdr) continue;
+      if (hasil == null || _persenImpian(w) > _persenImpian(hasil)) hasil = w;
+    }
+    return hasil;
+  }
+
+  // Teks ini yang nanti dikirim ke Gemini sebagai bahan analisis.
+  static String rekapUntukAi(DateTime bulan) {
+    DateTime awal = DateTime(bulan.year, bulan.month);
+    DateTime akhir = DateTime(bulan.year, bulan.month + 1);
+    int sisa = anggaranBulanan - terpakaiAnggaran(bulan);
+    String teksSisa = sisa < 0
+        ? 'lebih ${formatRupiah(-sisa)}'
+        : 'sisa ${formatRupiah(sisa)}';
+    String hasil =
+        'Rekap ${namaBulanPanjang[bulan.month - 1]} ${bulan.year}\n'
+        'Pemasukan: ${formatRupiah(pemasukanAntara(awal, akhir))}\n'
+        'Pengeluaran: ${formatRupiah(pengeluaranAntara(awal, akhir))}\n'
+        'Anggaran: ${formatRupiah(anggaranBulanan)}, $teksSisa\n'
+        'Pengeluaran terbesar:\n';
+    var kategori = pengeluaranPerKategori(awal, akhir).entries.take(5);
+    for (var k in kategori) {
+      hasil += '- ${k.key}: ${formatRupiah(k.value)}\n';
+    }
+    WishlistItem? impian = impianTerdekat();
+    if (impian != null) {
+      int bulanLagi = estimasiBulanWishlist(impian);
+      String estimasi = bulanLagi > 0
+          ? formatEstimasiBulan(bulanLagi)
+          : 'estimasi belum bisa dihitung';
+      hasil +=
+          'Impian terdekat: ${impian.nama}, terkumpul '
+          '${formatRupiah(impian.terkumpulIdr)} dari '
+          '${formatRupiah(impian.targetIdr)}, $estimasi\n';
+    }
+    return hasil;
+  }
+
+  // Isinya akan diganti panggilan Gemini dengan rekapUntukAi(bulan) sebagai bahan.
+  static Future<String> mintaSaranAi(DateTime bulan) async {
+    await Future.delayed(const Duration(milliseconds: 1500));
+    return contohSaranAi;
+  }
+
   static int totalBelumLunas(String jenis) {
     int total = 0;
     for (var u in daftarUtang) {
@@ -649,21 +699,64 @@ class AppData {
     return hasil;
   }
 
-  static int pemasukanBulan(DateTime bulan) {
-    int total = 0;
+  static DateTime? tanggalTransaksiPertama() {
+    DateTime? hasil;
     for (var t in daftarTransaksi) {
-      if (t.isPemasukan && _bulanSama(t.tanggal, bulan)) total += t.nominal;
+      if (hasil == null || t.tanggal.isBefore(hasil)) hasil = t.tanggal;
+    }
+    return hasil;
+  }
+
+  // Akhir eksklusif, jadi transaksi tepat di tanggal akhir tidak ikut.
+  static List<CatatanTransaksi> transaksiAntara(DateTime awal, DateTime akhir) {
+    return daftarTransaksi
+        .where((t) => !t.tanggal.isBefore(awal) && t.tanggal.isBefore(akhir))
+        .toList();
+  }
+
+  static int pemasukanAntara(DateTime awal, DateTime akhir) {
+    int total = 0;
+    for (var t in transaksiAntara(awal, akhir)) {
+      if (t.isPemasukan) total += t.nominal;
     }
     return total;
   }
 
-  static int pengeluaranBulan(DateTime bulan) {
+  static int pengeluaranAntara(DateTime awal, DateTime akhir) {
     int total = 0;
-    for (var t in daftarTransaksi) {
-      bool pengeluaran = !t.isPemasukan && !t.isTransfer;
-      if (pengeluaran && _bulanSama(t.tanggal, bulan)) total += t.nominal;
+    for (var t in transaksiAntara(awal, akhir)) {
+      if (!t.isPemasukan && !t.isTransfer) total += t.nominal;
     }
     return total;
+  }
+
+  // Hasilnya sudah terurut dari yang terbesar, karena Map menyimpan urutan saat diisi.
+  static Map<String, int> pengeluaranPerKategori(
+    DateTime awal,
+    DateTime akhir,
+  ) {
+    Map<String, int> total = {};
+    for (var t in transaksiAntara(awal, akhir)) {
+      if (t.isPemasukan || t.isTransfer) continue;
+      total[t.kategori] = (total[t.kategori] ?? 0) + t.nominal;
+    }
+    var urutan = total.entries.toList();
+    urutan.sort((a, b) => b.value - a.value);
+    return Map.fromEntries(urutan);
+  }
+
+  static int pemasukanBulan(DateTime bulan) {
+    return pemasukanAntara(
+      DateTime(bulan.year, bulan.month),
+      DateTime(bulan.year, bulan.month + 1),
+    );
+  }
+
+  static int pengeluaranBulan(DateTime bulan) {
+    return pengeluaranAntara(
+      DateTime(bulan.year, bulan.month),
+      DateTime(bulan.year, bulan.month + 1),
+    );
   }
 
   static int get totalPemasukan => pemasukanBulan(DateTime.now());
@@ -726,6 +819,7 @@ class AppData {
 
   static IconData ikonKategori(String nama) {
     if (nama == 'Tabungan') return LucideIcons.piggyBank;
+    if (nama == 'Pelunasan') return LucideIcons.handCoins;
     // Pengeluaran dicari dulu karena nama seperti 'Hadiah' ada di kedua tipe.
     for (var k in kategoriTipe(0) + kategoriTipe(1)) {
       if (k.nama == nama) return k.ikon;

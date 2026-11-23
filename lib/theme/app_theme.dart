@@ -14,6 +14,14 @@ class WarnaApp {
   static const Color diAtasPrimer = Color(0xFFFFFFFF);
   static const Color peringatan = Color(0xFFD97706);
   static const Color garisAksen = Color(0xFFD6EBC6);
+  // Satu keluarga hijau untuk segmen grafik, yang terakhir abu untuk "Lainnya".
+  static const List<Color> grafik = [
+    primer,
+    Color(0xFF3F8F5A),
+    Color(0xFF7BC47F),
+    Color(0xFFC5E8B0),
+    garis,
+  ];
 }
 
 // Satu aturan warna untuk semua progress dan persen di aplikasi.
@@ -144,18 +152,3 @@ ThemeData buatTema() {
     ),
   );
 }
-
-// Tiga nilai lama ini masih dipakai screen lama, dihapus setelah semua halaman dirombak.
-const Color primaryGreen = Color(0xFF14532D);
-const Color bgGray = Color(0xFFF1F5F9);
-final BoxDecoration cardDecoration = BoxDecoration(
-  color: Colors.white,
-  borderRadius: BorderRadius.circular(16),
-  boxShadow: [
-    BoxShadow(
-      color: Colors.black.withValues(alpha: 0.04),
-      blurRadius: 10,
-      offset: const Offset(0, 4),
-    ),
-  ],
-);

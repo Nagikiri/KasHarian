@@ -45,18 +45,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void _buka(Widget halaman) =>
       Navigator.push(context, buatTransisiHalaman(halaman));
 
-  double _persenImpian(WishlistItem w) => w.terkumpulIdr / w.targetIdr;
-
-  // Impian yang belum tercapai dengan persen terkumpul paling besar.
-  WishlistItem? _cariImpianTerdekat() {
-    WishlistItem? hasil;
-    for (var w in AppData.daftarWishlist) {
-      if (w.terkumpulIdr >= w.targetIdr) continue;
-      if (hasil == null || _persenImpian(w) > _persenImpian(hasil)) hasil = w;
-    }
-    return hasil;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -64,7 +52,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: ValueListenableBuilder<int>(
           valueListenable: AppData.refreshNotifier,
           builder: (context, nilai, child) {
-            WishlistItem? impian = _cariImpianTerdekat();
+            WishlistItem? impian = AppData.impianTerdekat();
             return SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
