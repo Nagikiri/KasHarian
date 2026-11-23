@@ -49,7 +49,13 @@ class _SheetTambahBudgetState extends State<SheetTambahBudget> {
     ];
     // Tabungan bukan kategori, jadi ditambahkan sebagai pilihan sendiri.
     if (!_sudahAda('Tabungan')) {
-      hasil.add(KategoriItem(nama: 'Tabungan', ikon: LucideIcons.piggyBank));
+      hasil.add(
+        KategoriItem(
+          nama: 'Tabungan',
+          ikon: LucideIcons.piggyBank,
+          indeksWarna: AppData.indeksWarnaTabungan,
+        ),
+      );
     }
     return hasil;
   }

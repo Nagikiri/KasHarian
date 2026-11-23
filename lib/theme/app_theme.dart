@@ -27,6 +27,17 @@ class WarnaApp {
     Color(0xFFCF6F8D),
     Color(0xFFA8A8A4),
   ];
+
+  // Dicampur ke putih (bukan dibuat transparan) supaya hasilnya sama di atas latar apa pun.
+  static Color latarKategori(int indeks) =>
+      Color.lerp(paletKategori[indeks], latar, 0.9)!;
+
+  static Color lingkaranKategori(int indeks) =>
+      Color.lerp(paletKategori[indeks], latar, 0.75)!;
+
+  // Versi lebih gelap untuk ikon, bar, dan cincin, karena warna palet asli terlalu pucat di atas latar muda.
+  static Color tegasKategori(int indeks) =>
+      Color.lerp(paletKategori[indeks], teksUtama, 0.3)!;
 }
 
 // Satu aturan warna untuk semua progress dan persen di aplikasi.

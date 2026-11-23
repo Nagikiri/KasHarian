@@ -45,72 +45,166 @@ class AppData {
   ];
 
   static final List<KategoriItem> daftarKategori = [
-    KategoriItem(nama: 'Makan', ikon: LucideIcons.utensils),
-    KategoriItem(nama: 'Jajan', ikon: LucideIcons.cookie),
-    KategoriItem(nama: 'Kopi', ikon: LucideIcons.coffee),
-    KategoriItem(nama: 'Belanja Harian', ikon: LucideIcons.shoppingCart),
-    KategoriItem(nama: 'Belanja', ikon: LucideIcons.shoppingBag),
-    KategoriItem(nama: 'Transportasi', ikon: LucideIcons.bus),
-    KategoriItem(nama: 'Bensin', ikon: LucideIcons.fuel),
-    KategoriItem(nama: 'Ojek Online', ikon: LucideIcons.bike),
-    KategoriItem(nama: 'Parkir', ikon: LucideIcons.circleParking),
-    KategoriItem(nama: 'Tagihan', ikon: LucideIcons.receiptText),
-    KategoriItem(nama: 'Listrik', ikon: LucideIcons.zap),
-    KategoriItem(nama: 'Air', ikon: LucideIcons.droplet),
-    KategoriItem(nama: 'Internet', ikon: LucideIcons.wifi),
-    KategoriItem(nama: 'Pulsa & Data', ikon: LucideIcons.smartphone),
-    KategoriItem(nama: 'Rumah', ikon: LucideIcons.house),
-    KategoriItem(nama: 'Kos & Sewa', ikon: LucideIcons.keyRound),
-    KategoriItem(nama: 'Kesehatan', ikon: LucideIcons.stethoscope),
-    KategoriItem(nama: 'Obat', ikon: LucideIcons.pill),
-    KategoriItem(nama: 'Olahraga', ikon: LucideIcons.dumbbell),
-    KategoriItem(nama: 'Perawatan Diri', ikon: LucideIcons.sparkles),
-    KategoriItem(nama: 'Pakaian', ikon: LucideIcons.shirt),
-    KategoriItem(nama: 'Pendidikan', ikon: LucideIcons.bookOpen),
-    KategoriItem(nama: 'Kursus', ikon: LucideIcons.graduationCap),
-    KategoriItem(nama: 'Hiburan', ikon: LucideIcons.clapperboard),
-    KategoriItem(nama: 'Gim', ikon: LucideIcons.gamepad2),
-    KategoriItem(nama: 'Langganan', ikon: LucideIcons.tv),
-    KategoriItem(nama: 'Liburan', ikon: LucideIcons.plane),
-    KategoriItem(nama: 'Hadiah', ikon: LucideIcons.gift),
-    KategoriItem(nama: 'Donasi', ikon: LucideIcons.heartHandshake),
-    KategoriItem(nama: 'Kondangan', ikon: LucideIcons.partyPopper),
-    KategoriItem(nama: 'Hewan Peliharaan', ikon: LucideIcons.pawPrint),
-    KategoriItem(nama: 'Anak', ikon: LucideIcons.baby),
-    KategoriItem(nama: 'Elektronik', ikon: LucideIcons.monitorSmartphone),
-    KategoriItem(nama: 'Servis', ikon: LucideIcons.wrench),
-    KategoriItem(nama: 'Pajak', ikon: LucideIcons.landmark),
-    KategoriItem(nama: 'Asuransi', ikon: LucideIcons.shieldCheck),
-    KategoriItem(nama: 'Lainnya', ikon: LucideIcons.ellipsis),
-    KategoriItem(nama: 'Gaji', ikon: LucideIcons.banknote, isPemasukan: true),
+    KategoriItem(nama: 'Makan', ikon: LucideIcons.utensils, indeksWarna: 5),
+    KategoriItem(nama: 'Jajan', ikon: LucideIcons.cookie, indeksWarna: 3),
+    KategoriItem(nama: 'Kopi', ikon: LucideIcons.coffee, indeksWarna: 1),
+    KategoriItem(
+      nama: 'Belanja Harian',
+      ikon: LucideIcons.shoppingCart,
+      indeksWarna: 4,
+    ),
+    KategoriItem(
+      nama: 'Belanja',
+      ikon: LucideIcons.shoppingBag,
+      indeksWarna: 6,
+    ),
+    KategoriItem(nama: 'Transportasi', ikon: LucideIcons.bus, indeksWarna: 0),
+    KategoriItem(nama: 'Bensin', ikon: LucideIcons.fuel, indeksWarna: 2),
+    KategoriItem(nama: 'Ojek Online', ikon: LucideIcons.bike, indeksWarna: 3),
+    KategoriItem(
+      nama: 'Parkir',
+      ikon: LucideIcons.circleParking,
+      indeksWarna: 6,
+    ),
+    KategoriItem(
+      nama: 'Tagihan',
+      ikon: LucideIcons.receiptText,
+      indeksWarna: 4,
+    ),
+    KategoriItem(nama: 'Listrik', ikon: LucideIcons.zap, indeksWarna: 1),
+    KategoriItem(nama: 'Air', ikon: LucideIcons.droplet, indeksWarna: 2),
+    KategoriItem(nama: 'Internet', ikon: LucideIcons.wifi, indeksWarna: 5),
+    KategoriItem(
+      nama: 'Pulsa & Data',
+      ikon: LucideIcons.smartphone,
+      indeksWarna: 0,
+    ),
+    KategoriItem(nama: 'Rumah', ikon: LucideIcons.house, indeksWarna: 3),
+    KategoriItem(
+      nama: 'Kos & Sewa',
+      ikon: LucideIcons.keyRound,
+      indeksWarna: 1,
+    ),
+    KategoriItem(
+      nama: 'Kesehatan',
+      ikon: LucideIcons.stethoscope,
+      indeksWarna: 2,
+    ),
+    KategoriItem(nama: 'Obat', ikon: LucideIcons.pill, indeksWarna: 5),
+    KategoriItem(nama: 'Olahraga', ikon: LucideIcons.dumbbell, indeksWarna: 0),
+    KategoriItem(
+      nama: 'Perawatan Diri',
+      ikon: LucideIcons.sparkles,
+      indeksWarna: 6,
+    ),
+    KategoriItem(nama: 'Pakaian', ikon: LucideIcons.shirt, indeksWarna: 4),
+    KategoriItem(
+      nama: 'Pendidikan',
+      ikon: LucideIcons.bookOpen,
+      indeksWarna: 2,
+    ),
+    KategoriItem(
+      nama: 'Kursus',
+      ikon: LucideIcons.graduationCap,
+      indeksWarna: 3,
+    ),
+    KategoriItem(
+      nama: 'Hiburan',
+      ikon: LucideIcons.clapperboard,
+      indeksWarna: 3,
+    ),
+    KategoriItem(nama: 'Gim', ikon: LucideIcons.gamepad2, indeksWarna: 4),
+    KategoriItem(nama: 'Langganan', ikon: LucideIcons.tv, indeksWarna: 5),
+    KategoriItem(nama: 'Liburan', ikon: LucideIcons.plane, indeksWarna: 0),
+    KategoriItem(nama: 'Hadiah', ikon: LucideIcons.gift, indeksWarna: 6),
+    KategoriItem(
+      nama: 'Donasi',
+      ikon: LucideIcons.heartHandshake,
+      indeksWarna: 2,
+    ),
+    KategoriItem(
+      nama: 'Kondangan',
+      ikon: LucideIcons.partyPopper,
+      indeksWarna: 1,
+    ),
+    KategoriItem(
+      nama: 'Hewan Peliharaan',
+      ikon: LucideIcons.pawPrint,
+      indeksWarna: 3,
+    ),
+    KategoriItem(nama: 'Anak', ikon: LucideIcons.baby, indeksWarna: 5),
+    KategoriItem(
+      nama: 'Elektronik',
+      ikon: LucideIcons.monitorSmartphone,
+      indeksWarna: 4,
+    ),
+    KategoriItem(nama: 'Servis', ikon: LucideIcons.wrench, indeksWarna: 1),
+    KategoriItem(nama: 'Pajak', ikon: LucideIcons.landmark, indeksWarna: 5),
+    KategoriItem(
+      nama: 'Asuransi',
+      ikon: LucideIcons.shieldCheck,
+      indeksWarna: 2,
+    ),
+    KategoriItem(nama: 'Lainnya', ikon: LucideIcons.ellipsis, indeksWarna: 7),
+    KategoriItem(
+      nama: 'Gaji',
+      ikon: LucideIcons.banknote,
+      isPemasukan: true,
+      indeksWarna: 0,
+    ),
     KategoriItem(
       nama: 'Kerja Lepas',
       ikon: LucideIcons.laptop,
       isPemasukan: true,
+      indeksWarna: 2,
     ),
-    KategoriItem(nama: 'Bonus', ikon: LucideIcons.award, isPemasukan: true),
+    KategoriItem(
+      nama: 'Bonus',
+      ikon: LucideIcons.award,
+      isPemasukan: true,
+      indeksWarna: 1,
+    ),
     KategoriItem(
       nama: 'Uang Saku',
       ikon: LucideIcons.wallet,
       isPemasukan: true,
+      indeksWarna: 5,
     ),
-    KategoriItem(nama: 'Penjualan', ikon: LucideIcons.store, isPemasukan: true),
+    KategoriItem(
+      nama: 'Penjualan',
+      ikon: LucideIcons.store,
+      isPemasukan: true,
+      indeksWarna: 3,
+    ),
     KategoriItem(
       nama: 'Investasi',
       ikon: LucideIcons.trendingUp,
       isPemasukan: true,
+      indeksWarna: 4,
     ),
-    KategoriItem(nama: 'Bunga', ikon: LucideIcons.percent, isPemasukan: true),
+    KategoriItem(
+      nama: 'Bunga',
+      ikon: LucideIcons.percent,
+      isPemasukan: true,
+      indeksWarna: 6,
+    ),
     KategoriItem(
       nama: 'Pengembalian Dana',
       ikon: LucideIcons.rotateCcw,
       isPemasukan: true,
+      indeksWarna: 2,
     ),
-    KategoriItem(nama: 'Hadiah', ikon: LucideIcons.gift, isPemasukan: true),
+    KategoriItem(
+      nama: 'Hadiah',
+      ikon: LucideIcons.gift,
+      isPemasukan: true,
+      indeksWarna: 6,
+    ),
     KategoriItem(
       nama: 'Lainnya',
       ikon: LucideIcons.ellipsis,
       isPemasukan: true,
+      indeksWarna: 7,
     ),
   ];
 
@@ -135,22 +229,58 @@ class AppData {
 
   // Ikon impian mengikuti kategorinya, jadi tidak dipilih sendiri.
   static final List<KategoriItem> kategoriImpian = [
-    KategoriItem(nama: 'Ponsel & Tablet', ikon: LucideIcons.smartphone),
-    KategoriItem(nama: 'Komputer & Aksesori', ikon: LucideIcons.laptop),
-    KategoriItem(nama: 'Audio', ikon: LucideIcons.headphones),
-    KategoriItem(nama: 'Kamera', ikon: LucideIcons.camera),
-    KategoriItem(nama: 'Gim & Hobi', ikon: LucideIcons.gamepad2),
-    KategoriItem(nama: 'Jam & Aksesori', ikon: LucideIcons.watch),
-    KategoriItem(nama: 'Busana', ikon: LucideIcons.shirt),
-    KategoriItem(nama: 'Kendaraan', ikon: LucideIcons.car),
-    KategoriItem(nama: 'Motor & Sepeda', ikon: LucideIcons.motorbike),
-    KategoriItem(nama: 'Rumah & Perabot', ikon: LucideIcons.sofa),
-    KategoriItem(nama: 'Elektronik Rumah', ikon: LucideIcons.tv),
-    KategoriItem(nama: 'Liburan', ikon: LucideIcons.plane),
-    KategoriItem(nama: 'Konser & Acara', ikon: LucideIcons.ticket),
-    KategoriItem(nama: 'Pendidikan', ikon: LucideIcons.graduationCap),
-    KategoriItem(nama: 'Hadiah', ikon: LucideIcons.gift),
-    KategoriItem(nama: 'Lainnya', ikon: LucideIcons.star),
+    KategoriItem(
+      nama: 'Ponsel & Tablet',
+      ikon: LucideIcons.smartphone,
+      indeksWarna: 5,
+    ),
+    KategoriItem(
+      nama: 'Komputer & Aksesori',
+      ikon: LucideIcons.laptop,
+      indeksWarna: 2,
+    ),
+    KategoriItem(nama: 'Audio', ikon: LucideIcons.headphones, indeksWarna: 1),
+    KategoriItem(nama: 'Kamera', ikon: LucideIcons.camera, indeksWarna: 3),
+    KategoriItem(
+      nama: 'Gim & Hobi',
+      ikon: LucideIcons.gamepad2,
+      indeksWarna: 4,
+    ),
+    KategoriItem(
+      nama: 'Jam & Aksesori',
+      ikon: LucideIcons.watch,
+      indeksWarna: 0,
+    ),
+    KategoriItem(nama: 'Busana', ikon: LucideIcons.shirt, indeksWarna: 6),
+    KategoriItem(nama: 'Kendaraan', ikon: LucideIcons.car, indeksWarna: 4),
+    KategoriItem(
+      nama: 'Motor & Sepeda',
+      ikon: LucideIcons.motorbike,
+      indeksWarna: 5,
+    ),
+    KategoriItem(
+      nama: 'Rumah & Perabot',
+      ikon: LucideIcons.sofa,
+      indeksWarna: 3,
+    ),
+    KategoriItem(
+      nama: 'Elektronik Rumah',
+      ikon: LucideIcons.tv,
+      indeksWarna: 1,
+    ),
+    KategoriItem(nama: 'Liburan', ikon: LucideIcons.plane, indeksWarna: 0),
+    KategoriItem(
+      nama: 'Konser & Acara',
+      ikon: LucideIcons.ticket,
+      indeksWarna: 6,
+    ),
+    KategoriItem(
+      nama: 'Pendidikan',
+      ikon: LucideIcons.graduationCap,
+      indeksWarna: 2,
+    ),
+    KategoriItem(nama: 'Hadiah', ikon: LucideIcons.gift, indeksWarna: 6),
+    KategoriItem(nama: 'Lainnya', ikon: LucideIcons.star, indeksWarna: 7),
   ];
 
   // Nama ini dipakai sistem (budget, transfer, pelunasan utang), jadi tidak boleh jadi nama kategori.
@@ -834,6 +964,60 @@ class AppData {
       total += b.limit;
     }
     return total;
+  }
+
+  // Tabungan bukan kategori, jadi warnanya ditulis di sini.
+  static const int indeksWarnaTabungan = 0;
+
+  // Indeks ke WarnaApp.paletKategori. Nama yang tidak ditemukan memakai 7 (abu).
+  static int indeksWarnaKategori(String nama) {
+    if (nama == 'Tabungan') return indeksWarnaTabungan;
+    // Pengeluaran dicari dulu karena nama seperti 'Hadiah' ada di kedua tipe.
+    for (var k in kategoriTipe(0) + kategoriTipe(1)) {
+      if (k.nama == nama) return k.indeksWarna;
+    }
+    return 7;
+  }
+
+  // Ditelusuri sesuai urutan grid 2 kolom, supaya kartu Kantong tidak sewarna dengan tetangga kiri atau atasnya.
+  static Map<String, int> petaWarnaAnggaran() {
+    Map<String, int> peta = {};
+    List<int> perPosisi = [];
+    for (int i = 0; i < daftarBudget.length; i++) {
+      // indeksWarnaKategori sudah mengembalikan indeksWarnaTabungan untuk 'Tabungan'.
+      int indeks = indeksWarnaKategori(daftarBudget[i].kategori);
+      int? kiri = i % 2 == 1 ? perPosisi[i - 1] : null;
+      int? atas = i >= 2 ? perPosisi[i - 2] : null;
+      if (indeks == kiri || indeks == atas) {
+        indeks = _warnaPengganti(kiri, atas, perPosisi);
+      }
+      perPosisi.add(indeks);
+      peta[daftarBudget[i].kategori] = indeks;
+    }
+    return peta;
+  }
+
+  // Indeks 0-6 pertama yang bukan milik tetangga. Yang belum dipakai kartu lain didahulukan.
+  static int _warnaPengganti(int? kiri, int? atas, List<int> terpakai) {
+    int? cadangan;
+    for (int i = 0; i < 7; i++) {
+      if (i == kiri || i == atas) continue;
+      if (!terpakai.contains(i)) return i;
+      cadangan ??= i;
+    }
+    return cadangan!;
+  }
+
+  static int indeksWarnaImpian(String nama) {
+    for (var k in kategoriImpian) {
+      if (k.nama == nama) return k.indeksWarna;
+    }
+    return 7;
+  }
+
+  // Kategori baru mendapat warna bergiliran 0 sampai 6. Indeks 7 khusus 'Lainnya'.
+  static int indeksWarnaBerikutnya(bool pemasukan) {
+    return kategoriTipe(pemasukan ? 1 : 0).length % 7;
   }
 
   static IconData ikonKategori(String nama) {

@@ -52,7 +52,12 @@ class _PengaturanKategoriScreenState extends State<PengaturanKategoriScreen> {
   void _simpanKategori(String nama, IconData ikon) {
     setState(() {
       AppData.tambahKategori(
-        KategoriItem(nama: nama, ikon: ikon, isPemasukan: _tipe == 1),
+        KategoriItem(
+          nama: nama,
+          ikon: ikon,
+          isPemasukan: _tipe == 1,
+          indeksWarna: AppData.indeksWarnaBerikutnya(_tipe == 1),
+        ),
       );
     });
   }

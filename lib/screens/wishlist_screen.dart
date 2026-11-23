@@ -233,12 +233,14 @@ class _WishlistScreenState extends State<WishlistScreen> {
 
     return KartuProgress(
       ikon: impian.ikon,
+      indeksWarna: AppData.indeksWarnaImpian(impian.kategori),
       persenTeks: '${(persen * 100).floor()}%',
       judul: impian.nama,
       nominal: formatRupiah(impian.terkumpulIdr),
       keterangan: 'dari ${formatRupiah(impian.targetIdr)}',
       persen: persen,
       pakaiWarnaStatus: false,
+      pakaiCincin: true,
       catatanBawah: catatan,
       onTekan: () => _bukaDetail(impian),
     );

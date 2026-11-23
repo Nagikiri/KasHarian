@@ -27,6 +27,7 @@ class KartuKantong extends StatelessWidget {
 
     return KartuProgress(
       ikon: AppData.ikonKategori(budget.kategori),
+      indeksWarna: AppData.petaWarnaAnggaran()[budget.kategori]!,
       persenTeks: '${(persen * 100).round()}%',
       judul: budget.kategori,
       nominal: formatRupiah(terpakai),
@@ -35,6 +36,8 @@ class KartuKantong extends StatelessWidget {
           : 'dari ${formatRupiah(budget.limit)}',
       warnaKeterangan: lebih > 0 ? WarnaApp.bahaya : null,
       persen: persen,
+      // Menabung banyak itu kabar baik, jadi Tabungan tidak memakai warna peringatan.
+      pakaiWarnaStatus: budget.kategori != 'Tabungan',
       onTekan: onTekan,
     );
   }

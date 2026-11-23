@@ -35,10 +35,10 @@ class DistribusiKategori extends StatelessWidget {
       sisa -= perKategori[nama]!;
     }
 
-    Color warnaKategori(String nama) {
-      int posisi = besar.indexOf(nama);
-      return posisi == -1 ? palet.last : palet[posisi];
-    }
+    // Satu peta untuk donat, legenda, dan daftar, supaya warna di satu layar selalu cocok.
+    Map<String, Color> petaWarna = _hitungPetaWarna(besar);
+    // Kategori yang tidak masuk 5 besar ikut potongan abu di donat.
+    Color warnaKategori(String nama) => petaWarna[nama] ?? palet.last;
 
     List<String> daftarNama = perKategori.keys.toList();
 
@@ -70,5 +70,25 @@ class DistribusiKategori extends StatelessWidget {
         ],
       ],
     );
+  }
+
+  Map<String, Color> _hitungPetaWarna(List<String> besar) {
+    Map<String, Color> peta = {};
+    Set<int> terpakai = {};
+    Map<String, int> warnaAnggaran = AppData.petaWarnaAnggaran();
+    for (String nama in besar) {
+      // Kategori yang punya anggaran memakai warna kartu Kantong-nya, supaya cocok antar-halaman.
+      int indeks = warnaAnggaran[nama] ?? AppData.indeksWarnaKategori(nama);
+      // Warna kembar, atau abu milik potongan Lainnya, diganti warna palet pertama yang belum dipakai.
+      if (indeks == 7 || terpakai.contains(indeks)) {
+        indeks = 0;
+        while (terpakai.contains(indeks)) {
+          indeks++;
+        }
+      }
+      terpakai.add(indeks);
+      peta[nama] = WarnaApp.paletKategori[indeks];
+    }
+    return peta;
   }
 }
