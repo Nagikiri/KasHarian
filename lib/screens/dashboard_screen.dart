@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../main.dart';
@@ -8,10 +9,12 @@ import '../models/wishlist.dart';
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
 import '../widgets/baris_transaksi.dart';
+import '../widgets/header_beranda.dart';
 import '../widgets/judul_seksi.dart';
+import '../widgets/kartu_bagian.dart';
 import '../widgets/kartu_impian.dart';
+import '../widgets/kartu_kurs.dart';
 import '../widgets/kartu_navigasi.dart';
-import '../widgets/kolom_angka.dart';
 import '../widgets/tampilan_kosong.dart';
 import 'budget_screen.dart';
 import 'utang_screen.dart';
@@ -48,87 +51,78 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: ValueListenableBuilder<int>(
-          valueListenable: AppData.refreshNotifier,
-          builder: (context, nilai, child) {
-            WishlistItem? impian = AppData.impianTerdekat();
-            return SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _seksi(_bangunAtas()),
-                  _bangunPita(),
-                  _seksi(_bangunKurs()),
-                  if (impian != null) ...[
-                    _bangunPita(),
-                    _seksi(_bangunImpian(impian)),
-                  ],
-                  _bangunPita(),
-                  _seksi(_bangunTransaksiTerbaru()),
-                  const SizedBox(height: JarakApp.j24),
-                ],
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: gayaStatusTerang,
+      child: Scaffold(
+        // Latar tetap abu, jadi ruang kosong di bawah isi tidak pernah hijau.
+        backgroundColor: WarnaApp.latarHalaman,
+        body: Column(
+          children: [
+            // Strip hijau di luar area scroll, jadi isi tidak masuk ke bawah ikon status bar.
+            Container(
+              height: MediaQuery.paddingOf(context).top,
+              color: WarnaApp.primer,
+            ),
+            Expanded(
+              child: ValueListenableBuilder<int>(
+                valueListenable: AppData.refreshNotifier,
+                builder: (context, nilai, child) => _bangunIsi(),
               ),
-            );
-          },
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _seksi(Widget isi) => Padding(
-    padding: const EdgeInsets.symmetric(
-      horizontal: JarakApp.tepiHalaman,
-      vertical: JarakApp.j16,
-    ),
-    child: isi,
-  );
-
-  Widget _bangunPita() => Container(height: 8, color: WarnaApp.latarSeksi);
-
-  Widget _barisKolom(List<Widget> kolom) =>
-      Row(children: [for (Widget k in kolom) Expanded(child: k)]);
-
-  Widget _bangunAtas() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('KasHarian', style: TeksApp.judulHalaman),
-        const SizedBox(height: JarakApp.j24),
-        GestureDetector(
-          onTap: () =>
-              setState(() => _saldoDisembunyikan = !_saldoDisembunyikan),
-          child: Row(
-            children: [
-              const Text('Saldo', style: TeksApp.kecil),
-              const SizedBox(width: JarakApp.j4),
-              Icon(
-                _saldoDisembunyikan ? LucideIcons.eyeOff : LucideIcons.eye,
-                size: 18,
-                color: WarnaApp.teksRedup,
-              ),
-            ],
+  Widget _bangunIsi() {
+    WishlistItem? impian = AppData.impianTerdekat();
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          HeaderBeranda(
+            saldo: _rupiah(AppData.saldoTersedia),
+            pemasukan: _rupiah(AppData.totalPemasukan),
+            pengeluaran: _rupiah(AppData.totalPengeluaran),
+            disembunyikan: _saldoDisembunyikan,
+            onMata: () =>
+                setState(() => _saldoDisembunyikan = !_saldoDisembunyikan),
+            bawah: _bangunKartuNavigasi(),
           ),
-        ),
-        const SizedBox(height: JarakApp.j4),
-        Text(_rupiah(AppData.saldoTersedia), style: TeksApp.angkaBesar),
-        const SizedBox(height: JarakApp.j16),
-        _barisKolom([
-          KolomAngka(
-            label: 'Pemasukan',
-            nilai: _rupiah(AppData.totalPemasukan),
+          _kartu(
+            KartuKurs(sedangMemuat: _sedangMemuatKurs, onPerbarui: _ambilKurs),
           ),
-          KolomAngka(
-            label: 'Pengeluaran',
-            nilai: _rupiah(AppData.totalPengeluaran),
+          if (impian != null) _kartu(_bangunImpian(impian)),
+          _kartu(
+            _bangunTransaksiTerbaru(),
+            // BarisTransaksi sudah punya jarak bawah 12, jadi padding bawah kartu dikurangi.
+            padding: const EdgeInsets.fromLTRB(
+              JarakApp.j16,
+              JarakApp.j16,
+              JarakApp.j16,
+              JarakApp.j4,
+            ),
           ),
-        ]),
-        const SizedBox(height: JarakApp.j24),
-        _bangunKartuNavigasi(),
-      ],
+          const SizedBox(height: JarakApp.j24),
+        ],
+      ),
     );
   }
+
+  // Setiap kartu diberi jarak 16 di atasnya dan sejajar dengan teks header di kiri-kanan.
+  Widget _kartu(
+    Widget isi, {
+    EdgeInsets padding = const EdgeInsets.all(JarakApp.j16),
+  }) => Padding(
+    padding: const EdgeInsets.fromLTRB(
+      JarakApp.tepiHalaman,
+      JarakApp.j16,
+      JarakApp.tepiHalaman,
+      0,
+    ),
+    child: KartuBagian(padding: padding, child: isi),
+  );
 
   Widget _bangunKartuNavigasi() {
     int anggaran = AppData.anggaranBulanan;
@@ -149,6 +143,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   : 'Sisa ${_rupiah(sisa)}',
               warnaInfo: sisa < 0 ? WarnaApp.bahaya : null,
               persen: anggaran > 0 ? terpakai / anggaran : 0,
+              putih: true,
               onTekan: () => _buka(const BudgetScreen()),
             ),
           ),
@@ -158,6 +153,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ikon: LucideIcons.handCoins,
               judul: 'Utang & Piutang',
               info: belumLunas == 0 ? 'Semua lunas' : '$belumLunas belum lunas',
+              putih: true,
               onTekan: () => _buka(const UtangScreen()),
             ),
           ),
@@ -165,53 +161,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
-
-  Widget _bangunKurs() {
-    Widget ujung = _sedangMemuatKurs
-        ? const SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: WarnaApp.primer,
-            ),
-          )
-        : GestureDetector(
-            onTap: _ambilKurs,
-            child: const Icon(
-              LucideIcons.refreshCw,
-              size: 20,
-              color: WarnaApp.teksKedua,
-            ),
-          );
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        JudulSeksi(judul: 'Kurs hari ini', ujung: ujung),
-        const SizedBox(height: JarakApp.j16),
-        _barisKolom([
-          _bangunKolomKurs('USD'),
-          _bangunKolomKurs('SGD'),
-          _bangunKolomKurs('JPY'),
-        ]),
-        const SizedBox(height: JarakApp.j12),
-        Text(
-          AppData.infoKurs,
-          style: TeksApp.kecil.copyWith(
-            color: AppData.kursLive ? WarnaApp.primer : WarnaApp.teksRedup,
-          ),
-        ),
-        const SizedBox(height: JarakApp.j4),
-        const Text('Rates By Exchange Rate API', style: TeksApp.mini),
-      ],
-    );
-  }
-
-  Widget _bangunKolomKurs(String kode) => KolomAngka(
-    label: kode,
-    nilai: 'Rp ${formatTitik(AppData.kursKeIdr[kode] ?? 0)}',
-  );
 
   Widget _bangunTransaksiTerbaru() {
     DateTime bulan = DateTime.now();
@@ -255,7 +204,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           onAksi: () => AppData.tabAktif.value = 2,
         ),
         const SizedBox(height: JarakApp.j16),
-        KartuImpian(impian: impian),
+        KartuImpian(impian: impian, sembunyikanNominal: _saldoDisembunyikan),
       ],
     );
   }

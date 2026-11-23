@@ -13,14 +13,7 @@ import 'widgets/nav_bawah.dart';
 
 void main() {
   // Ikon status bar dan tombol HP dibuat gelap supaya terlihat di atas latar putih.
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.dark,
-      systemNavigationBarColor: WarnaApp.latar,
-      systemNavigationBarIconBrightness: Brightness.dark,
-    ),
-  );
+  SystemChrome.setSystemUIOverlayStyle(gayaStatusGelap);
   runApp(const MyApp());
 }
 
@@ -83,16 +76,20 @@ class MainNavigation extends StatelessWidget {
     return ValueListenableBuilder<int>(
       valueListenable: AppData.tabAktif,
       builder: (context, tabAktif, child) {
-        return Scaffold(
-          resizeToAvoidBottomInset: false,
-          body: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 250),
-            child: _halaman[tabAktif],
-          ),
-          bottomNavigationBar: NavBawah(
-            indeksAktif: tabAktif,
-            onPilih: (i) => AppData.tabAktif.value = i,
-            onTambah: () => _bukaLayarTambah(context),
+        // Tab tanpa AppBar ikut gaya gelap ini, jadi ikon terang dari Beranda tidak terbawa.
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: gayaStatusGelap,
+          child: Scaffold(
+            resizeToAvoidBottomInset: false,
+            body: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 250),
+              child: _halaman[tabAktif],
+            ),
+            bottomNavigationBar: NavBawah(
+              indeksAktif: tabAktif,
+              onPilih: (i) => AppData.tabAktif.value = i,
+              onTambah: () => _bukaLayarTambah(context),
+            ),
           ),
         );
       },

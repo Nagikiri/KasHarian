@@ -11,6 +11,8 @@ class KartuNavigasi extends StatelessWidget {
   final VoidCallback onTekan;
   final double? persen;
   final Color? warnaInfo;
+  // true di Beranda: kartu putih berbayangan yang menumpuk di tepi header hijau.
+  final bool putih;
 
   const KartuNavigasi({
     super.key,
@@ -20,17 +22,28 @@ class KartuNavigasi extends StatelessWidget {
     required this.onTekan,
     this.persen,
     this.warnaInfo,
+    this.putih = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    BorderRadius sudut = BorderRadius.circular(RadiusApp.input);
+    BorderRadius sudut = BorderRadius.circular(RadiusApp.kartu);
+    Widget kartu = _bangunKartu(sudut);
+    if (!putih) return kartu;
+    return DecoratedBox(
+      decoration: BoxDecoration(borderRadius: sudut, boxShadow: bayanganKartu),
+      child: kartu,
+    );
+  }
 
+  Widget _bangunKartu(BorderRadius sudut) {
     return Material(
-      color: WarnaApp.aksenLembut,
+      color: putih ? WarnaApp.latar : WarnaApp.aksenLembut,
       shape: RoundedRectangleBorder(
         borderRadius: sudut,
-        side: const BorderSide(color: WarnaApp.garisAksen),
+        side: putih
+            ? BorderSide.none
+            : const BorderSide(color: WarnaApp.garisAksen),
       ),
       child: InkWell(
         onTap: onTekan,

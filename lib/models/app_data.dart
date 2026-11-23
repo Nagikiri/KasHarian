@@ -563,6 +563,23 @@ class AppData {
     'EUR': 16950,
   };
 
+  // Nama, simbol, dan warna tetap (indeks paletKategori) untuk kartu Kurs di Beranda.
+  static const Map<String, String> namaMataUang = {
+    'USD': 'Dolar AS',
+    'SGD': 'Dolar Singapura',
+    'JPY': 'Yen Jepang',
+  };
+  static const Map<String, String> simbolMataUang = {
+    'USD': r'$',
+    'SGD': r'S$',
+    'JPY': '¥',
+  };
+  static const Map<String, int> indeksWarnaKurs = {
+    'USD': 2,
+    'SGD': 1,
+    'JPY': 6,
+  };
+
   // Diawali kurs cadangan, lalu ditimpa hasil API saat berhasil.
   static final Map<String, int> kursKeIdr = Map.of(kursCadangan);
   static String infoKurs = 'Kurs cadangan';

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class WarnaApp {
   static const Color latar = Color(0xFFFFFFFF);
+  // Abu sangat muda di belakang kartu putih. Sementara baru dipakai Beranda.
+  static const Color latarHalaman = Color(0xFFF4F5F2);
   static const Color latarSeksi = Color(0xFFF5F5F3);
   static const Color garis = Color(0xFFE8E8E5);
   static const Color teksUtama = Color(0xFF0E0F0C);
@@ -12,6 +15,8 @@ class WarnaApp {
   static const Color aksenLembut = Color(0xFFEEF8E6);
   static const Color bahaya = Color(0xFFC8372D);
   static const Color diAtasPrimer = Color(0xFFFFFFFF);
+  // Putih 70% untuk label kecil di header hijau, kontras sekitar 5,4 : 1.
+  static const Color diAtasPrimerRedup = Color(0xB3FFFFFF);
   static const Color peringatan = Color(0xFFD97706);
   static const Color garisAksen = Color(0xFFD6EBC6);
   // Tanggal, bulan, atau tahun di luar batas: abu yang masih terbaca.
@@ -180,6 +185,8 @@ class JarakApp {
   static const double j32 = 32;
   static const double tepiHalaman = 20;
   static const double dalamKartu = 14;
+  // Bagian kartu navigasi yang turun keluar dari header hijau.
+  static const double tumpukanHeader = 48;
 }
 
 class RadiusApp {
@@ -187,7 +194,32 @@ class RadiusApp {
   static const double tombol = 14;
   static const double pill = 999;
   static const double dialog = 16;
+  static const double kartu = 12;
+  static const double header = 24;
 }
+
+// Ikon status bar gelap untuk halaman berlatar putih. Bar navigasi HP selalu putih.
+const SystemUiOverlayStyle gayaStatusGelap = SystemUiOverlayStyle(
+  statusBarColor: Colors.transparent,
+  statusBarIconBrightness: Brightness.dark,
+  statusBarBrightness: Brightness.light,
+  systemNavigationBarColor: WarnaApp.latar,
+  systemNavigationBarIconBrightness: Brightness.dark,
+);
+
+// Ikon status bar terang khusus Beranda yang header-nya hijau.
+const SystemUiOverlayStyle gayaStatusTerang = SystemUiOverlayStyle(
+  statusBarColor: Colors.transparent,
+  statusBarIconBrightness: Brightness.light,
+  statusBarBrightness: Brightness.dark,
+  systemNavigationBarColor: WarnaApp.latar,
+  systemNavigationBarIconBrightness: Brightness.dark,
+);
+
+// Bayangan tipis (teksUtama 6%) supaya kartu putih terlihat sedikit terangkat dari latar abu.
+const List<BoxShadow> bayanganKartu = [
+  BoxShadow(color: Color(0x0F0E0F0C), blurRadius: 8, offset: Offset(0, 2)),
+];
 
 const RoundedRectangleBorder _bentukDialog = RoundedRectangleBorder(
   borderRadius: BorderRadius.all(Radius.circular(RadiusApp.dialog)),
