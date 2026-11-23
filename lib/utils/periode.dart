@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart' show DateTimeRange;
+
 import 'format.dart';
 
 // jenis: 0 = Pekan, 1 = Bulan, 2 = Tahun, sama dengan urutan PilihanSegmen di Ringkasan.
@@ -101,4 +103,64 @@ String _labelSlot(int jenis, DateTime t, bool perHari) {
   if (jenis == 0) return namaHari[t.weekday - 1].substring(0, 3);
   if (perHari) return '${t.day}';
   return namaBulanPanjang[t.month - 1];
+}
+
+// Isi tooltip saat batang diketuk: tanggal untuk batang per hari, bulan dan tahun untuk batang per bulan.
+List<String> labelTooltipTren(int jenis, DateTime awal, DateTime akhir) {
+  bool perHari = trenPerHari(jenis, awal, akhir);
+  return [
+    for (DateTime t in slotTren(jenis, awal, akhir))
+      perHari ? formatTanggal(t) : '${namaBulanPanjang[t.month - 1]} ${t.year}',
+  ];
+}
+
+// Makin sedikit batang, makin lebar, supaya Pekan dan Tahun tidak terlihat kosong.
+double lebarBatang(int jumlah) {
+  if (jumlah <= 7) return 20;
+  if (jumlah <= 12) return 14;
+  return 6;
+}
+
+// Sumbu dibagi 4 langkah. Langkah dibulatkan ke 1, 2, 2,5, atau 5 kali 10^n supaya labelnya rapi.
+int langkahSumbu(int tertinggi) {
+  int pangkat = 1;
+  while (true) {
+    for (int langkah in [pangkat, pangkat * 2, pangkat * 5 ~/ 2, pangkat * 5]) {
+      if (langkah * 4 >= tertinggi) return langkah;
+    }
+    pangkat *= 10;
+  }
+}
+
+// Periode berjalan dibanding potongan periode lalu yang sama panjang (1–24 Nov vs 1–24 Okt), supaya adil.
+DateTimeRange rentangPembanding(int jenis, DateTime acuan, DateTime hariIni) {
+  DateTime lalu = geserPeriode(jenis, acuan, -1);
+  DateTime awalLalu = awalPeriode(jenis, lalu);
+  DateTime akhirLalu = akhirPeriode(jenis, lalu);
+  DateTime besok = DateTime(hariIni.year, hariIni.month, hariIni.day + 1);
+  if (!akhirPeriode(jenis, acuan).isAfter(besok)) {
+    return DateTimeRange(start: awalLalu, end: akhirLalu);
+  }
+  int hari = jumlahHari(awalPeriode(jenis, acuan), besok);
+  DateTime potong = DateTime(
+    awalLalu.year,
+    awalLalu.month,
+    awalLalu.day + hari,
+  );
+  // 30 hari dari 1 Februari jatuh di bulan Maret, jadi ditahan di akhir Februari.
+  if (potong.isAfter(akhirLalu)) potong = akhirLalu;
+  return DateTimeRange(start: awalLalu, end: potong);
+}
+
+// Periode lalu yang utuh ditulis dengan namanya, yang terpotong ditulis tanggalnya.
+String labelPembanding(int jenis, DateTime acuan, DateTimeRange rentang) {
+  DateTime lalu = geserPeriode(jenis, acuan, -1);
+  if (rentang.end == akhirPeriode(jenis, lalu)) {
+    return labelPeriode(jenis, lalu);
+  }
+  DateTime akhir = rentang.end;
+  return labelRentang(
+    rentang.start,
+    DateTime(akhir.year, akhir.month, akhir.day - 1),
+  );
 }

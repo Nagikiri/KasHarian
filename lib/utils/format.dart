@@ -69,3 +69,29 @@ String formatEstimasiBulan(int bulan) {
 String formatTanggalPanjang(DateTime t) {
   return '${namaHari[t.weekday - 1]}, ${t.day} ${namaBulanPanjang[t.month - 1]} ${t.year}';
 }
+
+// Baris pertama tanpa nominal. Nominalnya ditambahkan widget supaya bisa ditulis tebal.
+String kalimatPerbandingan(int sekarang, int lalu) {
+  if (sekarang > lalu) return 'Pengeluaranmu naik';
+  if (sekarang < lalu) return 'Pengeluaranmu turun';
+  return 'Pengeluaranmu sama seperti';
+}
+
+String keteranganPerbandingan(int sekarang, int lalu, String label) {
+  return sekarang == lalu ? label : 'dibanding $label';
+}
+
+// Tanpa rentang tanggal, karena tidak ada angka yang dibandingkan.
+String kalimatTanpaPembanding(int jenis) {
+  const List<String> namaPeriode = ['pekan lalu', 'bulan lalu', 'tahun lalu'];
+  return 'Belum ada data ${namaPeriode[jenis]} untuk dibandingkan.';
+}
+
+// lalu null berarti kategori ini tidak ada di periode lalu.
+String teksSelisih(int sekarang, int? lalu) {
+  if (lalu == null) return 'baru';
+  int selisih = sekarang - lalu;
+  if (selisih == 0) return 'sama';
+  // formatRupiah sudah menulis "-" untuk angka minus, jadi "+" hanya ditambah untuk yang naik.
+  return selisih > 0 ? '+${formatRupiah(selisih)}' : formatRupiah(selisih);
+}

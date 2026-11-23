@@ -17,8 +17,8 @@ import '../widgets/judul_seksi.dart';
 import '../widgets/kalender.dart';
 import '../widgets/kartu_navigasi.dart';
 import '../widgets/kolom_angka.dart';
-import '../widgets/lingkaran_anggaran.dart';
 import '../widgets/pilihan_segmen.dart';
+import '../widgets/ringkasan_anggaran.dart';
 import '../widgets/sheet_saran_ai.dart';
 import 'budget_screen.dart';
 
@@ -167,14 +167,19 @@ class _RingkasanScreenState extends State<RingkasanScreen> {
                     const JudulSeksi(judul: 'Pengeluaran per kategori'),
                     DistribusiKategori(
                       perKategori: AppData.pengeluaranPerKategori(awal, akhir),
+                      jenis: _jenis,
+                      acuan: _acuan,
                     ),
                   ),
                   if (keluar > 0)
                     ..._bangunBagian(
                       const JudulSeksi(judul: 'Tren pengeluaran'),
                       GrafikTren(
-                        nilai: AppData.trenPengeluaran(_jenis, awal, akhir),
-                        label: labelTren(_jenis, awal, akhir),
+                        // Pilihan batang dilepas setiap kali periode berganti.
+                        key: ValueKey('$awal $akhir'),
+                        jenis: _jenis,
+                        awal: awal,
+                        akhir: akhir,
                       ),
                     ),
                   if (_jenis == 1)
@@ -187,7 +192,7 @@ class _RingkasanScreenState extends State<RingkasanScreen> {
                           buatTransisiHalaman(const BudgetScreen()),
                         ),
                       ),
-                      _bangunAnggaran(),
+                      RingkasanAnggaran(bulan: _acuan),
                     ),
                   ..._bangunBagian(
                     const JudulSeksi(judul: 'Bendahara AI'),
@@ -238,38 +243,6 @@ class _RingkasanScreenState extends State<RingkasanScreen> {
             label: 'Selisih',
             nilai: formatRupiah(selisih),
             warnaNilai: selisih < 0 ? WarnaApp.bahaya : WarnaApp.primer,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _bangunAnggaran() {
-    int anggaran = AppData.anggaranBulanan;
-    int terpakai = AppData.terpakaiAnggaran(_acuan);
-    int sisa = anggaran - terpakai;
-    // Anggaran 0 tidak bisa dibagi, jadi persennya dianggap 0.
-    double persen = anggaran > 0 ? terpakai / anggaran : 0;
-
-    return Row(
-      children: [
-        LingkaranAnggaran(persen: persen),
-        const SizedBox(width: JarakApp.j24),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              KolomAngka(label: 'Terpakai', nilai: formatRupiah(terpakai)),
-              const SizedBox(height: JarakApp.j8),
-              KolomAngka(label: 'Anggaran', nilai: formatRupiah(anggaran)),
-              const SizedBox(height: JarakApp.j8),
-              // Budget adalah rencana, jadi kelebihan ditulis positif, bukan "Sisa -Rp".
-              KolomAngka(
-                label: sisa < 0 ? 'Lebih' : 'Sisa',
-                nilai: formatRupiah(sisa.abs()),
-                warnaNilai: sisa < 0 ? WarnaApp.bahaya : null,
-              ),
-            ],
           ),
         ),
       ],

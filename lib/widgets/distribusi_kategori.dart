@@ -3,15 +3,26 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../models/app_data.dart';
 import '../theme/app_theme.dart';
+import '../utils/format.dart';
+import '../utils/periode.dart';
 import 'baris_distribusi.dart';
 import 'donat_kategori.dart';
+import 'kalimat_perbandingan.dart';
 import 'tampilan_kosong.dart';
 
 class DistribusiKategori extends StatelessWidget {
   // Sudah terurut dari yang terbesar (hasil AppData.pengeluaranPerKategori).
   final Map<String, int> perKategori;
+  // Dipakai untuk mencari periode lalu. jenis 3 (Rentang) tidak punya pembanding.
+  final int jenis;
+  final DateTime acuan;
 
-  const DistribusiKategori({super.key, required this.perKategori});
+  const DistribusiKategori({
+    super.key,
+    required this.perKategori,
+    required this.jenis,
+    required this.acuan,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -42,9 +53,26 @@ class DistribusiKategori extends StatelessWidget {
 
     List<String> daftarNama = perKategori.keys.toList();
 
+    DateTimeRange? rentangLalu = jenis == 3
+        ? null
+        : rentangPembanding(jenis, acuan, AppData.batasAkhir());
+    Map<String, int> lalu = rentangLalu == null
+        ? {}
+        : AppData.pengeluaranPerKategori(rentangLalu.start, rentangLalu.end);
+    int totalLalu = lalu.values.fold(0, (jumlah, n) => jumlah + n);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (rentangLalu != null) ...[
+          KalimatPerbandingan(
+            jenis: jenis,
+            sekarang: total,
+            lalu: totalLalu,
+            label: labelPembanding(jenis, acuan, rentangLalu),
+          ),
+          const SizedBox(height: JarakApp.j16),
+        ],
         DonatKategori(
           daftarNama: [...besar, if (sisa > 0) 'Lainnya'],
           daftarNilai: [
@@ -66,6 +94,10 @@ class DistribusiKategori extends StatelessWidget {
             nominal: perKategori[daftarNama[i]]!,
             persen: perKategori[daftarNama[i]]! / total,
             warna: warnaKategori(daftarNama[i]),
+            // Kalau periode lalu kosong, semua baris akan "baru", jadi selisih tidak ditampilkan.
+            selisih: totalLalu > 0
+                ? teksSelisih(perKategori[daftarNama[i]]!, lalu[daftarNama[i]])
+                : null,
           ),
         ],
       ],
