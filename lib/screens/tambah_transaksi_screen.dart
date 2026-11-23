@@ -11,6 +11,7 @@ import '../utils/nominal.dart';
 import '../widgets/baris_isian.dart';
 import '../widgets/baris_kategori.dart';
 import '../widgets/info_budget.dart';
+import '../widgets/kalender.dart';
 import '../widgets/baris_dompet.dart';
 import '../widgets/numpad_simpan.dart';
 import '../widgets/pilihan_segmen.dart';
@@ -120,11 +121,11 @@ class _TambahTransaksiScreenState extends State<TambahTransaksiScreen> {
   }
 
   Future<void> _pilihTanggal() async {
-    DateTime? hasil = await showDatePicker(
-      context: context,
-      initialDate: _tanggal,
-      firstDate: DateTime(2024),
-      lastDate: DateTime(2030),
+    DateTime? hasil = await bukaKalender(
+      context,
+      awal: _tanggal,
+      batasAwal: AppData.batasCatatAwal(),
+      batasAkhir: AppData.batasAkhir(),
     );
     if (hasil != null) setState(() => _tanggal = hasil);
   }

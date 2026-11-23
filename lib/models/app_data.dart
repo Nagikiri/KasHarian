@@ -708,6 +708,22 @@ class AppData {
     return hasil;
   }
 
+  // Batas bawah tanggal di Catat Transaksi. Transaksi lama tetap boleh dicatat walau lebih tua dari data yang ada.
+  static DateTime batasCatatAwal() {
+    DateTime sekarang = DateTime.now();
+    return DateTime(sekarang.year - 5, sekarang.month);
+  }
+
+  // Batas bawah untuk melihat data: awal bulan transaksi paling awal, supaya tidak ada periode kosong di depan.
+  static DateTime batasAwal() {
+    DateTime? pertama = tanggalTransaksiPertama();
+    if (pertama == null) return batasCatatAwal();
+    return DateTime(pertama.year, pertama.month);
+  }
+
+  // Batas atas semua pemilih waktu: transaksi tidak boleh bertanggal di masa depan.
+  static DateTime batasAkhir() => DateTime.now();
+
   // Akhir eksklusif, jadi transaksi tepat di tanggal akhir tidak ikut.
   static List<CatatanTransaksi> transaksiAntara(DateTime awal, DateTime akhir) {
     return daftarTransaksi

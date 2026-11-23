@@ -4,8 +4,9 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../theme/app_theme.dart';
 import '../utils/periode.dart';
 import 'tombol_panah.dart';
+import 'tombol_pill.dart';
 
-// onSebelum atau onSesudah null berarti panah itu nonaktif.
+// Dipakai di Transaksi dan Ringkasan. onSebelum atau onSesudah null berarti panah itu nonaktif.
 class BarisPeriode extends StatelessWidget {
   final int jenis;
   final DateTime awal;
@@ -42,18 +43,25 @@ class BarisPeriode extends StatelessWidget {
             : TombolPanah(ikon: LucideIcons.chevronLeft, onTekan: onSebelum),
         Expanded(
           child: GestureDetector(
-            onTap: rentang ? onRentang : onPilih,
-            child: Text(
-              label,
-              style: TeksApp.judulSeksi,
-              textAlign: TextAlign.center,
+            onTap: onPilih,
+            // Label panjang dikecilkan di layar sempit, bukan turun ke baris kedua.
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(label, style: TeksApp.judulSeksi),
             ),
           ),
         ),
         rentang
             ? const SizedBox(width: 40)
             : TombolPanah(ikon: LucideIcons.chevronRight, onTekan: onSesudah),
-        TombolPanah(ikon: LucideIcons.calendarRange, onTekan: onRentang),
+        const SizedBox(width: JarakApp.j4),
+        TombolPill(
+          teks: 'Rentang',
+          ikon: LucideIcons.calendarRange,
+          kecil: true,
+          terpilih: rentang,
+          onTekan: onRentang,
+        ),
       ],
     );
   }

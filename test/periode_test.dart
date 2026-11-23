@@ -205,4 +205,30 @@ void main() {
     expect(formatRingkas(1500000000), 'Rp 1.500jt');
     expect(formatRingkas(-271000), '-Rp 271rb');
   });
+
+  group('batas waktu', () {
+    test('tahanTanggal menahan tanggal di dalam batas', () {
+      DateTime awal = DateTime(2026, 8, 1);
+      DateTime akhir = DateTime(2026, 11, 24);
+      expect(tahanTanggal(DateTime(2026, 7, 5), awal, akhir), awal);
+      expect(tahanTanggal(DateTime(2026, 12, 1), awal, akhir), akhir);
+      expect(
+        tahanTanggal(DateTime(2026, 9, 9), awal, akhir),
+        DateTime(2026, 9, 9),
+      );
+    });
+
+    test('batasAwal = awal bulan transaksi paling awal', () {
+      DateTime pertama = AppData.tanggalTransaksiPertama()!;
+      expect(AppData.batasAwal(), DateTime(pertama.year, pertama.month));
+    });
+
+    test('batasAwal = 5 tahun lalu kalau belum ada transaksi', () {
+      var cadangan = List.of(AppData.daftarTransaksi);
+      AppData.daftarTransaksi.clear();
+      DateTime sekarang = DateTime.now();
+      expect(AppData.batasAwal(), DateTime(sekarang.year - 5, sekarang.month));
+      AppData.daftarTransaksi.addAll(cadangan);
+    });
+  });
 }

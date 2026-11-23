@@ -4,14 +4,22 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../models/app_data.dart';
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
+import '../utils/periode.dart';
 import 'tombol_panah.dart';
+import 'tombol_teks.dart';
 
-// Mengembalikan bulan yang dipilih lewat Navigator.pop. batas = bulan terakhir yang boleh dipilih.
+// Mengembalikan bulan yang dipilih lewat Navigator.pop. Bulan di luar batas tidak bisa dipilih.
 class DialogPilihBulan extends StatefulWidget {
   final DateTime awal;
-  final DateTime? batas;
+  final DateTime batasAwal;
+  final DateTime batasAkhir;
 
-  const DialogPilihBulan({super.key, required this.awal, this.batas});
+  const DialogPilihBulan({
+    super.key,
+    required this.awal,
+    required this.batasAwal,
+    required this.batasAkhir,
+  });
 
   @override
   State<DialogPilihBulan> createState() => _DialogPilihBulanState();
@@ -19,15 +27,18 @@ class DialogPilihBulan extends StatefulWidget {
 
 class _DialogPilihBulanState extends State<DialogPilihBulan> {
   // Pilihan sementara, baru dikirim saat tombol Pilih ditekan.
-  late DateTime _pilihan = DateTime(widget.awal.year, widget.awal.month);
-  late int _tahun = widget.awal.year;
+  late DateTime _pilihan = _bulanAwal();
+  late int _tahun = _pilihan.year;
 
-  int get _tahunTerakhir => widget.batas?.year ?? 2030;
+  DateTime _bulanAwal() {
+    DateTime t = tahanTanggal(widget.awal, widget.batasAwal, widget.batasAkhir);
+    return DateTime(t.year, t.month);
+  }
 
   bool _bolehDipilih(DateTime bulan) {
-    DateTime? batas = widget.batas;
-    if (batas == null) return true;
-    return !bulan.isAfter(DateTime(batas.year, batas.month));
+    DateTime awal = DateTime(widget.batasAwal.year, widget.batasAwal.month);
+    DateTime akhir = DateTime(widget.batasAkhir.year, widget.batasAkhir.month);
+    return !bulan.isBefore(awal) && !bulan.isAfter(akhir);
   }
 
   @override
@@ -43,14 +54,14 @@ class _DialogPilihBulanState extends State<DialogPilihBulan> {
               children: [
                 TombolPanah(
                   ikon: LucideIcons.chevronLeft,
-                  onTekan: _tahun > 2024
+                  onTekan: _tahun > widget.batasAwal.year
                       ? () => setState(() => _tahun--)
                       : null,
                 ),
                 Text('$_tahun', style: TeksApp.judulSeksi),
                 TombolPanah(
                   ikon: LucideIcons.chevronRight,
-                  onTekan: _tahun < _tahunTerakhir
+                  onTekan: _tahun < widget.batasAkhir.year
                       ? () => setState(() => _tahun++)
                       : null,
                 ),
@@ -73,10 +84,13 @@ class _DialogPilihBulanState extends State<DialogPilihBulan> {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                _bangunTombolTeks('Batal', () => Navigator.pop(context)),
-                _bangunTombolTeks(
-                  'Pilih',
-                  () => Navigator.pop(context, _pilihan),
+                TombolTeks(
+                  teks: 'Batal',
+                  onTekan: () => Navigator.pop(context),
+                ),
+                TombolTeks(
+                  teks: 'Pilih',
+                  onTekan: () => Navigator.pop(context, _pilihan),
                 ),
               ],
             ),
@@ -111,16 +125,6 @@ class _DialogPilihBulanState extends State<DialogPilihBulan> {
             color: terpilih ? WarnaApp.diAtasPrimer : warnaTeks,
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _bangunTombolTeks(String teks, VoidCallback onTekan) {
-    return TextButton(
-      onPressed: onTekan,
-      child: Text(
-        teks,
-        style: TeksApp.tombolKecil.copyWith(color: WarnaApp.primer),
       ),
     );
   }

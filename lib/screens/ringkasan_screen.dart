@@ -8,10 +8,12 @@ import '../utils/format.dart';
 import '../utils/periode.dart';
 import '../widgets/baris_periode.dart';
 import '../widgets/dialog_pilih_bulan.dart';
+import '../widgets/dialog_pilih_rentang.dart';
 import '../widgets/dialog_pilih_tahun.dart';
 import '../widgets/distribusi_kategori.dart';
 import '../widgets/grafik_tren.dart';
 import '../widgets/judul_seksi.dart';
+import '../widgets/kalender.dart';
 import '../widgets/kartu_navigasi.dart';
 import '../widgets/kolom_angka.dart';
 import '../widgets/lingkaran_anggaran.dart';
@@ -51,42 +53,49 @@ class _RingkasanScreenState extends State<RingkasanScreen> {
     setState(() => _acuan = geserPeriode(_jenis, _acuan, arah));
   }
 
-  // Tidak bisa mundur kalau periode sebelumnya berakhir sebelum transaksi paling awal.
+  // Tidak bisa mundur kalau periode sebelumnya berakhir sebelum batas awal data.
   bool _bisaMundur() {
-    DateTime? pertama = AppData.tanggalTransaksiPertama();
-    if (pertama == null) return false;
     DateTime sebelum = geserPeriode(_jenis, _acuan, -1);
-    return akhirPeriode(_jenis, sebelum).isAfter(pertama);
+    return akhirPeriode(_jenis, sebelum).isAfter(AppData.batasAwal());
   }
 
   // Tidak bisa maju kalau periode berikutnya baru dimulai setelah hari ini.
   bool _bisaMaju() {
     DateTime berikut = geserPeriode(_jenis, _acuan, 1);
-    return !awalPeriode(_jenis, berikut).isAfter(DateTime.now());
+    return !awalPeriode(_jenis, berikut).isAfter(AppData.batasAkhir());
   }
 
-  // Semua pemilih di Ringkasan dibatasi sampai hari ini.
+  // Panah, dialog, dan kalender memakai batas yang sama dari AppData.
   Future<void> _pilihWaktu() async {
-    DateTime sekarang = DateTime.now();
+    if (_jenis == 3) return _pilihRentang();
+    DateTime batasAwal = AppData.batasAwal();
+    DateTime batasAkhir = AppData.batasAkhir();
     DateTime? hasil;
     if (_jenis == 0) {
-      hasil = await showDatePicker(
-        context: context,
-        initialDate: _acuan,
-        firstDate: DateTime(2024),
-        lastDate: sekarang,
-        helpText: 'Pilih tanggal dalam pekan',
+      hasil = await bukaKalender(
+        context,
+        awal: _acuan,
+        batasAwal: batasAwal,
+        batasAkhir: batasAkhir,
+        judul: 'Pilih tanggal dalam pekan',
       );
     } else if (_jenis == 1) {
       hasil = await showDialog<DateTime>(
         context: context,
-        builder: (context) => DialogPilihBulan(awal: _acuan, batas: sekarang),
+        builder: (context) => DialogPilihBulan(
+          awal: _acuan,
+          batasAwal: batasAwal,
+          batasAkhir: batasAkhir,
+        ),
       );
     } else {
       int? tahun = await showDialog<int>(
         context: context,
-        builder: (context) =>
-            DialogPilihTahun(awal: _acuan.year, tahunTerakhir: sekarang.year),
+        builder: (context) => DialogPilihTahun(
+          awal: _acuan.year,
+          tahunPertama: batasAwal.year,
+          tahunTerakhir: batasAkhir.year,
+        ),
       );
       if (tahun != null) hasil = DateTime(tahun);
     }
@@ -94,28 +103,22 @@ class _RingkasanScreenState extends State<RingkasanScreen> {
   }
 
   Future<void> _pilihRentang() async {
-    DateTime sekarang = DateTime.now();
-    DateTime? dari = await showDatePicker(
+    DateTimeRange? hasil = await showDialog<DateTimeRange>(
       context: context,
-      initialDate: _awal,
-      firstDate: DateTime(2024),
-      lastDate: sekarang,
-      helpText: 'Dari tanggal',
+      builder: (context) => DialogPilihRentang(
+        mulai: _awal,
+        selesai: DateTime(_akhir.year, _akhir.month, _akhir.day - 1),
+        batasAwal: AppData.batasAwal(),
+        batasAkhir: AppData.batasAkhir(),
+      ),
     );
-    if (dari == null || !mounted) return;
-    // firstDate = dari, jadi tanggal kedua tidak bisa sebelum tanggal pertama.
-    DateTime? sampai = await showDatePicker(
-      context: context,
-      initialDate: dari,
-      firstDate: dari,
-      lastDate: sekarang,
-      helpText: 'Sampai tanggal',
-    );
-    if (sampai == null) return;
+    if (hasil == null) return;
+    DateTime akhir = hasil.end;
     setState(() {
       _jenis = 3;
-      _awalRentang = dari;
-      _akhirRentang = DateTime(sampai.year, sampai.month, sampai.day + 1);
+      _awalRentang = hasil.start;
+      // end dari dialog ikut dihitung, jadi batas eksklusifnya hari berikutnya.
+      _akhirRentang = DateTime(akhir.year, akhir.month, akhir.day + 1);
     });
   }
 

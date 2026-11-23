@@ -48,6 +48,13 @@ String labelRentang(DateTime awal, DateTime hariTerakhir) {
   return '${awal.day}–$teksAkhir';
 }
 
+// Kalender Flutter error kalau tanggal awalnya di luar batas, jadi ditahan dulu di dalam batas.
+DateTime tahanTanggal(DateTime t, DateTime batasAwal, DateTime batasAkhir) {
+  if (t.isBefore(batasAwal)) return batasAwal;
+  if (t.isAfter(batasAkhir)) return batasAkhir;
+  return t;
+}
+
 // Tanggal diubah ke UTC supaya selisihnya selalu hari utuh.
 int jumlahHari(DateTime awal, DateTime akhir) {
   DateTime a = DateTime.utc(awal.year, awal.month, awal.day);

@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
+import 'tombol_teks.dart';
 
 // Mengembalikan tahun yang diketuk lewat Navigator.pop.
 class DialogPilihTahun extends StatelessWidget {
   final int awal;
+  final int tahunPertama;
   final int tahunTerakhir;
 
   const DialogPilihTahun({
     super.key,
     required this.awal,
+    required this.tahunPertama,
     required this.tahunTerakhir,
   });
 
@@ -36,19 +39,16 @@ class DialogPilihTahun extends StatelessWidget {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               children: [
-                for (int t = 2024; t <= tahunTerakhir; t++)
+                for (int t = tahunPertama; t <= tahunTerakhir; t++)
                   _bangunSelTahun(context, t),
               ],
             ),
             const SizedBox(height: JarakApp.j12),
             Align(
               alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(
-                  'Batal',
-                  style: TeksApp.tombolKecil.copyWith(color: WarnaApp.primer),
-                ),
+              child: TombolTeks(
+                teks: 'Batal',
+                onTekan: () => Navigator.pop(context),
               ),
             ),
           ],
