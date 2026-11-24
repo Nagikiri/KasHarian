@@ -14,12 +14,13 @@ import '../widgets/dialog_pilih_rentang.dart';
 import '../widgets/grid_kartu.dart';
 import '../widgets/header_rentang.dart';
 import '../widgets/judul_seksi.dart';
+import '../widgets/kartu_bagian.dart';
 import '../widgets/kartu_kantong.dart';
 import '../widgets/navigasi_bulan.dart';
+import '../widgets/pencarian_transaksi.dart';
 import '../widgets/sheet_detail_transaksi.dart';
 import '../widgets/sheet_tambah_budget.dart';
 import '../widgets/tampilan_kosong.dart';
-import '../widgets/tombol_pill.dart';
 import 'budget_screen.dart';
 
 class TransaksiScreen extends StatefulWidget {
@@ -30,12 +31,7 @@ class TransaksiScreen extends StatefulWidget {
 }
 
 class _TransaksiScreenState extends State<TransaksiScreen> {
-  final List<String> _pilihanFilter = const [
-    'Semua',
-    'Pengeluaran',
-    'Pemasukan',
-    'Transfer',
-  ];
+  // Indeks dari PencarianTransaksi.pilihanFilter.
   int _filter = 0;
   String _kataKunci = '';
   // null berarti mode Bulan (memakai AppData.bulanDipilih). end ikut dihitung.
@@ -130,59 +126,67 @@ class _TransaksiScreenState extends State<TransaksiScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Scaffold putih untuk area status bar, area gulir abu di belakang kartu.
     return Scaffold(
       body: SafeArea(
-        child: ValueListenableBuilder<int>(
-          valueListenable: AppData.refreshNotifier,
-          builder: (context, nilai, child) {
-            return SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _tepi(
-                    HeaderRentang(
-                      judul: 'Transaksi',
-                      rentangAktif: _rentang != null,
-                      onRentang: _bukaDialogRentang,
-                    ),
-                  ),
-                  _tepi(_bangunPeriode()),
-                  if (_rentang == null) ...[
-                    _tepi(
-                      BudgetBulan(
-                        bulan: AppData.bulanDipilih,
-                        onAtur: _bukaBudget,
-                      ),
-                    ),
-                    _tepi(_bangunKantong()),
-                  ],
-                  const SizedBox(height: JarakApp.j24),
-                  SizedBox(key: _kunciDaftar),
-                  Container(height: 8, color: WarnaApp.latarSeksi),
-                  _tepi(_bangunPencarian()),
-                  _tepi(_bangunDaftar()),
-                  if (_rentang == null)
-                    _tepi(
-                      NavigasiBulan(
-                        bulan: AppData.bulanDipilih,
-                        onPilih: _pilihBulan,
-                      ),
-                    ),
-                  const SizedBox(height: JarakApp.j24),
-                ],
-              ),
-            );
-          },
+        child: ColoredBox(
+          color: WarnaApp.latarHalaman,
+          child: ValueListenableBuilder<int>(
+            valueListenable: AppData.refreshNotifier,
+            builder: (context, nilai, child) => _bangunIsi(),
+          ),
         ),
       ),
     );
   }
 
-  // Pita pemisah harus selebar layar, jadi padding samping dipasang per bagian.
+  Widget _bangunIsi() {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          HeaderRentang(
+            judul: 'Transaksi',
+            rentangAktif: _rentang != null,
+            onRentang: _bukaDialogRentang,
+            bawah: [_bangunPeriode()],
+          ),
+          if (_rentang == null) ...[
+            _tepi(
+              KartuBagian(
+                child: BudgetBulan(
+                  bulan: AppData.bulanDipilih,
+                  onAtur: _bukaBudget,
+                ),
+              ),
+            ),
+            _tepi(
+              KartuBagian(
+                judul: const JudulSeksi(judul: 'Kantong alokasi'),
+                child: _bangunKantong(),
+              ),
+            ),
+          ],
+          _tepi(
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SizedBox(key: _kunciDaftar),
+                KartuBagian(child: _bangunDaftar()),
+              ],
+            ),
+          ),
+          const SizedBox(height: JarakApp.j24),
+        ],
+      ),
+    );
+  }
+
+  // Setiap kartu diberi jarak 20 di atasnya dan sejajar dengan teks judul di kiri-kanan.
   Widget _tepi(Widget isi) => Padding(
     padding: const EdgeInsets.fromLTRB(
       JarakApp.tepiHalaman,
-      JarakApp.j16,
+      JarakApp.j20,
       JarakApp.tepiHalaman,
       0,
     ),
@@ -203,25 +207,18 @@ class _TransaksiScreenState extends State<TransaksiScreen> {
   }
 
   Widget _bangunKantong() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const JudulSeksi(judul: 'Kantong alokasi'),
-        const SizedBox(height: JarakApp.j12),
-        GridKartu(
-          daftar: [for (var b in AppData.daftarBudget) _bangunKartu(b)],
-          kosong: TampilanKosong(
-            ikon: LucideIcons.wallet,
-            judul: 'Belum ada kategori anggaran',
-            kalimat:
-                'Atur batas belanja per kategori supaya pengeluaran terpantau.',
-            labelTombol: 'Tambah kategori',
-            onTekan: () => bukaTambahBudget(context),
-          ),
-          labelTambah: 'Tambah kategori',
-          onTambah: () => bukaTambahBudget(context),
-        ),
-      ],
+    return GridKartu(
+      daftar: [for (var b in AppData.daftarBudget) _bangunKartu(b)],
+      kosong: TampilanKosong(
+        ikon: LucideIcons.wallet,
+        judul: 'Belum ada kategori anggaran',
+        kalimat:
+            'Atur batas belanja per kategori supaya pengeluaran terpantau.',
+        labelTombol: 'Tambah kategori',
+        onTekan: () => bukaTambahBudget(context),
+      ),
+      labelTambah: 'Tambah kategori',
+      onTambah: () => bukaTambahBudget(context),
     );
   }
 
@@ -231,53 +228,31 @@ class _TransaksiScreenState extends State<TransaksiScreen> {
     onTekan: _bukaBudget,
   );
 
-  Widget _bangunPencarian() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        TextField(
-          onChanged: (v) => setState(() => _kataKunci = v),
-          decoration: const InputDecoration(
-            hintText: 'Cari catatan atau kategori',
-            prefixIcon: Icon(
-              LucideIcons.search,
-              size: 18,
-              color: WarnaApp.teksRedup,
-            ),
-          ),
-        ),
-        const SizedBox(height: JarakApp.j12),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              for (int i = 0; i < _pilihanFilter.length; i++)
-                Padding(
-                  padding: const EdgeInsets.only(right: JarakApp.j8),
-                  child: TombolPill(
-                    teks: _pilihanFilter[i],
-                    kecil: true,
-                    terpilih: _filter == i,
-                    onTekan: () => setState(() => _filter = i),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
+  // Pencarian, daftar, dan tombol bulan berada dalam satu kartu karena saling terkait.
   Widget _bangunDaftar() {
     List<CatatanTransaksi> daftar = AppData.transaksiAntara(
       _awal,
       _akhir,
     ).where(_cocok).toList();
-    return DaftarTransaksi(
-      daftar: daftar,
-      adaSaringan: _filter != 0 || _kataKunci.isNotEmpty,
-      modeRentang: _rentang != null,
-      onTekan: (t) => bukaDetailTransaksi(context, t),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        PencarianTransaksi(
+          filter: _filter,
+          onCari: (v) => setState(() => _kataKunci = v),
+          onFilter: (i) => setState(() => _filter = i),
+        ),
+        DaftarTransaksi(
+          daftar: daftar,
+          adaSaringan: _filter != 0 || _kataKunci.isNotEmpty,
+          modeRentang: _rentang != null,
+          onTekan: (t) => bukaDetailTransaksi(context, t),
+        ),
+        if (_rentang == null) ...[
+          const SizedBox(height: JarakApp.j16),
+          NavigasiBulan(bulan: AppData.bulanDipilih, onPilih: _pilihBulan),
+        ],
+      ],
     );
   }
 }

@@ -79,7 +79,7 @@ class _KartuHitungKursState extends State<KartuHitungKurs> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const JudulSeksi(judul: 'Hitung kurs'),
-        const SizedBox(height: JarakApp.j16),
+        const SizedBox(height: JarakApp.j12),
         KotakKurs(
           mataUang: AppData.cariMataUang(_dariRupiah ? 'IDR' : _kode),
           warnaLatar: WarnaApp.latarSeksi,

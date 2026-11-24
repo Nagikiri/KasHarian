@@ -6,8 +6,10 @@ import '../models/wishlist.dart';
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
 import '../utils/privasi.dart';
+import '../widgets/baris_judul.dart';
 import '../widgets/grid_kartu.dart';
 import '../widgets/judul_seksi.dart';
+import '../widgets/kartu_bagian.dart';
 import '../widgets/kartu_hitung_kurs.dart';
 import '../widgets/kartu_progress.dart';
 import '../widgets/sheet_detail_impian.dart';
@@ -82,69 +84,65 @@ class _WishlistScreenState extends State<WishlistScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Scaffold putih untuk area status bar, area gulir abu di belakang kartu.
     return Scaffold(
       body: SafeArea(
-        child: ValueListenableBuilder<int>(
-          valueListenable: AppData.refreshNotifier,
-          builder: (context, nilai, child) {
-            return SingleChildScrollView(
+        child: ColoredBox(
+          color: WarnaApp.latarHalaman,
+          child: ValueListenableBuilder<int>(
+            valueListenable: AppData.refreshNotifier,
+            builder: (context, nilai, child) => SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _seksi(_bangunHeader()),
-                  _seksi(
-                    KartuHitungKurs(
-                      sedangMemuat: _sedangMemuat,
-                      onPerbarui: _ambilKurs,
+                  const BarisJudul(judul: 'Impian'),
+                  _tepi(
+                    KartuBagian(
+                      child: KartuHitungKurs(
+                        sedangMemuat: _sedangMemuat,
+                        onPerbarui: _ambilKurs,
+                      ),
                     ),
                   ),
-                  _bangunPita(),
-                  _seksi(_bangunDaftarImpian()),
+                  _tepi(
+                    KartuBagian(
+                      judul: const JudulSeksi(judul: 'Impianku'),
+                      child: _bangunDaftarImpian(),
+                    ),
+                  ),
                   const SizedBox(height: JarakApp.j24),
                 ],
               ),
-            );
-          },
+            ),
+          ),
         ),
       ),
     );
   }
 
-  Widget _seksi(Widget isi) => Padding(
-    padding: const EdgeInsets.symmetric(
-      horizontal: JarakApp.tepiHalaman,
-      vertical: JarakApp.j16,
+  // Setiap kartu diberi jarak 20 di atasnya dan sejajar dengan teks judul di kiri-kanan.
+  Widget _tepi(Widget isi) => Padding(
+    padding: const EdgeInsets.fromLTRB(
+      JarakApp.tepiHalaman,
+      JarakApp.j20,
+      JarakApp.tepiHalaman,
+      0,
     ),
     child: isi,
   );
 
-  Widget _bangunPita() => Container(height: 8, color: WarnaApp.latarSeksi);
-
-  Widget _bangunHeader() {
-    return const Text('Impian', style: TeksApp.judulHalaman);
-  }
-
   Widget _bangunDaftarImpian() {
-    List<WishlistItem> daftar = _daftarUrut();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const JudulSeksi(judul: 'Impianku'),
-        const SizedBox(height: JarakApp.j12),
-        GridKartu(
-          daftar: [for (var impian in daftar) _bangunKartu(impian)],
-          kosong: TampilanKosong(
-            ikon: LucideIcons.star,
-            judul: 'Belum ada impian',
-            kalimat: 'Simpan barang incaran dan pantau tabungannya di sini.',
-            labelTombol: 'Tambah impian',
-            onTekan: () => bukaSheetImpianBaru(context),
-          ),
-          labelTambah: 'Tambah impian',
-          onTambah: () => bukaSheetImpianBaru(context),
-        ),
-      ],
+    return GridKartu(
+      daftar: [for (var impian in _daftarUrut()) _bangunKartu(impian)],
+      kosong: TampilanKosong(
+        ikon: LucideIcons.star,
+        judul: 'Belum ada impian',
+        kalimat: 'Simpan barang incaran dan pantau tabungannya di sini.',
+        labelTombol: 'Tambah impian',
+        onTekan: () => bukaSheetImpianBaru(context),
+      ),
+      labelTambah: 'Tambah impian',
+      onTambah: () => bukaSheetImpianBaru(context),
     );
   }
 

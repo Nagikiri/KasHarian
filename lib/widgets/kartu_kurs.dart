@@ -32,7 +32,7 @@ class KartuKurs extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         JudulSeksi(judul: 'Kurs hari ini', ujung: _bangunKonversi()),
-        const SizedBox(height: JarakApp.j8),
+        const SizedBox(height: JarakApp.j12),
         for (String kode in favorit) ...[
           _bangunBaris(AppData.cariMataUang(kode)),
           const Divider(height: 1),

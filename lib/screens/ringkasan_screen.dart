@@ -16,6 +16,7 @@ import '../widgets/grafik_tren.dart';
 import '../widgets/header_rentang.dart';
 import '../widgets/judul_seksi.dart';
 import '../widgets/kalender.dart';
+import '../widgets/kartu_bagian.dart';
 import '../widgets/kartu_navigasi.dart';
 import '../widgets/kolom_angka.dart';
 import '../widgets/pilihan_segmen.dart';
@@ -127,106 +128,101 @@ class _RingkasanScreenState extends State<RingkasanScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Scaffold putih untuk area status bar, area gulir abu di belakang kartu.
     return Scaffold(
       body: SafeArea(
-        child: ValueListenableBuilder<int>(
-          valueListenable: AppData.refreshNotifier,
-          builder: (context, nilai, child) {
-            DateTime awal = _awal;
-            DateTime akhir = _akhir;
-            int keluar = AppData.pengeluaranAntara(awal, akhir);
-            return SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _tepi(
-                    HeaderRentang(
-                      judul: 'Ringkasan',
-                      rentangAktif: _jenis == 3,
-                      onRentang: _pilihRentang,
-                    ),
-                  ),
-                  _tepi(
-                    PilihanSegmen(
-                      pilihan: const ['Pekan', 'Bulan', 'Tahun'],
-                      indeksAktif: _jenis,
-                      onPilih: _gantiJenis,
-                    ),
-                  ),
-                  _tepi(
-                    BarisPeriode(
-                      jenis: _jenis,
-                      awal: awal,
-                      akhir: akhir,
-                      onSebelum: _bisaMundur() ? () => _geser(-1) : null,
-                      onSesudah: _bisaMaju() ? () => _geser(1) : null,
-                      onPilih: _pilihWaktu,
-                    ),
-                  ),
-                  _tepi(_bangunAngka(awal, akhir, keluar)),
-                  ..._bangunBagian(
-                    const JudulSeksi(judul: 'Pengeluaran per kategori'),
-                    DistribusiKategori(
-                      perKategori: AppData.pengeluaranPerKategori(awal, akhir),
-                      jenis: _jenis,
-                      acuan: _acuan,
-                    ),
-                  ),
-                  if (keluar > 0)
-                    ..._bangunBagian(
-                      const JudulSeksi(judul: 'Tren pengeluaran'),
-                      GrafikTren(
-                        // Pilihan batang dilepas setiap kali periode berganti.
-                        key: ValueKey('$awal $akhir'),
-                        jenis: _jenis,
-                        awal: awal,
-                        akhir: akhir,
-                      ),
-                    ),
-                  if (_jenis == 1)
-                    ..._bangunBagian(
-                      JudulSeksi(
-                        judul: 'Anggaran',
-                        aksi: 'Atur',
-                        onAksi: () => Navigator.push(
-                          context,
-                          buatTransisiHalaman(const BudgetScreen()),
-                        ),
-                      ),
-                      RingkasanAnggaran(bulan: _acuan),
-                    ),
-                  ..._bangunBagian(
-                    const JudulSeksi(judul: 'Bendahara AI'),
-                    _bangunBendahara(),
-                  ),
-                  const SizedBox(height: JarakApp.j24),
-                ],
-              ),
-            );
-          },
+        child: ColoredBox(
+          color: WarnaApp.latarHalaman,
+          child: ValueListenableBuilder<int>(
+            valueListenable: AppData.refreshNotifier,
+            builder: (context, nilai, child) => _bangunIsi(),
+          ),
         ),
       ),
     );
   }
 
-  // Pita pemisah harus selebar layar, jadi padding samping dipasang per bagian.
+  Widget _bangunIsi() {
+    DateTime awal = _awal;
+    DateTime akhir = _akhir;
+    int keluar = AppData.pengeluaranAntara(awal, akhir);
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          HeaderRentang(
+            judul: 'Ringkasan',
+            rentangAktif: _jenis == 3,
+            onRentang: _pilihRentang,
+            bawah: [
+              PilihanSegmen(
+                pilihan: const ['Pekan', 'Bulan', 'Tahun'],
+                indeksAktif: _jenis,
+                onPilih: _gantiJenis,
+              ),
+              BarisPeriode(
+                jenis: _jenis,
+                awal: awal,
+                akhir: akhir,
+                onSebelum: _bisaMundur() ? () => _geser(-1) : null,
+                onSesudah: _bisaMaju() ? () => _geser(1) : null,
+                onPilih: _pilihWaktu,
+              ),
+            ],
+          ),
+          _kartu(_bangunAngka(awal, akhir, keluar)),
+          _kartu(
+            DistribusiKategori(
+              perKategori: AppData.pengeluaranPerKategori(awal, akhir),
+              jenis: _jenis,
+              acuan: _acuan,
+            ),
+            judul: const JudulSeksi(judul: 'Pengeluaran per kategori'),
+          ),
+          if (keluar > 0)
+            _kartu(
+              GrafikTren(
+                // Pilihan batang dilepas setiap kali periode berganti.
+                key: ValueKey('$awal $akhir'),
+                jenis: _jenis,
+                awal: awal,
+                akhir: akhir,
+              ),
+              judul: const JudulSeksi(judul: 'Tren pengeluaran'),
+            ),
+          if (_jenis == 1)
+            _kartu(
+              RingkasanAnggaran(bulan: _acuan),
+              judul: JudulSeksi(
+                judul: 'Anggaran',
+                aksi: 'Atur',
+                onAksi: () => Navigator.push(
+                  context,
+                  buatTransisiHalaman(const BudgetScreen()),
+                ),
+              ),
+            ),
+          // Kartu hijau muda ini sudah berupa kartu, jadi tidak dibungkus kartu putih.
+          _tepi(_bangunBendahara()),
+          const SizedBox(height: JarakApp.j24),
+        ],
+      ),
+    );
+  }
+
+  // Setiap kartu diberi jarak 20 di atasnya dan sejajar dengan teks judul di kiri-kanan.
   Widget _tepi(Widget isi) => Padding(
     padding: const EdgeInsets.fromLTRB(
       JarakApp.tepiHalaman,
-      JarakApp.j16,
+      JarakApp.j20,
       JarakApp.tepiHalaman,
       0,
     ),
     child: isi,
   );
 
-  // Setiap bagian diawali jarak dan pita pemisah, lalu judul seksi dan isinya.
-  List<Widget> _bangunBagian(Widget judul, Widget isi) => [
-    const SizedBox(height: JarakApp.j24),
-    Container(height: 8, color: WarnaApp.latarSeksi),
-    _tepi(judul),
-    _tepi(isi),
-  ];
+  Widget _kartu(Widget isi, {Widget? judul}) =>
+      _tepi(KartuBagian(judul: judul, child: isi));
 
   Widget _bangunAngka(DateTime awal, DateTime akhir, int keluar) {
     int masuk = AppData.pemasukanAntara(awal, akhir);

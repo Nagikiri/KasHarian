@@ -8,6 +8,7 @@ import '../models/wishlist.dart';
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
 import '../utils/privasi.dart';
+import '../widgets/baris_judul.dart';
 import '../widgets/baris_transaksi.dart';
 import '../widgets/judul_seksi.dart';
 import '../widgets/kartu_bagian.dart';
@@ -79,7 +80,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _bangunJudul(),
+          // Sisi kanan disiapkan untuk ikon Pengaturan nanti.
+          BarisJudul(
+            judul: 'KasHarian',
+            keterangan: formatTanggal(DateTime.now()),
+          ),
           _tepi(
             KartuSaldo(
               saldo: rupiahTampil(AppData.saldoTersedia),
@@ -94,7 +99,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _kartu(
             KartuKurs(sedangMemuat: _sedangMemuatKurs, onPerbarui: _ambilKurs),
           ),
-          if (impian != null) _kartu(_bangunImpian(impian)),
+          if (impian != null)
+            _kartu(
+              KartuImpian(impian: impian),
+              judul: JudulSeksi(
+                judul: 'Impian terdekat',
+                aksi: 'Lihat semua',
+                onAksi: () => AppData.tabAktif.value = 2,
+              ),
+            ),
           _kartu(
             _bangunTransaksiTerbaru(),
             // BarisTransaksi sudah punya jarak bawah 12, jadi padding bawah kartu dikurangi.
@@ -106,27 +119,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
           const SizedBox(height: JarakApp.j24),
-        ],
-      ),
-    );
-  }
-
-  // Baris judul putih ikut digulir. Sisi kanan disiapkan untuk ikon Pengaturan nanti.
-  Widget _bangunJudul() {
-    return Container(
-      color: WarnaApp.latar,
-      padding: const EdgeInsets.fromLTRB(
-        JarakApp.tepiHalaman,
-        JarakApp.j16,
-        JarakApp.tepiHalaman,
-        JarakApp.j16,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('KasHarian', style: TeksApp.judulHalaman),
-          const SizedBox(height: JarakApp.j4),
-          Text(formatTanggal(DateTime.now()), style: TeksApp.kecil),
         ],
       ),
     );
@@ -146,7 +138,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _kartu(
     Widget isi, {
     EdgeInsets padding = const EdgeInsets.all(JarakApp.j16),
-  }) => _tepi(KartuBagian(padding: padding, child: isi));
+    Widget? judul,
+  }) => _tepi(KartuBagian(padding: padding, judul: judul, child: isi));
 
   Widget _bangunKartuNavigasi() {
     int anggaran = AppData.anggaranBulanan;
@@ -217,21 +210,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
             onTekan: () => bukaDetailTransaksi(context, daftar[i]),
           ),
         ],
-      ],
-    );
-  }
-
-  Widget _bangunImpian(WishlistItem impian) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        JudulSeksi(
-          judul: 'Impian terdekat',
-          aksi: 'Lihat semua',
-          onAksi: () => AppData.tabAktif.value = 2,
-        ),
-        const SizedBox(height: JarakApp.j16),
-        KartuImpian(impian: impian),
       ],
     );
   }
