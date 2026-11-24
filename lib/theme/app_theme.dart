@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 
 class WarnaApp {
   static const Color latar = Color(0xFFFFFFFF);
-  // Abu sangat muda di belakang kartu putih. Sementara baru dipakai Beranda.
+  // Abu sangat muda di belakang kartu putih di keempat tab utama. Halaman turunan menyusul di V6b.
   static const Color latarHalaman = Color(0xFFF4F5F2);
   static const Color latarSeksi = Color(0xFFF5F5F3);
   static const Color garis = Color(0xFFE8E8E5);
@@ -187,7 +187,10 @@ class JarakApp {
   static const double j32 = 32;
   static const double j20 = 20;
   static const double tepiHalaman = 20;
+  // Kartu ramping: jarak kartu ke tepi layar, jarak isi ke tepi kartu, dan jarak antarkartu.
+  static const double tepiKartu = 12;
   static const double dalamKartu = 14;
+  static const double antarKartu = 12;
 }
 
 class RadiusApp {

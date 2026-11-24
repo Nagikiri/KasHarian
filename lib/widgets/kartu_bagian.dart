@@ -12,7 +12,7 @@ class KartuBagian extends StatelessWidget {
   const KartuBagian({
     super.key,
     required this.child,
-    this.padding = const EdgeInsets.all(JarakApp.j16),
+    this.padding = const EdgeInsets.all(JarakApp.dalamKartu),
     this.judul,
   });
 

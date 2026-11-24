@@ -210,12 +210,12 @@ class _RingkasanScreenState extends State<RingkasanScreen> {
     );
   }
 
-  // Setiap kartu diberi jarak 20 di atasnya dan sejajar dengan teks judul di kiri-kanan.
+  // Kartu ramping: jarak antarkartu di atasnya dan jarak tepi kartu di kiri-kanan.
   Widget _tepi(Widget isi) => Padding(
     padding: const EdgeInsets.fromLTRB(
-      JarakApp.tepiHalaman,
-      JarakApp.j20,
-      JarakApp.tepiHalaman,
+      JarakApp.tepiKartu,
+      JarakApp.antarKartu,
+      JarakApp.tepiKartu,
       0,
     ),
     child: isi,

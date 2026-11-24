@@ -10,6 +10,7 @@ import '../utils/format.dart';
 import '../utils/privasi.dart';
 import '../widgets/baris_judul.dart';
 import '../widgets/baris_transaksi.dart';
+import '../widgets/blok_daftar.dart';
 import '../widgets/judul_seksi.dart';
 import '../widgets/kartu_bagian.dart';
 import '../widgets/kartu_impian.dart';
@@ -108,38 +109,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 onAksi: () => AppData.tabAktif.value = 2,
               ),
             ),
-          _kartu(
-            _bangunTransaksiTerbaru(),
-            // BarisTransaksi sudah punya jarak bawah 12, jadi padding bawah kartu dikurangi.
+          BlokDaftar(
+            // BarisTransaksi sudah punya jarak bawah 12, jadi padding bawah blok dikurangi.
             padding: const EdgeInsets.fromLTRB(
+              JarakApp.tepiHalaman,
               JarakApp.j16,
-              JarakApp.j16,
-              JarakApp.j16,
-              JarakApp.j4,
+              JarakApp.tepiHalaman,
+              JarakApp.j12,
             ),
+            child: _bangunTransaksiTerbaru(),
           ),
-          const SizedBox(height: JarakApp.j24),
         ],
       ),
     );
   }
 
-  // Setiap kartu diberi jarak 20 di atasnya dan sejajar dengan teks judul di kiri-kanan.
+  // Kartu ramping: jarak antarkartu di atasnya dan jarak tepi kartu di kiri-kanan.
   Widget _tepi(Widget isi) => Padding(
     padding: const EdgeInsets.fromLTRB(
-      JarakApp.tepiHalaman,
-      JarakApp.j20,
-      JarakApp.tepiHalaman,
+      JarakApp.tepiKartu,
+      JarakApp.antarKartu,
+      JarakApp.tepiKartu,
       0,
     ),
     child: isi,
   );
 
-  Widget _kartu(
-    Widget isi, {
-    EdgeInsets padding = const EdgeInsets.all(JarakApp.j16),
-    Widget? judul,
-  }) => _tepi(KartuBagian(padding: padding, judul: judul, child: isi));
+  Widget _kartu(Widget isi, {Widget? judul}) =>
+      _tepi(KartuBagian(judul: judul, child: isi));
 
   Widget _bangunKartuNavigasi() {
     int anggaran = AppData.anggaranBulanan;
@@ -164,7 +161,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               onTekan: () => _buka(const BudgetScreen()),
             ),
           ),
-          const SizedBox(width: JarakApp.j12),
+          const SizedBox(width: JarakApp.antarKartu),
           Expanded(
             child: KartuNavigasi(
               ikon: LucideIcons.handCoins,

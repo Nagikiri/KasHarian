@@ -7,6 +7,7 @@ import '../models/budget.dart';
 import '../models/transaksi.dart';
 import '../theme/app_theme.dart';
 import '../widgets/baris_periode.dart';
+import '../widgets/blok_daftar.dart';
 import '../widgets/budget_bulan.dart';
 import '../widgets/daftar_transaksi.dart';
 import '../widgets/dialog_pilih_bulan.dart';
@@ -167,27 +168,19 @@ class _TransaksiScreenState extends State<TransaksiScreen> {
               ),
             ),
           ],
-          _tepi(
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                SizedBox(key: _kunciDaftar),
-                KartuBagian(child: _bangunDaftar()),
-              ],
-            ),
-          ),
-          const SizedBox(height: JarakApp.j24),
+          SizedBox(key: _kunciDaftar),
+          BlokDaftar(child: _bangunDaftar()),
         ],
       ),
     );
   }
 
-  // Setiap kartu diberi jarak 20 di atasnya dan sejajar dengan teks judul di kiri-kanan.
+  // Kartu ramping: jarak antarkartu di atasnya dan jarak tepi kartu di kiri-kanan.
   Widget _tepi(Widget isi) => Padding(
     padding: const EdgeInsets.fromLTRB(
-      JarakApp.tepiHalaman,
-      JarakApp.j20,
-      JarakApp.tepiHalaman,
+      JarakApp.tepiKartu,
+      JarakApp.antarKartu,
+      JarakApp.tepiKartu,
       0,
     ),
     child: isi,
@@ -228,7 +221,7 @@ class _TransaksiScreenState extends State<TransaksiScreen> {
     onTekan: _bukaBudget,
   );
 
-  // Pencarian, daftar, dan tombol bulan berada dalam satu kartu karena saling terkait.
+  // Pencarian, daftar, dan tombol bulan berada dalam satu blok karena saling terkait.
   Widget _bangunDaftar() {
     List<CatatanTransaksi> daftar = AppData.transaksiAntara(
       _awal,
