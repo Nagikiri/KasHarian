@@ -7,10 +7,9 @@ import '../utils/format.dart';
 import '../utils/format_ribuan.dart';
 import 'baris_info_kurs.dart';
 import 'judul_seksi.dart';
-import 'kotak_hasil_kurs.dart';
-import 'kotak_input_kurs.dart';
+import 'kotak_kurs.dart';
 import 'sheet_pilih_mata_uang.dart';
-import 'template_nominal.dart';
+import 'template_kurs.dart';
 
 // Hitung kurs di tab Impian. Pengambilan kurs tetap diatur halaman lewat onPerbarui.
 class KartuHitungKurs extends StatefulWidget {
@@ -64,13 +63,14 @@ class _KartuHitungKursState extends State<KartuHitungKurs> {
     _aturJumlah(baru);
   }
 
+  // Tanpa awalan Rp atau kode, karena kode mata uang sudah tampil di kanan kotak.
   String _teksHasil() {
     if (!AppData.kursAda(_kode)) return '—';
     int jumlah = bacaAngka(_jumlahCtrl.text);
     if (_dariRupiah) {
-      return '$_kode ${formatDesimal(AppData.rupiahKeAsing(_kode, jumlah))}';
+      return formatDesimal(AppData.rupiahKeAsing(_kode, jumlah));
     }
-    return formatRupiah(AppData.targetDariKurs(_kode, jumlah));
+    return formatTitik(AppData.targetDariKurs(_kode, jumlah));
   }
 
   @override
@@ -80,11 +80,13 @@ class _KartuHitungKursState extends State<KartuHitungKurs> {
       children: [
         const JudulSeksi(judul: 'Hitung kurs'),
         const SizedBox(height: JarakApp.j16),
-        KotakInputKurs(
+        KotakKurs(
           mataUang: AppData.cariMataUang(_dariRupiah ? 'IDR' : _kode),
+          warnaLatar: WarnaApp.latarSeksi,
+          warnaAngka: WarnaApp.teksUtama,
           controller: _jumlahCtrl,
-          onPilih: _dariRupiah ? null : _pilihMataUang,
           onUbah: () => setState(() {}),
+          onPilih: _dariRupiah ? null : _pilihMataUang,
         ),
         Center(
           child: IconButton(
@@ -96,13 +98,20 @@ class _KartuHitungKursState extends State<KartuHitungKurs> {
             ),
           ),
         ),
-        KotakHasilKurs(
-          hasil: _teksHasil(),
-          kode: _kode,
+        KotakKurs(
+          mataUang: AppData.cariMataUang(_dariRupiah ? _kode : 'IDR'),
+          warnaLatar: WarnaApp.aksenLembut,
+          warnaAngka: WarnaApp.primer,
+          angka: _teksHasil(),
           onPilih: _dariRupiah ? _pilihMataUang : null,
         ),
+        const SizedBox(height: JarakApp.j8),
+        Text(
+          '1 $_kode = ${AppData.teksKursRupiah(_kode)}',
+          style: TeksApp.kecil.copyWith(color: WarnaApp.teksKedua),
+        ),
         const SizedBox(height: JarakApp.j12),
-        _bangunTemplate(),
+        TemplateKurs(dariRupiah: _dariRupiah, onPilih: _aturJumlah),
         const SizedBox(height: JarakApp.j16),
         BarisInfoKurs(
           sedangMemuat: widget.sedangMemuat,
@@ -112,24 +121,6 @@ class _KartuHitungKursState extends State<KartuHitungKurs> {
         // Atribusi wajib dari penyedia API, jadi di halaman ini selalu terlihat.
         const Text('Rates By Exchange Rate API', style: TeksApp.mini),
       ],
-    );
-  }
-
-  // Template di sini mengganti isian, bukan menambah, karena labelnya tanpa tanda +.
-  Widget _bangunTemplate() {
-    if (_dariRupiah) {
-      return TemplateNominal(
-        daftarNilai: const [100000, 500000, 1000000],
-        daftarLabel: const ['100rb', '500rb', '1jt'],
-        onTambah: _aturJumlah,
-        onReset: () => _aturJumlah(0),
-      );
-    }
-    return TemplateNominal(
-      daftarNilai: const [10, 100, 1000],
-      daftarLabel: const ['10', '100', '1.000'],
-      onTambah: _aturJumlah,
-      onReset: () => _aturJumlah(0),
     );
   }
 }
