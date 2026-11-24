@@ -10,6 +10,7 @@ import '../utils/format.dart';
 import '../utils/nominal.dart';
 import '../widgets/baris_isian.dart';
 import '../widgets/baris_kategori.dart';
+import '../widgets/baris_sumber_dana.dart';
 import '../widgets/info_budget.dart';
 import '../widgets/kalender.dart';
 import '../widgets/baris_dompet.dart';
@@ -262,10 +263,8 @@ class _TambahTransaksiScreenState extends State<TambahTransaksiScreen> {
           ),
         const SizedBox(height: JarakApp.j16),
         if (!_transfer) ...[
-          BarisIsian(
-            ikon: LucideIcons.wallet,
-            label: 'Sumber dana',
-            nilai: '$_sumber · ${formatRupiah(AppData.saldoSumber(_sumber))}',
+          BarisSumberDana(
+            sumber: _sumber,
             onTekan: () => _pilihDompet(tujuan: false),
           ),
           const Divider(height: 1),

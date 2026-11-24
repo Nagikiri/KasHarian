@@ -5,6 +5,7 @@ import '../models/app_data.dart';
 import '../models/utang.dart';
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
+import '../utils/privasi.dart';
 import '../widgets/app_bar_turunan.dart';
 import '../widgets/baris_isian.dart';
 import '../widgets/baris_utang.dart';
@@ -114,7 +115,7 @@ class _UtangScreenState extends State<UtangScreen> {
   // Total 0 ditulis tanpa tanda, supaya tidak muncul "-Rp 0".
   String _teksTotal(String jenis, String tanda) {
     int total = AppData.totalBelumLunas(jenis);
-    return total == 0 ? 'Rp 0' : '$tanda${formatRupiah(total)}';
+    return total == 0 ? 'Rp 0' : '$tanda${rupiahTampil(total)}';
   }
 
   void _bukaFormUtang() {

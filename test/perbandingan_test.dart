@@ -163,6 +163,15 @@ void main() {
     });
   });
 
+  group('teksPersenPerubahan', () {
+    test('naik, turun, dan perubahan di bawah 1 persen', () {
+      expect(teksPersenPerubahan(926000, 685000), '+35%');
+      expect(teksPersenPerubahan(316000, 548000), '-42%');
+      expect(teksPersenPerubahan(100300, 100000), '+<1%');
+      expect(teksPersenPerubahan(99700, 100000), '-<1%');
+    });
+  });
+
   group('teksSelisih', () {
     test('naik, turun, sama, dan baru', () {
       expect(teksSelisih(470000, 450000), '+Rp 20.000');

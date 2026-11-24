@@ -7,6 +7,7 @@ import '../utils/periode.dart';
 import 'bagian_teman.dart';
 import 'budget.dart';
 import 'kategori.dart';
+import 'mata_uang.dart';
 import 'transaksi.dart';
 import 'utang.dart';
 import 'wishlist.dart';
@@ -14,6 +15,8 @@ import 'wishlist.dart';
 class AppData {
   static final ValueNotifier<int> refreshNotifier = ValueNotifier<int>(0);
   static final ValueNotifier<int> tabAktif = ValueNotifier<int>(0);
+  // Diisi "Lihat semua" di Beranda, lalu dibaca sekali oleh tab Transaksi saat dibuka.
+  static bool gulirKeDaftar = false;
   static DateTime bulanDipilih = DateTime.now();
 
   static int saldoAwal = 2500000;
@@ -556,33 +559,56 @@ class AppData {
     ),
   ];
 
-  static final Map<String, int> kursCadangan = {
+  // Kurs cadangan hanya untuk empat mata uang lama. Yang lain menunggu API berhasil.
+  static const Map<String, double> kursCadangan = {
     'USD': 15654,
     'SGD': 11642,
     'JPY': 104,
     'EUR': 16950,
   };
 
-  // Nama, simbol, dan warna tetap (indeks paletKategori) untuk kartu Kurs di Beranda.
-  static const Map<String, String> namaMataUang = {
-    'USD': 'Dolar AS',
-    'SGD': 'Dolar Singapura',
-    'JPY': 'Yen Jepang',
-  };
-  static const Map<String, String> simbolMataUang = {
-    'USD': r'$',
-    'SGD': r'S$',
-    'JPY': '¥',
-  };
-  static const Map<String, int> indeksWarnaKurs = {
-    'USD': 2,
-    'SGD': 1,
-    'JPY': 6,
-  };
+  // Mata uang yang bisa dipilih di pemilih mata uang, urut dari yang paling sering dipakai.
+  static const List<MataUang> daftarMataUang = [
+    MataUang(kode: 'USD', nama: 'Dolar Amerika', simbol: '\$'),
+    MataUang(kode: 'EUR', nama: 'Euro', simbol: '€'),
+    MataUang(kode: 'SGD', nama: 'Dolar Singapura', simbol: 'S\$'),
+    MataUang(kode: 'JPY', nama: 'Yen Jepang', simbol: '¥'),
+    MataUang(kode: 'MYR', nama: 'Ringgit Malaysia', simbol: 'RM'),
+    MataUang(kode: 'SAR', nama: 'Riyal Saudi', simbol: 'SR'),
+    MataUang(kode: 'AUD', nama: 'Dolar Australia', simbol: 'A\$'),
+    MataUang(kode: 'GBP', nama: 'Pound Inggris', simbol: '£'),
+    MataUang(kode: 'CNY', nama: 'Yuan Tiongkok', simbol: '¥'),
+    MataUang(kode: 'KRW', nama: 'Won Korea', simbol: '₩'),
+    MataUang(kode: 'THB', nama: 'Baht Thailand', simbol: '฿'),
+    MataUang(kode: 'HKD', nama: 'Dolar Hong Kong', simbol: 'HK\$'),
+    MataUang(kode: 'TWD', nama: 'Dolar Taiwan', simbol: 'NT\$'),
+    MataUang(kode: 'CHF', nama: 'Franc Swiss', simbol: 'Fr'),
+    MataUang(kode: 'CAD', nama: 'Dolar Kanada', simbol: 'C\$'),
+    MataUang(kode: 'NZD', nama: 'Dolar Selandia Baru', simbol: 'NZ\$'),
+    MataUang(kode: 'INR', nama: 'Rupee India', simbol: '₹'),
+    MataUang(kode: 'PHP', nama: 'Peso Filipina', simbol: '₱'),
+    MataUang(kode: 'VND', nama: 'Dong Vietnam', simbol: '₫'),
+    MataUang(kode: 'AED', nama: 'Dirham UEA', simbol: 'Dh'),
+    MataUang(kode: 'TRY', nama: 'Lira Turki', simbol: '₺'),
+    MataUang(kode: 'EGP', nama: 'Pound Mesir', simbol: 'E£'),
+    MataUang(kode: 'QAR', nama: 'Riyal Qatar', simbol: 'QR'),
+    MataUang(kode: 'KWD', nama: 'Dinar Kuwait', simbol: 'KD'),
+    MataUang(kode: 'BND', nama: 'Dolar Brunei', simbol: 'B\$'),
+  ];
+
+  // Hanya untuk form Impian, yang boleh memakai harga Rupiah langsung.
+  static const MataUang rupiah = MataUang(
+    kode: 'IDR',
+    nama: 'Rupiah',
+    simbol: 'Rp',
+  );
+
+  // Belum disimpan permanen. Kembali ke bawaan setiap aplikasi dibuka sampai ada sqflite.
+  static List<String> mataUangFavorit = ['USD', 'SGD', 'JPY'];
 
   // Diawali kurs cadangan, lalu ditimpa hasil API saat berhasil.
-  static final Map<String, int> kursKeIdr = Map.of(kursCadangan);
-  static String infoKurs = 'Kurs cadangan';
+  static final Map<String, double> kursKeIdr = Map.of(kursCadangan);
+  static DateTime? kursDiperbarui;
   static bool kursLive = false;
   // Tetap true walau refresh berikutnya gagal, supaya tahu kursKeIdr berisi hasil API.
   static bool kursPernahLive = false;
@@ -669,31 +695,77 @@ class AppData {
     refreshNotifier.value++;
   }
 
+  static MataUang cariMataUang(String kode) {
+    if (kode == 'IDR') return rupiah;
+    return daftarMataUang.firstWhere((m) => m.kode == kode);
+  }
+
+  static bool kursAda(String kode) {
+    if (kode == 'IDR') return true;
+    return (kursKeIdr[kode] ?? 0) > 0;
+  }
+
+  static void simpanFavorit(List<String> daftar) {
+    mataUangFavorit = daftar;
+    refreshNotifier.value++;
+  }
+
   // IDR tidak ada di kursKeIdr supaya perbaruiKurs dan konverter tidak ikut berubah.
   static int targetDariKurs(String mataUang, int harga) {
     if (mataUang == 'IDR') return harga;
-    return harga * (kursKeIdr[mataUang] ?? 0);
+    return (harga * (kursKeIdr[mataUang] ?? 0)).round();
+  }
+
+  // Kebalikan targetDariKurs untuk Hitung kurs. Hasil 0 kalau kursnya belum ada.
+  static double rupiahKeAsing(String mataUang, int rupiah) {
+    double kurs = kursKeIdr[mataUang] ?? 0;
+    if (kurs <= 0) return 0;
+    return rupiah / kurs;
+  }
+
+  // Kurs di bawah Rp 100 ditulis 2 desimal supaya VND dan KRW tidak terbaca 0 atau 11.
+  static String teksKursRupiah(String mataUang) {
+    double kurs = kursKeIdr[mataUang] ?? 0;
+    if (kurs <= 0) return '—';
+    if (kurs < 100) return 'Rp ${formatDesimal(kurs)}';
+    return 'Rp ${formatTitik(kurs.round())}';
+  }
+
+  // Mata uang bernilai kecil butuh template lebih besar supaya tombolnya tetap berguna.
+  static List<int> templateMataUang(String mataUang) {
+    if (mataUang == 'IDR') return [100000, 500000, 1000000, 5000000];
+    double kurs = kursKeIdr[mataUang] ?? 0;
+    if (kurs > 0 && kurs < 50) return [10000, 50000, 100000, 500000];
+    if (kurs > 0 && kurs < 500) return [1000, 5000, 10000, 50000];
+    return [10, 50, 100, 500];
   }
 
   // Dipusatkan di sini supaya Beranda dan Wishlist memakai kurs yang sama.
   static Future<void> perbaruiKurs() async {
     try {
       final kurs = await ApiService().getKursIdr();
-      for (String kode in kursKeIdr.keys.toList()) {
-        int nilai = kurs.keRupiah(kode);
-        if (nilai > 0) kursKeIdr[kode] = nilai;
+      // Semua kurs disimpan, bukan hanya yang ada di daftarMataUang.
+      for (String kode in kurs.daftarRate.keys) {
+        double nilai = kurs.keRupiah(kode);
+        if (kode != 'IDR' && nilai > 0) kursKeIdr[kode] = nilai;
       }
       kursLive = true;
       kursPernahLive = true;
-      infoKurs =
-          'Kurs terbaru · diperbarui ${formatTanggalPendek(DateTime.now())}';
+      kursDiperbarui = DateTime.now();
     } catch (_) {
       kursLive = false;
-      infoKurs = kursPernahLive
-          ? 'Gagal memperbarui, memakai kurs terakhir'
-          : 'Gagal ambil kurs, memakai kurs cadangan';
     }
     refreshNotifier.value++;
+  }
+
+  // Satu baris info kurs untuk Beranda dan Hitung kurs. Atribusi ada di BarisInfoKurs.
+  static String teksInfoKurs({required bool sedangMemuat}) {
+    if (sedangMemuat) return 'Memperbarui kurs…';
+    if (kursLive) return 'Diperbarui ${formatTanggalPendek(kursDiperbarui!)}';
+    if (kursPernahLive) {
+      return 'Kurs terakhir ${formatTanggalPendek(kursDiperbarui!)} · gagal memperbarui';
+    }
+    return 'Kurs cadangan · gagal memperbarui';
   }
 
   static void tambahUtang(UtangItem item) {

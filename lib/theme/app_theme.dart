@@ -15,9 +15,11 @@ class WarnaApp {
   static const Color aksenLembut = Color(0xFFEEF8E6);
   static const Color bahaya = Color(0xFFC8372D);
   static const Color diAtasPrimer = Color(0xFFFFFFFF);
-  // Putih 70% untuk label kecil di header hijau, kontras sekitar 5,4 : 1.
+  // Putih 70% untuk label kecil di kartu saldo hijau, kontras sekitar 5,4 : 1.
   static const Color diAtasPrimerRedup = Color(0xB3FFFFFF);
   static const Color peringatan = Color(0xFFD97706);
+  // Latar muda untuk lingkaran dan pill saat pengeluaran naik.
+  static const Color peringatanLembut = Color(0xFFFDF1E3);
   static const Color garisAksen = Color(0xFFD6EBC6);
   // Tanggal, bulan, atau tahun di luar batas: abu yang masih terbaca.
   static const Color teksNonaktif = Color(0xFFADADA9);
@@ -183,10 +185,9 @@ class JarakApp {
   static const double j16 = 16;
   static const double j24 = 24;
   static const double j32 = 32;
+  static const double j20 = 20;
   static const double tepiHalaman = 20;
   static const double dalamKartu = 14;
-  // Bagian kartu navigasi yang turun keluar dari header hijau.
-  static const double tumpukanHeader = 48;
 }
 
 class RadiusApp {
@@ -195,7 +196,7 @@ class RadiusApp {
   static const double pill = 999;
   static const double dialog = 16;
   static const double kartu = 12;
-  static const double header = 24;
+  static const double kartuSaldo = 16;
 }
 
 // Ikon status bar gelap untuk halaman berlatar putih. Bar navigasi HP selalu putih.
@@ -203,15 +204,6 @@ const SystemUiOverlayStyle gayaStatusGelap = SystemUiOverlayStyle(
   statusBarColor: Colors.transparent,
   statusBarIconBrightness: Brightness.dark,
   statusBarBrightness: Brightness.light,
-  systemNavigationBarColor: WarnaApp.latar,
-  systemNavigationBarIconBrightness: Brightness.dark,
-);
-
-// Ikon status bar terang khusus Beranda yang header-nya hijau.
-const SystemUiOverlayStyle gayaStatusTerang = SystemUiOverlayStyle(
-  statusBarColor: Colors.transparent,
-  statusBarIconBrightness: Brightness.light,
-  statusBarBrightness: Brightness.dark,
   systemNavigationBarColor: WarnaApp.latar,
   systemNavigationBarIconBrightness: Brightness.dark,
 );

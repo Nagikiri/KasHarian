@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
-import '../utils/format.dart';
+import '../utils/privasi.dart';
 import 'ikon_bulat.dart';
 import 'progress_tipis.dart';
 
@@ -39,7 +39,7 @@ class BarisDistribusi extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(child: Text(nama, style: TeksApp.isi)),
-                    Text(formatRupiah(nominal), style: TeksApp.angka),
+                    Text(rupiahTampil(nominal), style: TeksApp.angka),
                   ],
                 ),
                 if (selisih != null)

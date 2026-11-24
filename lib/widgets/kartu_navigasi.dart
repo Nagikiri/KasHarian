@@ -11,7 +11,7 @@ class KartuNavigasi extends StatelessWidget {
   final VoidCallback onTekan;
   final double? persen;
   final Color? warnaInfo;
-  // true di Beranda: kartu putih berbayangan yang menumpuk di tepi header hijau.
+  // true di Beranda: kartu putih berbayangan di atas latar abu, seperti KartuBagian.
   final bool putih;
 
   const KartuNavigasi({

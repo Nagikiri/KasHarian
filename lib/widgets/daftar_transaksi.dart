@@ -4,6 +4,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../models/transaksi.dart';
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
+import '../utils/privasi.dart';
 import 'baris_transaksi.dart';
 import 'tampilan_kosong.dart';
 
@@ -82,7 +83,7 @@ class DaftarTransaksi extends StatelessWidget {
             child: Text(formatTanggal(tanggal), style: TeksApp.tombolKecil),
           ),
           if (keluar > 0)
-            Text('-${formatRupiah(keluar)}', style: TeksApp.kecil),
+            Text('-${rupiahTampil(keluar)}', style: TeksApp.kecil),
         ],
       ),
     );

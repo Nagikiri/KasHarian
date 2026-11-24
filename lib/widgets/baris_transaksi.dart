@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/transaksi.dart';
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
+import '../utils/privasi.dart';
 import 'ikon_bulat.dart';
 
 class BarisTransaksi extends StatelessWidget {
@@ -26,7 +27,7 @@ class BarisTransaksi extends StatelessWidget {
     } else if (!t.isTransfer) {
       tanda = '-';
     }
-    return '${tanda}Rp ${formatTitik(t.nominal)}';
+    return '$tanda${rupiahTampil(t.nominal)}';
   }
 
   // Merah hanya untuk peringatan, jadi uang keluar biasa cukup teksUtama dengan tanda -.

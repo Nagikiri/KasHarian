@@ -2,7 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
-import '../utils/format.dart';
+import '../utils/privasi.dart';
 
 class DonatKategori extends StatelessWidget {
   final List<String> daftarNama;
@@ -44,7 +44,14 @@ class DonatKategori extends StatelessWidget {
                   ],
                 ),
               ),
-              Text(formatRingkas(total), style: TeksApp.angka),
+              // "Rp ••••••" lebih lebar dari angka ringkas, jadi dikecilkan supaya muat di lubang donat.
+              SizedBox(
+                width: 80,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(ringkasTampil(total), style: TeksApp.angka),
+                ),
+              ),
             ],
           ),
         ),

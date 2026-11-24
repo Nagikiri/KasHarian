@@ -24,9 +24,10 @@ class Kurs {
     );
   }
 
-  int keRupiah(String kodeMataUang) {
+  // Tidak dibulatkan, karena 1 VND atau 1 KRW bernilai kurang dari beberapa rupiah.
+  double keRupiah(String kodeMataUang) {
     double? rate = daftarRate[kodeMataUang];
     if (rate == null || rate == 0) return 0;
-    return (1 / rate).round();
+    return 1 / rate;
   }
 }

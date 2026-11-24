@@ -4,7 +4,7 @@ import '../models/app_data.dart';
 import '../models/budget.dart';
 import '../models/transaksi.dart';
 import '../theme/app_theme.dart';
-import '../utils/format.dart';
+import '../utils/privasi.dart';
 
 // Sisa budget kategori setelah nominal yang sedang diketik. Tidak tampil kalau kategori belum punya budget.
 class InfoBudget extends StatelessWidget {
@@ -45,13 +45,13 @@ class InfoBudget extends StatelessWidget {
     // Limit 0 tidak bisa dibagi, jadi dianggap sudah penuh.
     double persen = budget.limit > 0 ? terpakai / budget.limit : 1;
 
-    String teks = 'Anggaran $kategori: sisa ${formatRupiah(sisa)}';
+    String teks = 'Anggaran $kategori: sisa ${rupiahTampil(sisa)}';
     Color warna = WarnaApp.teksRedup;
     if (sisa < 0) {
-      teks = 'Melebihi anggaran $kategori ${formatRupiah(-sisa)}';
+      teks = 'Melebihi anggaran $kategori ${rupiahTampil(-sisa)}';
       warna = WarnaApp.bahaya;
     } else if (persen >= 0.8) {
-      teks = 'Anggaran $kategori tinggal ${formatRupiah(sisa)}';
+      teks = 'Anggaran $kategori tinggal ${rupiahTampil(sisa)}';
       warna = WarnaApp.peringatan;
     }
 

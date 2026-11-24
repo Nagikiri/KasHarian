@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../main.dart';
@@ -8,13 +7,15 @@ import '../models/transaksi.dart';
 import '../models/wishlist.dart';
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
+import '../utils/privasi.dart';
 import '../widgets/baris_transaksi.dart';
-import '../widgets/header_beranda.dart';
 import '../widgets/judul_seksi.dart';
 import '../widgets/kartu_bagian.dart';
 import '../widgets/kartu_impian.dart';
 import '../widgets/kartu_kurs.dart';
 import '../widgets/kartu_navigasi.dart';
+import '../widgets/kartu_saldo.dart';
+import '../widgets/sheet_detail_transaksi.dart';
 import '../widgets/tampilan_kosong.dart';
 import 'budget_screen.dart';
 import 'utang_screen.dart';
@@ -27,7 +28,6 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  bool _saldoDisembunyikan = false;
   bool _sedangMemuatKurs = false;
 
   @override
@@ -43,33 +43,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (mounted) setState(() => _sedangMemuatKurs = false);
   }
 
-  String _rupiah(int nilai) =>
-      _saldoDisembunyikan ? 'Rp ••••••' : formatRupiah(nilai);
+  // Tab Transaksi dibuka di bulan berjalan, sama dengan isi Beranda, lalu langsung digulir ke daftar.
+  void _lihatSemuaTransaksi() {
+    AppData.bulanDipilih = DateTime.now();
+    AppData.gulirKeDaftar = true;
+    AppData.tabAktif.value = 1;
+  }
 
   void _buka(Widget halaman) =>
       Navigator.push(context, buatTransisiHalaman(halaman));
 
   @override
   Widget build(BuildContext context) {
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: gayaStatusTerang,
-      child: Scaffold(
-        // Latar tetap abu, jadi ruang kosong di bawah isi tidak pernah hijau.
-        backgroundColor: WarnaApp.latarHalaman,
-        body: Column(
-          children: [
-            // Strip hijau di luar area scroll, jadi isi tidak masuk ke bawah ikon status bar.
-            Container(
-              height: MediaQuery.paddingOf(context).top,
-              color: WarnaApp.primer,
+    // Scaffold putih untuk area status bar, area gulir abu supaya ruang kosong di bawah isi tetap abu.
+    return Scaffold(
+      body: SafeArea(
+        child: ColoredBox(
+          color: WarnaApp.latarHalaman,
+          child: ValueListenableBuilder<int>(
+            valueListenable: AppData.refreshNotifier,
+            // Tombol mata hanya ada di sini, jadi hanya Beranda yang perlu mendengarkan.
+            builder: (context, nilai, child) => ValueListenableBuilder<bool>(
+              valueListenable: sembunyikanNominal,
+              builder: (context, sembunyi, child) => _bangunIsi(),
             ),
-            Expanded(
-              child: ValueListenableBuilder<int>(
-                valueListenable: AppData.refreshNotifier,
-                builder: (context, nilai, child) => _bangunIsi(),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -81,15 +79,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          HeaderBeranda(
-            saldo: _rupiah(AppData.saldoTersedia),
-            pemasukan: _rupiah(AppData.totalPemasukan),
-            pengeluaran: _rupiah(AppData.totalPengeluaran),
-            disembunyikan: _saldoDisembunyikan,
-            onMata: () =>
-                setState(() => _saldoDisembunyikan = !_saldoDisembunyikan),
-            bawah: _bangunKartuNavigasi(),
+          _bangunJudul(),
+          _tepi(
+            KartuSaldo(
+              saldo: rupiahTampil(AppData.saldoTersedia),
+              pemasukan: rupiahTampil(AppData.totalPemasukan),
+              pengeluaran: rupiahTampil(AppData.totalPengeluaran),
+              disembunyikan: sembunyikanNominal.value,
+              onMata: () =>
+                  sembunyikanNominal.value = !sembunyikanNominal.value,
+            ),
           ),
+          _tepi(_bangunKartuNavigasi()),
           _kartu(
             KartuKurs(sedangMemuat: _sedangMemuatKurs, onPerbarui: _ambilKurs),
           ),
@@ -110,19 +111,42 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // Setiap kartu diberi jarak 16 di atasnya dan sejajar dengan teks header di kiri-kanan.
-  Widget _kartu(
-    Widget isi, {
-    EdgeInsets padding = const EdgeInsets.all(JarakApp.j16),
-  }) => Padding(
+  // Baris judul putih ikut digulir. Sisi kanan disiapkan untuk ikon Pengaturan nanti.
+  Widget _bangunJudul() {
+    return Container(
+      color: WarnaApp.latar,
+      padding: const EdgeInsets.fromLTRB(
+        JarakApp.tepiHalaman,
+        JarakApp.j16,
+        JarakApp.tepiHalaman,
+        JarakApp.j16,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('KasHarian', style: TeksApp.judulHalaman),
+          const SizedBox(height: JarakApp.j4),
+          Text(formatTanggal(DateTime.now()), style: TeksApp.kecil),
+        ],
+      ),
+    );
+  }
+
+  // Setiap kartu diberi jarak 20 di atasnya dan sejajar dengan teks judul di kiri-kanan.
+  Widget _tepi(Widget isi) => Padding(
     padding: const EdgeInsets.fromLTRB(
       JarakApp.tepiHalaman,
-      JarakApp.j16,
+      JarakApp.j20,
       JarakApp.tepiHalaman,
       0,
     ),
-    child: KartuBagian(padding: padding, child: isi),
+    child: isi,
   );
+
+  Widget _kartu(
+    Widget isi, {
+    EdgeInsets padding = const EdgeInsets.all(JarakApp.j16),
+  }) => _tepi(KartuBagian(padding: padding, child: isi));
 
   Widget _bangunKartuNavigasi() {
     int anggaran = AppData.anggaranBulanan;
@@ -139,8 +163,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ikon: LucideIcons.wallet,
               judul: 'Anggaran',
               info: sisa < 0
-                  ? 'Lebih ${_rupiah(-sisa)}'
-                  : 'Sisa ${_rupiah(sisa)}',
+                  ? 'Lebih ${rupiahTampil(-sisa)}'
+                  : 'Sisa ${rupiahTampil(sisa)}',
               warnaInfo: sisa < 0 ? WarnaApp.bahaya : null,
               persen: anggaran > 0 ? terpakai / anggaran : 0,
               putih: true,
@@ -177,7 +201,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         JudulSeksi(
           judul: 'Transaksi terbaru',
           aksi: 'Lihat semua',
-          onAksi: () => AppData.tabAktif.value = 1,
+          onAksi: _lihatSemuaTransaksi,
         ),
         const SizedBox(height: JarakApp.j4),
         if (daftar.isEmpty)
@@ -188,7 +212,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         for (int i = 0; i < daftar.length && i < 5; i++) ...[
           if (i > 0) const Divider(height: 1),
-          BarisTransaksi(transaksi: daftar[i]),
+          BarisTransaksi(
+            transaksi: daftar[i],
+            onTekan: () => bukaDetailTransaksi(context, daftar[i]),
+          ),
         ],
       ],
     );
@@ -204,7 +231,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           onAksi: () => AppData.tabAktif.value = 2,
         ),
         const SizedBox(height: JarakApp.j16),
-        KartuImpian(impian: impian, sembunyikanNominal: _saldoDisembunyikan),
+        KartuImpian(impian: impian),
       ],
     );
   }

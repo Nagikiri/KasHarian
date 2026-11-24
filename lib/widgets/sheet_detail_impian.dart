@@ -4,6 +4,7 @@ import '../models/app_data.dart';
 import '../models/wishlist.dart';
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
+import '../utils/privasi.dart';
 import 'dialog_konfirmasi_hapus.dart';
 import 'ikon_bulat.dart';
 import 'progress_tipis.dart';
@@ -61,13 +62,15 @@ class SheetDetailImpian extends StatelessWidget {
             if (impian.mataUang != 'IDR') ...[
               _bangunBaris(
                 'Harga valas',
-                '${impian.mataUang} ${formatTitik(impian.hargaAsing)}',
+                sembunyikanNominal.value
+                    ? '${impian.mataUang} ••••••'
+                    : '${impian.mataUang} ${formatTitik(impian.hargaAsing)}',
               ),
               const Divider(height: 1),
             ],
-            _bangunBaris('Target', formatRupiah(impian.targetIdr)),
+            _bangunBaris('Target', rupiahTampil(impian.targetIdr)),
             const Divider(height: 1),
-            _bangunBaris('Terkumpul', formatRupiah(impian.terkumpulIdr)),
+            _bangunBaris('Terkumpul', rupiahTampil(impian.terkumpulIdr)),
             const Divider(height: 1),
             // Estimasi 0 berarti budget 'Tabungan' belum ada.
             tercapai

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/app_data.dart';
 import '../models/budget.dart';
 import '../theme/app_theme.dart';
-import '../utils/format.dart';
+import '../utils/privasi.dart';
 import 'kartu_progress.dart';
 
 class KartuKantong extends StatelessWidget {
@@ -30,10 +30,10 @@ class KartuKantong extends StatelessWidget {
       indeksWarna: AppData.petaWarnaAnggaran()[budget.kategori]!,
       persenTeks: '${(persen * 100).round()}%',
       judul: budget.kategori,
-      nominal: formatRupiah(terpakai),
+      nominal: rupiahTampil(terpakai),
       keterangan: lebih > 0
-          ? 'Lebih ${formatRupiah(lebih)}'
-          : 'dari ${formatRupiah(budget.limit)}',
+          ? 'Lebih ${rupiahTampil(lebih)}'
+          : 'dari ${rupiahTampil(budget.limit)}',
       warnaKeterangan: lebih > 0 ? WarnaApp.bahaya : null,
       persen: persen,
       // Menabung banyak itu kabar baik, jadi Tabungan tidak memakai warna peringatan.

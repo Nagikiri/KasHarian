@@ -3,7 +3,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../models/app_data.dart';
 import '../theme/app_theme.dart';
-import '../utils/format.dart';
+import '../utils/privasi.dart';
 import 'ikon_bulat.dart';
 
 // Mengembalikan nama sumber dana yang dipilih, atau null kalau sheet ditutup.
@@ -51,7 +51,7 @@ Future<String?> bukaSumberDana(
                             children: [
                               Text(sumber, style: TeksApp.isi),
                               Text(
-                                formatRupiah(AppData.saldoSumber(sumber)),
+                                rupiahTampil(AppData.saldoSumber(sumber)),
                                 style: TeksApp.kecil,
                               ),
                             ],

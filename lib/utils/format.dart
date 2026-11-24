@@ -33,6 +33,14 @@ String formatTitik(int nilai) {
   return hasil;
 }
 
+// Dua angka di belakang koma, misalnya 1.234,56. Dibulatkan lewat ratusan supaya 0,999 jadi 1,00.
+String formatDesimal(double nilai) {
+  int ratusan = (nilai.abs() * 100).round();
+  String tanda = nilai < 0 && ratusan > 0 ? '-' : '';
+  String desimal = (ratusan % 100).toString().padLeft(2, '0');
+  return '$tanda${formatTitik(ratusan ~/ 100)},$desimal';
+}
+
 String formatRupiah(int nilai) {
   String tanda = nilai < 0 ? '-' : '';
   return '${tanda}Rp ${formatTitik(nilai)}';
@@ -85,6 +93,13 @@ String keteranganPerbandingan(int sekarang, int lalu, String label) {
 String kalimatTanpaPembanding(int jenis) {
   const List<String> namaPeriode = ['pekan lalu', 'bulan lalu', 'tahun lalu'];
   return 'Belum ada data ${namaPeriode[jenis]} untuk dibandingkan.';
+}
+
+// Hanya dipanggil kalau lalu > 0. Perubahan kecil yang terbulatkan jadi 0 ditulis "<1%".
+String teksPersenPerubahan(int sekarang, int lalu) {
+  String tanda = sekarang > lalu ? '+' : '-';
+  int persen = ((sekarang - lalu).abs() * 100 / lalu).round();
+  return persen == 0 ? '$tanda<1%' : '$tanda$persen%';
 }
 
 // lalu null berarti kategori ini tidak ada di periode lalu.

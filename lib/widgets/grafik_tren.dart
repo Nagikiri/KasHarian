@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 
 import '../models/app_data.dart';
 import '../theme/app_theme.dart';
-import '../utils/format.dart';
 import '../utils/periode.dart';
+import '../utils/privasi.dart';
+import 'label_sumbu_tren.dart';
 
 // Dipanggil hanya kalau ada pengeluaran di periode itu, karena skala dihitung dari nilai tertinggi.
 class GrafikTren extends StatefulWidget {
@@ -70,15 +71,8 @@ class _GrafikTrenState extends State<GrafikTren> {
                 showTitles: true,
                 reservedSize: 52,
                 interval: langkah.toDouble(),
-                getTitlesWidget: (posisi, meta) => SideTitleWidget(
-                  meta: meta,
-                  space: JarakApp.j8,
-                  // Label 0 disembunyikan supaya dasar grafik tidak ramai.
-                  child: Text(
-                    posisi == 0 ? '' : formatRingkas(posisi.round()),
-                    style: TeksApp.mini,
-                  ),
-                ),
+                getTitlesWidget: (posisi, meta) =>
+                    LabelSumbuTren(posisi: posisi, meta: meta),
               ),
             ),
             bottomTitles: AxisTitles(
@@ -109,7 +103,7 @@ class _GrafikTrenState extends State<GrafikTren> {
                     TeksApp.mini.copyWith(color: WarnaApp.diAtasPrimer),
                     children: [
                       TextSpan(
-                        text: formatRupiah(batang.toY.round()),
+                        text: rupiahTampil(batang.toY.round()),
                         style: TeksApp.angka.copyWith(
                           color: WarnaApp.diAtasPrimer,
                         ),

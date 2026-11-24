@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../theme/app_theme.dart';
-import '../utils/format.dart';
+import '../utils/privasi.dart';
 import 'ikon_bulat.dart';
 
 class KartuDompet extends StatelessWidget {
@@ -47,7 +47,7 @@ class KartuDompet extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: JarakApp.j4),
-              Text(formatRupiah(saldo), style: TeksApp.kecil),
+              Text(rupiahTampil(saldo), style: TeksApp.kecil),
             ],
           ),
         ),

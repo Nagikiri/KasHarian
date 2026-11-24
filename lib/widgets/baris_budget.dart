@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/app_data.dart';
 import '../models/budget.dart';
 import '../theme/app_theme.dart';
-import '../utils/format.dart';
+import '../utils/privasi.dart';
 import 'ikon_bulat.dart';
 import 'progress_tipis.dart';
 
@@ -45,16 +45,16 @@ class BarisBudget extends StatelessWidget {
                         TextSpan(
                           style: TeksApp.kecil,
                           children: [
-                            TextSpan(text: '${formatRupiah(terpakai)} '),
+                            TextSpan(text: '${rupiahTampil(terpakai)} '),
                             lebih > 0
                                 ? TextSpan(
-                                    text: '· Lebih ${formatRupiah(lebih)}',
+                                    text: '· Lebih ${rupiahTampil(lebih)}',
                                     style: TeksApp.kecil.copyWith(
                                       color: WarnaApp.bahaya,
                                     ),
                                   )
                                 : TextSpan(
-                                    text: 'dari ${formatRupiah(budget.limit)}',
+                                    text: 'dari ${rupiahTampil(budget.limit)}',
                                   ),
                           ],
                         ),

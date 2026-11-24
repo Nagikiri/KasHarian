@@ -5,15 +5,13 @@ import '../models/app_data.dart';
 import '../models/kategori.dart';
 import '../models/wishlist.dart';
 import '../theme/app_theme.dart';
-import '../utils/format.dart';
 import '../utils/nominal.dart';
 import 'baris_isian.dart';
+import 'harga_impian.dart';
 import 'header_sheet.dart';
 import 'numpad_simpan.dart';
-import 'pilihan_segmen.dart';
 import 'sheet_catatan.dart';
-import 'tampilan_nominal.dart';
-import 'template_nominal.dart';
+import 'sheet_pilih_mata_uang.dart';
 
 // Langkah kedua sheet impian baru: harga valas lewat numpad dan nama lewat sheet teks.
 class IsianImpian extends StatefulWidget {
@@ -27,24 +25,21 @@ class IsianImpian extends StatefulWidget {
 }
 
 class _IsianImpianState extends State<IsianImpian> {
-  final List<String> _daftarMataUang = ['IDR', ...AppData.kursKeIdr.keys];
-  int _mataUang = 0;
+  String _kode = 'IDR';
   int _harga = 0;
   String _nama = '';
 
-  String get _kode => _daftarMataUang[_mataUang];
-  bool get _rupiah => _kode == 'IDR';
+  // Mata uang tanpa kurs boleh dipilih, tapi impiannya belum bisa disimpan.
+  bool get _adaKurs => AppData.kursAda(_kode);
 
-  // Satu yen bernilai kecil, jadi templatenya dikali 100.
-  List<int> get _template {
-    if (_rupiah) return [100000, 500000, 1000000, 5000000];
-    if (_kode == 'JPY') return [1000, 5000, 10000, 50000];
-    return [10, 50, 100, 500];
-  }
-
-  List<String> get _labelTemplate {
-    if (_rupiah) return ['+100rb', '+500rb', '+1jt', '+5jt'];
-    return [for (int n in _template) '+${formatTitik(n)}'];
+  // Angka lama tidak berarti di mata uang lain, jadi harga diulang dari 0.
+  Future<void> _pilihMataUang() async {
+    String? hasil = await bukaPilihMataUang(context, _kode, denganRupiah: true);
+    if (hasil == null || !mounted) return;
+    setState(() {
+      _kode = hasil;
+      _harga = 0;
+    });
   }
 
   Future<void> _ubahNama() async {
@@ -97,37 +92,18 @@ class _IsianImpianState extends State<IsianImpian> {
             ),
           ),
           const SizedBox(height: JarakApp.j16),
-          PilihanSegmen(
-            pilihan: _daftarMataUang,
-            indeksAktif: _mataUang,
-            // Angka lama tidak berarti di mata uang lain, jadi harga diulang dari 0.
-            onPilih: (i) => setState(() {
-              _mataUang = i;
-              _harga = 0;
-            }),
+          BarisIsian(
+            ikon: LucideIcons.coins,
+            label: 'Mata uang',
+            nilai: '$_kode · ${AppData.cariMataUang(_kode).nama}',
+            onTekan: _pilihMataUang,
           ),
-          const SizedBox(height: JarakApp.j16),
-          TampilanNominal(
-            label: 'Harga',
-            nominal: _harga,
-            prefix: _rupiah ? 'Rp' : _kode,
-          ),
-          if (!_rupiah) ...[
-            const SizedBox(height: JarakApp.j4),
-            Text(
-              'Setara ${formatRupiah(AppData.targetDariKurs(_kode, _harga))}',
-              style: TeksApp.isi.copyWith(
-                color: WarnaApp.primer,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-          const SizedBox(height: JarakApp.j12),
-          TemplateNominal(
-            daftarNilai: _template,
-            daftarLabel: _labelTemplate,
+          const SizedBox(height: JarakApp.j8),
+          HargaImpian(
+            kode: _kode,
+            harga: _harga,
             onTambah: (n) => setState(() => _harga = tambahNominal(_harga, n)),
-            onReset: () => setState(() => _harga = 0),
+            onKosongkan: () => setState(() => _harga = 0),
           ),
           const SizedBox(height: JarakApp.j8),
           BarisIsian(
@@ -141,7 +117,9 @@ class _IsianImpianState extends State<IsianImpian> {
           NumpadSimpan(
             onAngka: (a) => setState(() => _harga = tambahDigit(_harga, a)),
             onHapus: () => setState(() => _harga = hapusDigit(_harga)),
-            onSimpan: _nama.isNotEmpty && _harga > 0 ? _simpan : null,
+            onSimpan: _nama.isNotEmpty && _harga > 0 && _adaKurs
+                ? _simpan
+                : null,
           ),
         ],
       ),

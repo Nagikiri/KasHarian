@@ -5,6 +5,7 @@ import '../models/app_data.dart';
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
 import '../utils/periode.dart';
+import '../utils/privasi.dart';
 import 'baris_distribusi.dart';
 import 'donat_kategori.dart';
 import 'kalimat_perbandingan.dart';
@@ -94,8 +95,8 @@ class DistribusiKategori extends StatelessWidget {
             nominal: perKategori[daftarNama[i]]!,
             persen: perKategori[daftarNama[i]]! / total,
             warna: warnaKategori(daftarNama[i]),
-            // Kalau periode lalu kosong, semua baris akan "baru", jadi selisih tidak ditampilkan.
-            selisih: totalLalu > 0
+            // Selisih tidak ditampilkan kalau periode lalu kosong (semua "baru") atau nominal disembunyikan.
+            selisih: totalLalu > 0 && !sembunyikanNominal.value
                 ? teksSelisih(perKategori[daftarNama[i]]!, lalu[daftarNama[i]])
                 : null,
           ),

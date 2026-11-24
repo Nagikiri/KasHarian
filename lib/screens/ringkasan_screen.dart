@@ -5,6 +5,7 @@ import '../main.dart';
 import '../models/app_data.dart';
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
+import '../utils/privasi.dart';
 import '../utils/periode.dart';
 import '../widgets/baris_periode.dart';
 import '../widgets/dialog_pilih_bulan.dart';
@@ -233,15 +234,15 @@ class _RingkasanScreenState extends State<RingkasanScreen> {
     return Row(
       children: [
         Expanded(
-          child: KolomAngka(label: 'Pemasukan', nilai: formatRupiah(masuk)),
+          child: KolomAngka(label: 'Pemasukan', nilai: rupiahTampil(masuk)),
         ),
         Expanded(
-          child: KolomAngka(label: 'Pengeluaran', nilai: formatRupiah(keluar)),
+          child: KolomAngka(label: 'Pengeluaran', nilai: rupiahTampil(keluar)),
         ),
         Expanded(
           child: KolomAngka(
             label: 'Selisih',
-            nilai: formatRupiah(selisih),
+            nilai: rupiahTampil(selisih),
             warnaNilai: selisih < 0 ? WarnaApp.bahaya : WarnaApp.primer,
           ),
         ),

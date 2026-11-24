@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../models/app_data.dart';
+import '../models/mata_uang.dart';
 import '../theme/app_theme.dart';
-import '../utils/format.dart';
+import 'baris_info_kurs.dart';
 import 'judul_seksi.dart';
+import 'lingkaran_simbol.dart';
+import 'sheet_pilih_mata_uang.dart';
 
 // Isi kartu Kurs di Beranda. Pembungkus putihnya (KartuBagian) dipasang oleh halaman.
 class KartuKurs extends StatelessWidget {
@@ -17,104 +20,106 @@ class KartuKurs extends StatelessWidget {
     required this.onPerbarui,
   });
 
+  Future<void> _aturFavorit(BuildContext context) async {
+    List<String>? hasil = await bukaAturFavorit(context);
+    if (hasil != null) AppData.simpanFavorit(hasil);
+  }
+
   @override
   Widget build(BuildContext context) {
-    Widget ujung = sedangMemuat
-        ? const SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: WarnaApp.primer,
-            ),
-          )
-        : GestureDetector(
-            onTap: onPerbarui,
-            child: const Icon(
-              LucideIcons.refreshCw,
-              size: 20,
-              color: WarnaApp.teksKedua,
-            ),
-          );
-
+    List<String> favorit = AppData.mataUangFavorit.take(4).toList();
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        JudulSeksi(
-          judul: 'Kurs hari ini',
-          aksi: 'Konversi',
-          // Konverter valas ada di bagian atas tab Impian.
-          onAksi: () => AppData.tabAktif.value = 2,
-          ujung: Padding(
-            padding: const EdgeInsets.only(left: JarakApp.j12),
-            child: ujung,
-          ),
-        ),
-        const SizedBox(height: JarakApp.j16),
-        // IntrinsicHeight + stretch membuat ketiga petak sama tinggi walau nama turun 2 baris.
-        IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(child: _bangunPetak('USD')),
-              const SizedBox(width: JarakApp.j12),
-              Expanded(child: _bangunPetak('SGD')),
-              const SizedBox(width: JarakApp.j12),
-              Expanded(child: _bangunPetak('JPY')),
-            ],
-          ),
-        ),
-        const SizedBox(height: JarakApp.j16),
-        // Atribusi wajib dari penyedia API, jadi boleh turun baris tapi tidak dipotong.
-        Text.rich(
-          TextSpan(
-            text: AppData.infoKurs,
-            style: TeksApp.kecil.copyWith(
-              color: AppData.kursLive ? WarnaApp.primer : WarnaApp.teksRedup,
-            ),
-            children: const [
-              TextSpan(
-                text: ' · Rates By Exchange Rate API',
-                style: TeksApp.mini,
-              ),
-            ],
-          ),
-        ),
+        JudulSeksi(judul: 'Kurs hari ini', ujung: _bangunKonversi()),
+        const SizedBox(height: JarakApp.j8),
+        for (String kode in favorit) ...[
+          _bangunBaris(AppData.cariMataUang(kode)),
+          const Divider(height: 1),
+        ],
+        _bangunAtur(context),
+        const SizedBox(height: JarakApp.j4),
+        BarisInfoKurs(sedangMemuat: sedangMemuat, onPerbarui: onPerbarui),
       ],
     );
   }
 
-  Widget _bangunPetak(String kode) {
-    int indeks = AppData.indeksWarnaKurs[kode]!;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: 32,
-          height: 32,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: WarnaApp.lingkaranKategori(indeks),
-            shape: BoxShape.circle,
+  // Hitung kurs ada di bagian atas tab Impian.
+  Widget _bangunKonversi() {
+    return GestureDetector(
+      onTap: () => AppData.tabAktif.value = 2,
+      child: Row(
+        children: [
+          Text(
+            'Konversi',
+            style: TeksApp.tombolKecil.copyWith(color: WarnaApp.primer),
           ),
-          child: Text(
-            AppData.simbolMataUang[kode]!,
-            style: TeksApp.tombolKecil.copyWith(
-              color: WarnaApp.tegasKategori(indeks),
+          const Icon(
+            LucideIcons.chevronRight,
+            size: 16,
+            color: WarnaApp.primer,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _bangunAtur(BuildContext context) {
+    return InkWell(
+      onTap: () => _aturFavorit(context),
+      child: SizedBox(
+        height: 44,
+        child: Row(
+          children: [
+            const Icon(
+              LucideIcons.slidersHorizontal,
+              size: 18,
+              color: WarnaApp.primer,
+            ),
+            const SizedBox(width: JarakApp.j8),
+            Text(
+              'Atur mata uang',
+              style: TeksApp.tombolKecil.copyWith(color: WarnaApp.primer),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Kolom kanan sengaja berupa Column supaya persen perubahan kurs bisa ditambah di bawah nominal.
+  Widget _bangunBaris(MataUang m) {
+    bool tanpaKurs = !AppData.kursAda(m.kode);
+    return SizedBox(
+      height: 48,
+      child: Row(
+        children: [
+          LingkaranSimbol(simbol: m.simbol, redup: tanpaKurs),
+          const SizedBox(width: JarakApp.j12),
+          Text(m.kode, style: TeksApp.tombolKecil),
+          const SizedBox(width: JarakApp.j8),
+          Expanded(
+            child: Text(
+              m.nama,
+              style: TeksApp.kecil,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
-        ),
-        const SizedBox(height: JarakApp.j8),
-        Text(kode, style: TeksApp.tombolKecil),
-        Text(AppData.namaMataUang[kode]!, style: TeksApp.kecil, maxLines: 2),
-        const SizedBox(height: JarakApp.j8),
-        // Spacer mendorong nominal ke dasar petak, jadi ketiga nominal sejajar.
-        const Spacer(),
-        Text(
-          'Rp ${formatTitik(AppData.kursKeIdr[kode] ?? 0)}',
-          style: TeksApp.angka,
-        ),
-      ],
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                AppData.teksKursRupiah(m.kode),
+                style: TeksApp.judulSeksi.copyWith(
+                  color: tanpaKurs ? WarnaApp.teksRedup : null,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

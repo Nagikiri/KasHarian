@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/utang.dart';
 import '../theme/app_theme.dart';
-import '../utils/format.dart';
+import '../utils/privasi.dart';
 import 'tombol_pill.dart';
 
 class BarisUtang extends StatelessWidget {
@@ -65,7 +65,7 @@ class BarisUtang extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  '${tanda}Rp ${formatTitik(utang.nominal)}',
+                  '$tanda${rupiahTampil(utang.nominal)}',
                   style: TeksApp.angka.copyWith(color: warnaNominal),
                 ),
                 const SizedBox(height: JarakApp.j4),

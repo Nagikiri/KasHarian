@@ -6,7 +6,6 @@ import '../models/app_data.dart';
 import '../models/budget.dart';
 import '../models/transaksi.dart';
 import '../theme/app_theme.dart';
-import '../utils/format.dart';
 import '../widgets/baris_periode.dart';
 import '../widgets/budget_bulan.dart';
 import '../widgets/daftar_transaksi.dart';
@@ -16,6 +15,7 @@ import '../widgets/grid_kartu.dart';
 import '../widgets/header_rentang.dart';
 import '../widgets/judul_seksi.dart';
 import '../widgets/kartu_kantong.dart';
+import '../widgets/navigasi_bulan.dart';
 import '../widgets/sheet_detail_transaksi.dart';
 import '../widgets/sheet_tambah_budget.dart';
 import '../widgets/tampilan_kosong.dart';
@@ -40,6 +40,24 @@ class _TransaksiScreenState extends State<TransaksiScreen> {
   String _kataKunci = '';
   // null berarti mode Bulan (memakai AppData.bulanDipilih). end ikut dihitung.
   DateTimeRange? _rentang;
+  // Penanda posisi bagian pencarian, tujuan gulir dari "Lihat semua" di Beranda.
+  final GlobalKey _kunciDaftar = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    if (!AppData.gulirKeDaftar) return;
+    AppData.gulirKeDaftar = false;
+    // Posisi penanda baru diketahui setelah halaman selesai digambar.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      BuildContext? tujuan = _kunciDaftar.currentContext;
+      if (tujuan == null) return;
+      Scrollable.ensureVisible(
+        tujuan,
+        duration: const Duration(milliseconds: 300),
+      );
+    });
+  }
 
   DateTime get _awal {
     DateTime bulan = AppData.bulanDipilih;
@@ -101,15 +119,6 @@ class _TransaksiScreenState extends State<TransaksiScreen> {
     if (hasil != null) setState(() => _rentang = hasil);
   }
 
-  void _bukaDetail(CatatanTransaksi transaksi) {
-    showModalBottomSheet(
-      context: context,
-      useSafeArea: true,
-      isScrollControlled: true,
-      builder: (context) => SheetDetailTransaksi(transaksi: transaksi),
-    );
-  }
-
   bool _cocok(CatatanTransaksi t) {
     if (_filter == 1 && (t.isPemasukan || t.isTransfer)) return false;
     if (_filter == 2 && !t.isPemasukan) return false;
@@ -148,10 +157,17 @@ class _TransaksiScreenState extends State<TransaksiScreen> {
                     _tepi(_bangunKantong()),
                   ],
                   const SizedBox(height: JarakApp.j24),
+                  SizedBox(key: _kunciDaftar),
                   Container(height: 8, color: WarnaApp.latarSeksi),
                   _tepi(_bangunPencarian()),
                   _tepi(_bangunDaftar()),
-                  if (_rentang == null) _tepi(_bangunNavigasiBulan()),
+                  if (_rentang == null)
+                    _tepi(
+                      NavigasiBulan(
+                        bulan: AppData.bulanDipilih,
+                        onPilih: _pilihBulan,
+                      ),
+                    ),
                   const SizedBox(height: JarakApp.j24),
                 ],
               ),
@@ -261,40 +277,7 @@ class _TransaksiScreenState extends State<TransaksiScreen> {
       daftar: daftar,
       adaSaringan: _filter != 0 || _kataKunci.isNotEmpty,
       modeRentang: _rentang != null,
-      onTekan: _bukaDetail,
-    );
-  }
-
-  Widget _bangunNavigasiBulan() {
-    return Row(
-      children: [
-        _bangunTombolBulan(AppData.bulanBerdataSebelum(AppData.bulanDipilih)),
-        const SizedBox(width: JarakApp.j8),
-        _bangunTombolBulan(
-          AppData.bulanBerdataSesudah(AppData.bulanDipilih),
-          kanan: true,
-        ),
-      ],
-    );
-  }
-
-  // Setiap tombol mendapat separuh lebar dan dikecilkan kalau nama bulannya panjang.
-  Widget _bangunTombolBulan(DateTime? bulan, {bool kanan = false}) {
-    return Expanded(
-      child: Align(
-        alignment: kanan ? Alignment.centerRight : Alignment.centerLeft,
-        child: bulan == null
-            ? null
-            : FittedBox(
-                fit: BoxFit.scaleDown,
-                child: TombolPill(
-                  teks: '${namaBulanPanjang[bulan.month - 1]} ${bulan.year}',
-                  ikon: kanan ? LucideIcons.arrowRight : LucideIcons.arrowLeft,
-                  ikonDiKanan: kanan,
-                  onTekan: () => _pilihBulan(bulan),
-                ),
-              ),
-      ),
+      onTekan: (t) => bukaDetailTransaksi(context, t),
     );
   }
 }

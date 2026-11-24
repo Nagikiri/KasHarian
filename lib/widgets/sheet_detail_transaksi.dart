@@ -10,6 +10,16 @@ import 'baris_transaksi.dart';
 import 'dialog_konfirmasi_hapus.dart';
 import 'ikon_bulat.dart';
 
+// Dipakai di Beranda dan tab Transaksi.
+void bukaDetailTransaksi(BuildContext context, CatatanTransaksi transaksi) {
+  showModalBottomSheet(
+    context: context,
+    useSafeArea: true,
+    isScrollControlled: true,
+    builder: (context) => SheetDetailTransaksi(transaksi: transaksi),
+  );
+}
+
 class SheetDetailTransaksi extends StatelessWidget {
   final CatatanTransaksi transaksi;
 

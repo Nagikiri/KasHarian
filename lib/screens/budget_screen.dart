@@ -4,7 +4,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../models/app_data.dart';
 import '../models/budget.dart';
 import '../theme/app_theme.dart';
-import '../utils/format.dart';
+import '../utils/privasi.dart';
 import '../widgets/app_bar_turunan.dart';
 import '../widgets/baris_budget.dart';
 import '../widgets/dialog_konfirmasi_hapus.dart';
@@ -77,7 +77,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
         Row(
           children: [
             Expanded(
-              child: Text(formatRupiah(anggaran), style: TeksApp.angkaBesar),
+              child: Text(rupiahTampil(anggaran), style: TeksApp.angkaBesar),
             ),
             TombolPill(teks: 'Ubah', kecil: true, onTekan: _ubahAnggaran),
           ],
@@ -88,14 +88,14 @@ class _BudgetScreenState extends State<BudgetScreen> {
             Expanded(
               child: KolomAngka(
                 label: 'Dialokasikan',
-                nilai: formatRupiah(totalLimit),
+                nilai: rupiahTampil(totalLimit),
               ),
             ),
             Expanded(
               // Kalau minus, nominal ditulis positif dan labelnya yang berubah.
               child: KolomAngka(
                 label: melebihi ? 'Melebihi anggaran' : 'Belum dialokasikan',
-                nilai: formatRupiah(sisa.abs()),
+                nilai: rupiahTampil(sisa.abs()),
                 warnaNilai: melebihi ? WarnaApp.bahaya : null,
               ),
             ),

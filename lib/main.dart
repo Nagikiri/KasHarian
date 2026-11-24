@@ -76,7 +76,7 @@ class MainNavigation extends StatelessWidget {
     return ValueListenableBuilder<int>(
       valueListenable: AppData.tabAktif,
       builder: (context, tabAktif, child) {
-        // Tab tanpa AppBar ikut gaya gelap ini, jadi ikon terang dari Beranda tidak terbawa.
+        // Semua tab memakai ikon status bar gelap karena bagian atasnya putih.
         return AnnotatedRegion<SystemUiOverlayStyle>(
           value: gayaStatusGelap,
           child: Scaffold(

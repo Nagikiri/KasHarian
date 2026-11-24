@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/app_data.dart';
 import '../theme/app_theme.dart';
-import '../utils/format.dart';
+import '../utils/privasi.dart';
 import 'judul_seksi.dart';
 import 'progress_tipis.dart';
 
@@ -29,9 +29,9 @@ class BudgetBulan extends StatelessWidget {
         Text.rich(
           TextSpan(
             children: [
-              TextSpan(text: formatRupiah(terpakai), style: TeksApp.angka),
+              TextSpan(text: rupiahTampil(terpakai), style: TeksApp.angka),
               TextSpan(
-                text: ' dari ${formatRupiah(anggaran)}',
+                text: ' dari ${rupiahTampil(anggaran)}',
                 style: TeksApp.kecil,
               ),
             ],
@@ -43,8 +43,8 @@ class BudgetBulan extends StatelessWidget {
         // Budget adalah rencana, jadi kelebihan ditulis positif, bukan "Sisa -Rp".
         Text(
           sisa < 0
-              ? 'Lebih ${formatRupiah(-sisa)} dari anggaran'
-              : 'Sisa ${formatRupiah(sisa)}',
+              ? 'Lebih ${rupiahTampil(-sisa)} dari anggaran'
+              : 'Sisa ${rupiahTampil(sisa)}',
           style: TeksApp.kecil.copyWith(
             color: sisa < 0 ? WarnaApp.bahaya : null,
           ),
