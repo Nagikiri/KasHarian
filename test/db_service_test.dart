@@ -5,6 +5,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:kasharian/models/app_data.dart';
 import 'package:kasharian/models/budget.dart';
 import 'package:kasharian/models/data_contoh.dart';
+import 'package:kasharian/models/dompet.dart';
 import 'package:kasharian/models/kategori.dart';
 import 'package:kasharian/models/transaksi.dart';
 import 'package:kasharian/services/db_service.dart';
@@ -140,6 +141,51 @@ void main() {
     expect(AppData.daftarTransaksi.length, jumlahTransaksi + 2);
     expect(AppData.daftarTransaksi[0].catatan, 'Nabung untuk $namaImpian');
     expect(AppData.daftarTransaksi[1].kategori, 'Pelunasan');
+  });
+
+  test('ganti nama dompet ikut mengganti transaksi di database', () async {
+    Dompet eWallet = AppData.daftarDompet.firstWhere(
+      (d) => d.nama == 'E-Wallet',
+    );
+    int saldoAwal = AppData.saldoSumber('E-Wallet');
+    int dipakai = AppData.jumlahTransaksiDompet('E-Wallet');
+    expect(dipakai, greaterThan(0));
+
+    await AppData.ubahDompet(
+      eWallet,
+      nama: 'Dompet Digital',
+      ikon: LucideIcons.wallet,
+      saldoAwal: 0,
+    );
+    await AppData.muat();
+    expect(AppData.daftarSumberDana, contains('Dompet Digital'));
+    expect(AppData.daftarSumberDana, isNot(contains('E-Wallet')));
+    expect(AppData.jumlahTransaksiDompet('E-Wallet'), 0);
+    expect(AppData.jumlahTransaksiDompet('Dompet Digital'), dipakai);
+    expect(AppData.saldoSumber('Dompet Digital'), saldoAwal);
+  });
+
+  test('tambah, ubah saldo awal, dan hapus dompet tersimpan', () async {
+    await AppData.tambahDompet(Dompet(nama: 'Dana Darurat', saldoAwal: 1000));
+    await AppData.muat();
+    Dompet darurat = AppData.daftarDompet.last;
+    expect(darurat.nama, 'Dana Darurat');
+    expect(darurat.saldoAwal, 1000);
+
+    await AppData.ubahDompet(
+      darurat,
+      nama: 'Dana Darurat',
+      ikon: LucideIcons.coins,
+      saldoAwal: 3000,
+    );
+    await AppData.muat();
+    expect(AppData.saldoSumber('Dana Darurat'), 3000);
+    expect(AppData.ikonDompet('Dana Darurat'), LucideIcons.coins);
+    expect(AppData.ikonDompet('Rekening Bank'), LucideIcons.landmark);
+
+    expect(await AppData.hapusDompet(AppData.daftarDompet.last), isTrue);
+    await AppData.muat();
+    expect(AppData.daftarSumberDana, isNot(contains('Dana Darurat')));
   });
 
   test('anggaran, favorit, dan kurs terakhir tersimpan', () async {

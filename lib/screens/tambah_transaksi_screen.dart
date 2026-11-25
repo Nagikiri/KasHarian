@@ -19,8 +19,8 @@ import '../widgets/numpad_simpan.dart';
 import '../widgets/pilihan_segmen.dart';
 import '../widgets/halaman_bagi_teman.dart';
 import '../widgets/halaman_isian_teks.dart';
+import '../widgets/halaman_pilih_dompet.dart';
 import '../widgets/halaman_pilih_kategori.dart';
-import '../widgets/sheet_sumber_dana.dart';
 import '../widgets/tampilan_nominal.dart';
 import '../widgets/template_nominal.dart';
 
@@ -106,7 +106,7 @@ class _TambahTransaksiScreenState extends State<TambahTransaksiScreen> {
   }
 
   Future<void> _pilihDompet({required bool tujuan}) async {
-    String? hasil = await bukaSumberDana(
+    String? hasil = await bukaPilihDompet(
       context,
       tujuan ? _tujuan : _sumber,
       judul: !_transfer ? 'Pilih dompet' : (tujuan ? 'Ke' : 'Dari'),

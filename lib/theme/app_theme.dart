@@ -197,7 +197,7 @@ class RadiusApp {
   static const double input = 12;
   static const double tombol = 14;
   static const double pill = 999;
-  static const double dialog = 16;
+  static const double dialog = 20;
   static const double kartu = 12;
   static const double kartuSaldo = 16;
 }

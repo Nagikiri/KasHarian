@@ -11,9 +11,10 @@ class CatatanTransaksi {
   final DateTime tanggal;
   final bool isPemasukan;
   final bool isTransfer;
-  final String sumberDana;
+  // Tidak final karena ikut berubah saat dompetnya diganti nama.
+  String sumberDana;
   // Hanya diisi untuk transfer: dompet yang menerima uang.
-  final String? sumberTujuan;
+  String? sumberTujuan;
 
   CatatanTransaksi({
     this.id,

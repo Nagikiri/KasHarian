@@ -30,11 +30,11 @@ DateTime _mundurBulan(int jumlahBulan, int tanggal) {
 // Saldo awal hanya di dompet Utama.
 List<Dompet> contohDompet() {
   return [
-    Dompet(nama: 'Utama', saldoAwal: 2500000),
-    Dompet(nama: 'Rekening Bank'),
-    Dompet(nama: 'E-Wallet'),
-    Dompet(nama: 'Tunai'),
-    Dompet(nama: 'Tabungan'),
+    Dompet(nama: 'Utama', ikon: LucideIcons.wallet, saldoAwal: 2500000),
+    Dompet(nama: 'Rekening Bank', ikon: LucideIcons.landmark),
+    Dompet(nama: 'E-Wallet', ikon: LucideIcons.smartphone),
+    Dompet(nama: 'Tunai', ikon: LucideIcons.banknote),
+    Dompet(nama: 'Tabungan', ikon: LucideIcons.piggyBank),
   ];
 }
 

@@ -3,6 +3,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../models/app_data.dart';
 import '../theme/app_theme.dart';
+import 'dialog_info.dart';
 
 // Baris bawah yang sama persis di kartu Kurs Beranda dan Hitung kurs.
 class BarisInfoKurs extends StatelessWidget {
@@ -18,20 +19,10 @@ class BarisInfoKurs extends StatelessWidget {
   void _bukaSumber(BuildContext context) {
     showDialog<void>(
       context: context,
-      builder: (context) => AlertDialog(
-        content: const Text(
-          'Sumber data kurs: Rates By Exchange Rate API',
-          style: TeksApp.isi,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Tutup',
-              style: TeksApp.tombolKecil.copyWith(color: WarnaApp.primer),
-            ),
-          ),
-        ],
+      builder: (context) => const DialogInfo(
+        ikon: LucideIcons.info,
+        judul: 'Sumber data kurs',
+        pesan: 'Rates By Exchange Rate API',
       ),
     );
   }

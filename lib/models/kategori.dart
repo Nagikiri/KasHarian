@@ -53,6 +53,9 @@ const List<IconData> daftarIkonKategori = [
   LucideIcons.arrowLeftRight,
   LucideIcons.handCoins,
   LucideIcons.piggyBank,
+  LucideIcons.creditCard,
+  LucideIcons.qrCode,
+  LucideIcons.coins,
 ];
 
 int indeksIkon(IconData ikon) => daftarIkonKategori.indexOf(ikon);

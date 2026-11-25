@@ -26,8 +26,8 @@ class BarisSumberDana extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: JarakApp.j8),
           child: Row(
             children: [
-              const Icon(
-                LucideIcons.wallet,
+              Icon(
+                AppData.ikonDompet(sumber),
                 size: 20,
                 color: WarnaApp.teksRedup,
               ),

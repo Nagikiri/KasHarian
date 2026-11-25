@@ -21,6 +21,7 @@ import '../widgets/kartu_saldo.dart';
 import '../widgets/sheet_detail_transaksi.dart';
 import '../widgets/tampilan_kosong.dart';
 import 'budget_screen.dart';
+import 'dompet_screen.dart';
 import 'utang_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -101,6 +102,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               disembunyikan: sembunyikanNominal.value,
               onMata: () =>
                   sembunyikanNominal.value = !sembunyikanNominal.value,
+              onTekan: () => _buka(const DompetScreen()),
+              jumlahDompet: AppData.daftarDompet.length,
             ),
           ),
           _tepi(_bangunKartuNavigasi()),

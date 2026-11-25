@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../models/app_data.dart';
 import '../theme/app_theme.dart';
 import '../utils/privasi.dart';
 import 'ikon_bulat.dart';
@@ -34,11 +34,7 @@ class KartuDompet extends StatelessWidget {
             children: [
               Text(label, style: TeksApp.kecil),
               const SizedBox(height: JarakApp.j8),
-              IkonBulat(
-                ikon: nama == 'Tabungan'
-                    ? LucideIcons.piggyBank
-                    : LucideIcons.wallet,
-              ),
+              IkonBulat(ikon: AppData.ikonDompet(nama)),
               const SizedBox(height: JarakApp.j8),
               // Nama boleh turun baris supaya tidak terpotong di layar sempit.
               Text(nama, style: TeksApp.tombolKecil),

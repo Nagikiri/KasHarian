@@ -79,6 +79,7 @@ class DbService {
       CREATE TABLE dompet (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         nama TEXT NOT NULL,
+        indeks_ikon INTEGER NOT NULL,
         saldo_awal INTEGER NOT NULL
       )
     ''');
@@ -150,6 +151,20 @@ class DbService {
     Database? db = _db;
     if (db == null) return [];
     return db.query(tabel, orderBy: terbaruDulu ? 'id DESC' : 'id ASC');
+  }
+
+  // Transaksi menyimpan nama dompet (bukan id), jadi transaksi lama ikut diganti supaya saldonya tidak hilang.
+  static Future<void> gantiNamaDompet(String lama, String baru) async {
+    Database? db = _db;
+    if (db == null) return;
+    await db.rawUpdate(
+      'UPDATE transaksi SET sumber_dana = ? WHERE sumber_dana = ?',
+      [baru, lama],
+    );
+    await db.rawUpdate(
+      'UPDATE transaksi SET sumber_tujuan = ? WHERE sumber_tujuan = ?',
+      [baru, lama],
+    );
   }
 
   // replace: kalau kuncinya sudah ada, baris lama ditimpa. Jadi satu method untuk simpan dan ubah.

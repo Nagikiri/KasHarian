@@ -10,6 +10,9 @@ class KartuSaldo extends StatelessWidget {
   final String pengeluaran;
   final bool disembunyikan;
   final VoidCallback onMata;
+  // Ketuk area kartu membuka halaman Dompet. Tombol mata punya GestureDetector sendiri, jadi tetap hanya menyembunyikan.
+  final VoidCallback onTekan;
+  final int jumlahDompet;
 
   const KartuSaldo({
     super.key,
@@ -18,6 +21,8 @@ class KartuSaldo extends StatelessWidget {
     required this.pengeluaran,
     required this.disembunyikan,
     required this.onMata,
+    required this.onTekan,
+    required this.jumlahDompet,
   });
 
   @override
@@ -26,57 +31,91 @@ class KartuSaldo extends StatelessWidget {
       color: WarnaApp.diAtasPrimerRedup,
     );
 
-    return Container(
-      padding: const EdgeInsets.all(JarakApp.j20),
-      decoration: BoxDecoration(
-        color: WarnaApp.primer,
-        borderRadius: BorderRadius.circular(RadiusApp.kartuSaldo),
+    BorderRadius sudut = BorderRadius.circular(RadiusApp.kartuSaldo);
+    // Material + InkWell supaya efek ketuk terlihat di atas latar hijau.
+    return Material(
+      color: WarnaApp.primer,
+      borderRadius: sudut,
+      child: InkWell(
+        onTap: onTekan,
+        borderRadius: sudut,
+        child: Padding(
+          padding: const EdgeInsets.all(JarakApp.j20),
+          child: _bangunIsi(labelRedup),
+        ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          GestureDetector(
-            onTap: onMata,
-            child: Row(
-              children: [
-                Text('Saldo', style: labelRedup),
-                const SizedBox(width: JarakApp.j4),
-                Icon(
-                  disembunyikan ? LucideIcons.eyeOff : LucideIcons.eye,
-                  size: 18,
-                  color: WarnaApp.diAtasPrimer,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: JarakApp.j4),
-          Text(
-            saldo,
-            style: TeksApp.angkaBesar.copyWith(color: WarnaApp.diAtasPrimer),
-          ),
-          const SizedBox(height: JarakApp.j16),
-          Row(
+    );
+  }
+
+  Widget _bangunIsi(TextStyle labelRedup) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        GestureDetector(
+          onTap: onMata,
+          // min supaya area mata hanya label + ikon, sisa baris tetap membuka Dompet.
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Expanded(
-                child: _bangunArus(
-                  LucideIcons.arrowDownLeft,
-                  'Pemasukan',
-                  pemasukan,
-                  labelRedup,
-                ),
-              ),
-              Expanded(
-                child: _bangunArus(
-                  LucideIcons.arrowUpRight,
-                  'Pengeluaran',
-                  pengeluaran,
-                  labelRedup,
-                ),
+              Text('Saldo', style: labelRedup),
+              const SizedBox(width: JarakApp.j4),
+              Icon(
+                disembunyikan ? LucideIcons.eyeOff : LucideIcons.eye,
+                size: 18,
+                color: WarnaApp.diAtasPrimer,
               ),
             ],
           ),
-        ],
-      ),
+        ),
+        const SizedBox(height: JarakApp.j4),
+        Text(
+          saldo,
+          style: TeksApp.angkaBesar.copyWith(color: WarnaApp.diAtasPrimer),
+        ),
+        const SizedBox(height: JarakApp.j16),
+        Row(
+          children: [
+            Expanded(
+              child: _bangunArus(
+                LucideIcons.arrowDownLeft,
+                'Pemasukan',
+                pemasukan,
+                labelRedup,
+              ),
+            ),
+            Expanded(
+              child: _bangunArus(
+                LucideIcons.arrowUpRight,
+                'Pengeluaran',
+                pengeluaran,
+                labelRedup,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: JarakApp.j16),
+        const Divider(height: 1, color: WarnaApp.diAtasPrimerRedup),
+        const SizedBox(height: JarakApp.j12),
+        _bangunDompet(),
+      ],
+    );
+  }
+
+  // Penanda bahwa kartu bisa diketuk untuk membuka halaman Dompet.
+  Widget _bangunDompet() {
+    TextStyle gaya = TeksApp.kecil.copyWith(color: WarnaApp.diAtasPrimer);
+    return Row(
+      children: [
+        const Icon(LucideIcons.wallet, size: 14, color: WarnaApp.diAtasPrimer),
+        const SizedBox(width: JarakApp.j4),
+        Expanded(child: Text('$jumlahDompet dompet', style: gaya)),
+        Text('Lihat', style: gaya),
+        const Icon(
+          LucideIcons.chevronRight,
+          size: 14,
+          color: WarnaApp.diAtasPrimer,
+        ),
+      ],
     );
   }
 

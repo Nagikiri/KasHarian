@@ -932,6 +932,99 @@ class AppData {
     await DbService.ubah('kantong', item.toMap());
   }
 
+  // Dompet bawaan yang dipakai langsung oleh kode (tabungan impian, pelunasan), jadi tidak boleh diganti nama atau dihapus.
+  static const List<String> dompetTetap = ['Utama', 'Tabungan'];
+
+  static const List<IconData> opsiIkonDompet = [
+    LucideIcons.wallet,
+    LucideIcons.landmark,
+    LucideIcons.smartphone,
+    LucideIcons.banknote,
+    LucideIcons.piggyBank,
+    LucideIcons.creditCard,
+    LucideIcons.qrCode,
+    LucideIcons.coins,
+  ];
+
+  // Nama pendek di bawah setiap ikon, urutannya sama dengan opsiIkonDompet.
+  static const List<String> labelIkonDompet = [
+    'Dompet',
+    'Bank',
+    'HP',
+    'Tunai',
+    'Celengan',
+    'Kartu',
+    'QR',
+    'Koin',
+  ];
+
+  // Nama yang tidak ditemukan memakai ikon wallet, sama dengan ikonDariIndeks.
+  static IconData ikonDompet(String nama) {
+    for (var d in daftarDompet) {
+      if (d.nama == nama) return d.ikon;
+    }
+    return LucideIcons.wallet;
+  }
+
+  // Nama dibandingkan tanpa beda huruf besar/kecil. lama = dompet yang sedang diubah, boleh memakai namanya sendiri.
+  static bool namaDompetBoleh(String nama, {Dompet? lama}) {
+    String kecil = nama.trim().toLowerCase();
+    if (kecil.isEmpty) return false;
+    for (var k in namaKhusus) {
+      if (k.toLowerCase() == kecil) return false;
+    }
+    for (var d in daftarDompet) {
+      if (d != lama && d.nama.toLowerCase() == kecil) return false;
+    }
+    return true;
+  }
+
+  static int jumlahTransaksiDompet(String nama) {
+    int jumlah = 0;
+    for (var t in daftarTransaksi) {
+      if (t.sumberDana == nama || t.sumberTujuan == nama) jumlah++;
+    }
+    return jumlah;
+  }
+
+  static Future<void> tambahDompet(Dompet dompet) async {
+    daftarDompet.add(dompet);
+    refreshNotifier.value++;
+    dompet.id = await DbService.tambah('dompet', dompet.toMap());
+  }
+
+  static Future<void> ubahDompet(
+    Dompet dompet, {
+    required String nama,
+    required IconData ikon,
+    required int saldoAwal,
+  }) async {
+    String namaLama = dompet.nama;
+    bool gantiNama = nama != namaLama;
+    dompet.nama = nama;
+    dompet.ikon = ikon;
+    dompet.saldoAwal = saldoAwal;
+    if (gantiNama) {
+      for (var t in daftarTransaksi) {
+        if (t.sumberDana == namaLama) t.sumberDana = nama;
+        if (t.sumberTujuan == namaLama) t.sumberTujuan = nama;
+      }
+    }
+    refreshNotifier.value++;
+    await DbService.ubah('dompet', dompet.toMap());
+    if (gantiNama) await DbService.gantiNamaDompet(namaLama, nama);
+  }
+
+  // Mengembalikan false kalau dompet masih dipakai transaksi atau termasuk dompet tetap.
+  static Future<bool> hapusDompet(Dompet dompet) async {
+    if (dompetTetap.contains(dompet.nama)) return false;
+    if (jumlahTransaksiDompet(dompet.nama) > 0) return false;
+    daftarDompet.remove(dompet);
+    refreshNotifier.value++;
+    await DbService.hapus('dompet', dompet.id);
+    return true;
+  }
+
   static Future<void> hapusBudget(BudgetItem item) async {
     daftarBudget.remove(item);
     refreshNotifier.value++;
