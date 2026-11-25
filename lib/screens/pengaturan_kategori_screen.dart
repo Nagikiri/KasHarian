@@ -5,9 +5,11 @@ import '../models/app_data.dart';
 import '../models/kategori.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_bar_turunan.dart';
+import '../widgets/blok_daftar.dart';
 import '../widgets/dialog_konfirmasi_hapus.dart';
 import '../widgets/grid_pilih_ikon.dart';
 import '../widgets/ikon_bulat.dart';
+import '../widgets/kartu_bagian.dart';
 import '../widgets/pilihan_segmen.dart';
 import '../widgets/tampilan_kosong.dart';
 import '../widgets/tombol_utama.dart';
@@ -65,15 +67,19 @@ class _PengaturanKategoriScreenState extends State<PengaturanKategoriScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: WarnaApp.latarHalaman,
       appBar: buatAppBarTurunan('Kategori'),
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Padding(
+          // Segmen menyatu dengan AppBar putih, jadi tanpa celah abu di atasnya.
+          BlokDaftar(
+            jarakAtas: 0,
             padding: const EdgeInsets.fromLTRB(
               JarakApp.tepiHalaman,
               JarakApp.j8,
               JarakApp.tepiHalaman,
-              JarakApp.j8,
+              JarakApp.j12,
             ),
             child: PilihanSegmen(
               pilihan: const ['Pengeluaran', 'Pemasukan'],
@@ -84,10 +90,13 @@ class _PengaturanKategoriScreenState extends State<PengaturanKategoriScreen> {
           Expanded(child: _bangunDaftar()),
         ],
       ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(JarakApp.tepiHalaman),
-          child: TombolUtama(teks: 'Tambah kategori', onTekan: _bukaTambah),
+      bottomNavigationBar: ColoredBox(
+        color: WarnaApp.latar,
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(JarakApp.tepiHalaman),
+            child: TombolUtama(teks: 'Tambah kategori', onTekan: _bukaTambah),
+          ),
         ),
       ),
     );
@@ -102,11 +111,21 @@ class _PengaturanKategoriScreenState extends State<PengaturanKategoriScreen> {
         kalimat: 'Tambahkan lewat tombol di bawah.',
       );
     }
-    return ListView.separated(
-      padding: const EdgeInsets.symmetric(horizontal: JarakApp.tepiHalaman),
-      itemCount: daftar.length,
-      separatorBuilder: (context, i) => const Divider(height: 1),
-      itemBuilder: (context, i) => _bangunBaris(daftar[i]),
+    return ListView(
+      padding: const EdgeInsets.all(JarakApp.tepiKartu),
+      children: [
+        KartuBagian(
+          padding: const EdgeInsets.symmetric(horizontal: JarakApp.dalamKartu),
+          child: Column(
+            children: [
+              for (int i = 0; i < daftar.length; i++) ...[
+                if (i > 0) const Divider(height: 1),
+                _bangunBaris(daftar[i]),
+              ],
+            ],
+          ),
+        ),
+      ],
     );
   }
 

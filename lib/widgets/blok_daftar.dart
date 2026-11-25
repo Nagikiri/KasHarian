@@ -6,10 +6,13 @@ import '../theme/app_theme.dart';
 class BlokDaftar extends StatelessWidget {
   final Widget child;
   final EdgeInsets padding;
+  // 0 kalau blok menempel langsung di bawah AppBar putih.
+  final double jarakAtas;
 
   const BlokDaftar({
     super.key,
     required this.child,
+    this.jarakAtas = JarakApp.antarKartu,
     this.padding = const EdgeInsets.fromLTRB(
       JarakApp.tepiHalaman,
       JarakApp.j16,
@@ -22,7 +25,7 @@ class BlokDaftar extends StatelessWidget {
   Widget build(BuildContext context) {
     // Material (bukan ColoredBox) supaya efek ketuk InkWell di baris transaksi tetap terlihat.
     return Padding(
-      padding: const EdgeInsets.only(top: JarakApp.antarKartu),
+      padding: EdgeInsets.only(top: jarakAtas),
       child: Material(
         color: WarnaApp.latar,
         child: Padding(padding: padding, child: child),

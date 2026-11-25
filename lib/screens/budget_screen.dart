@@ -9,6 +9,7 @@ import '../widgets/app_bar_turunan.dart';
 import '../widgets/baris_budget.dart';
 import '../widgets/dialog_konfirmasi_hapus.dart';
 import '../widgets/judul_seksi.dart';
+import '../widgets/kartu_bagian.dart';
 import '../widgets/kolom_angka.dart';
 import '../widgets/sheet_input_nominal.dart';
 import '../widgets/sheet_tambah_budget.dart';
@@ -27,37 +28,46 @@ class _BudgetScreenState extends State<BudgetScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: WarnaApp.latarHalaman,
       appBar: buatAppBarTurunan('Anggaran'),
       body: ValueListenableBuilder<int>(
         valueListenable: AppData.refreshNotifier,
         builder: (context, nilai, child) {
           return ListView(
+            padding: const EdgeInsets.only(bottom: JarakApp.antarKartu),
             children: [
-              _tepi(_bangunAnggaran()),
-              const SizedBox(height: JarakApp.j16),
-              Container(height: 8, color: WarnaApp.latarSeksi),
-              _tepi(_bangunDaftar()),
+              _tepi(KartuBagian(child: _bangunAnggaran())),
+              _tepi(
+                KartuBagian(
+                  judul: const JudulSeksi(judul: 'Per kategori'),
+                  child: _bangunDaftar(),
+                ),
+              ),
             ],
           );
         },
       ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(JarakApp.tepiHalaman),
-          child: TombolUtama(
-            teks: 'Tambah kategori anggaran',
-            onTekan: () => bukaTambahBudget(context),
+      bottomNavigationBar: ColoredBox(
+        color: WarnaApp.latar,
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(JarakApp.tepiHalaman),
+            child: TombolUtama(
+              teks: 'Tambah kategori anggaran',
+              onTekan: () => bukaTambahBudget(context),
+            ),
           ),
         ),
       ),
     );
   }
 
+  // Kartu ramping: jarak antarkartu di atasnya dan jarak tepi kartu di kiri-kanan.
   Widget _tepi(Widget isi) => Padding(
     padding: const EdgeInsets.fromLTRB(
-      JarakApp.tepiHalaman,
-      JarakApp.j16,
-      JarakApp.tepiHalaman,
+      JarakApp.tepiKartu,
+      JarakApp.antarKartu,
+      JarakApp.tepiKartu,
       0,
     ),
     child: isi,
@@ -107,17 +117,16 @@ class _BudgetScreenState extends State<BudgetScreen> {
 
   Widget _bangunDaftar() {
     List<BudgetItem> daftar = AppData.daftarBudget;
+    if (daftar.isEmpty) {
+      return const TampilanKosong(
+        ikon: LucideIcons.wallet,
+        judul: 'Belum ada kategori anggaran',
+        kalimat: 'Tambahkan lewat tombol di bawah.',
+      );
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const JudulSeksi(judul: 'Per kategori'),
-        const SizedBox(height: JarakApp.j4),
-        if (daftar.isEmpty)
-          const TampilanKosong(
-            ikon: LucideIcons.wallet,
-            judul: 'Belum ada kategori anggaran',
-            kalimat: 'Tambahkan lewat tombol di bawah.',
-          ),
         for (int i = 0; i < daftar.length; i++) ...[
           if (i > 0) const Divider(height: 1),
           BarisBudget(budget: daftar[i], onTekan: () => _ubahLimit(daftar[i])),

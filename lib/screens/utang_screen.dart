@@ -9,6 +9,8 @@ import '../utils/privasi.dart';
 import '../widgets/app_bar_turunan.dart';
 import '../widgets/baris_isian.dart';
 import '../widgets/baris_utang.dart';
+import '../widgets/blok_daftar.dart';
+import '../widgets/kartu_bagian.dart';
 import '../widgets/kolom_angka.dart';
 import '../widgets/pilihan_segmen.dart';
 import '../widgets/sheet_input_nominal.dart';
@@ -49,45 +51,69 @@ class _UtangScreenState extends State<UtangScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: WarnaApp.latarHalaman,
       appBar: buatAppBarTurunan('Utang & Piutang'),
       body: ValueListenableBuilder<int>(
         valueListenable: AppData.refreshNotifier,
         builder: (context, nilai, child) {
           List<UtangItem> daftar = _daftarTampil();
           return ListView(
-            padding: const EdgeInsets.symmetric(
-              horizontal: JarakApp.tepiHalaman,
-              vertical: JarakApp.j16,
-            ),
             children: [
-              PilihanSegmen(
-                pilihan: _pilihanFilter,
-                indeksAktif: _filter,
-                onPilih: (i) => setState(() => _filter = i),
-              ),
-              const SizedBox(height: JarakApp.j24),
-              _bangunTotal(),
-              const SizedBox(height: JarakApp.j8),
-              if (daftar.isEmpty)
-                TampilanKosong(
-                  ikon: LucideIcons.handCoins,
-                  judul: _judulKosong[_filter],
-                  kalimat: 'Catat lewat tombol Catat Utang di bawah.',
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  JarakApp.tepiKartu,
+                  JarakApp.antarKartu,
+                  JarakApp.tepiKartu,
+                  0,
                 ),
-              for (int i = 0; i < daftar.length; i++) ...[
-                if (i > 0) const Divider(height: 1),
-                BarisUtang(utang: daftar[i], onLunas: () => _lunasi(daftar[i])),
-              ],
+                child: KartuBagian(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      PilihanSegmen(
+                        pilihan: _pilihanFilter,
+                        indeksAktif: _filter,
+                        onPilih: (i) => setState(() => _filter = i),
+                      ),
+                      const SizedBox(height: JarakApp.j16),
+                      _bangunTotal(),
+                    ],
+                  ),
+                ),
+              ),
+              BlokDaftar(child: _bangunDaftar(daftar)),
             ],
           );
         },
       ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(JarakApp.tepiHalaman),
-          child: TombolUtama(teks: 'Catat Utang', onTekan: _bukaFormUtang),
+      bottomNavigationBar: ColoredBox(
+        color: WarnaApp.latar,
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(JarakApp.tepiHalaman),
+            child: TombolUtama(teks: 'Catat Utang', onTekan: _bukaFormUtang),
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _bangunDaftar(List<UtangItem> daftar) {
+    if (daftar.isEmpty) {
+      return TampilanKosong(
+        ikon: LucideIcons.handCoins,
+        judul: _judulKosong[_filter],
+        kalimat: 'Catat lewat tombol Catat Utang di bawah.',
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (int i = 0; i < daftar.length; i++) ...[
+          if (i > 0) const Divider(height: 1),
+          BarisUtang(utang: daftar[i], onLunas: () => _lunasi(daftar[i])),
+        ],
+      ],
     );
   }
 
