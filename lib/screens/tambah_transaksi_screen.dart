@@ -18,7 +18,7 @@ import '../widgets/halaman_form.dart';
 import '../widgets/numpad_simpan.dart';
 import '../widgets/pilihan_segmen.dart';
 import '../widgets/halaman_bagi_teman.dart';
-import '../widgets/dialog_isian_teks.dart';
+import '../widgets/halaman_isian_teks.dart';
 import '../widgets/halaman_pilih_kategori.dart';
 import '../widgets/sheet_sumber_dana.dart';
 import '../widgets/tampilan_nominal.dart';
@@ -133,7 +133,7 @@ class _TambahTransaksiScreenState extends State<TambahTransaksiScreen> {
   }
 
   Future<void> _ubahCatatan() async {
-    String? hasil = await bukaCatatan(context, _catatan);
+    String? hasil = await bukaIsianTeks(context, _catatan);
     if (hasil != null) setState(() => _catatan = hasil);
   }
 

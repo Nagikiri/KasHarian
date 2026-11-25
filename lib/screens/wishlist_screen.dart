@@ -12,9 +12,8 @@ import '../widgets/judul_seksi.dart';
 import '../widgets/kartu_bagian.dart';
 import '../widgets/kartu_hitung_kurs.dart';
 import '../widgets/kartu_progress.dart';
-import '../widgets/sheet_detail_impian.dart';
+import '../widgets/detail_impian.dart';
 import '../widgets/halaman_impian_baru.dart';
-import '../widgets/halaman_input_nominal.dart';
 import '../widgets/tampilan_kosong.dart';
 
 class WishlistScreen extends StatefulWidget {
@@ -26,12 +25,25 @@ class WishlistScreen extends StatefulWidget {
 
 class _WishlistScreenState extends State<WishlistScreen> {
   bool _sedangMemuat = false;
+  // Penanda posisi kartu Impianku, tujuan gulir dari "Lihat semua" di Beranda.
+  final GlobalKey _kunciImpianku = GlobalKey();
 
   @override
   void initState() {
     super.initState();
     // Kalau Beranda sudah mengambil kurs live, API tidak perlu dipanggil lagi.
     if (!AppData.kursLive) _ambilKurs();
+    if (!AppData.gulirKeImpian) return;
+    AppData.gulirKeImpian = false;
+    // Posisi penanda baru diketahui setelah halaman selesai digambar.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      BuildContext? tujuan = _kunciImpianku.currentContext;
+      if (tujuan == null) return;
+      Scrollable.ensureVisible(
+        tujuan,
+        duration: const Duration(milliseconds: 300),
+      );
+    });
   }
 
   Future<void> _ambilKurs() async {
@@ -51,35 +63,6 @@ class _WishlistScreenState extends State<WishlistScreen> {
         .toList();
     belum.sort((a, b) => _persen(b).compareTo(_persen(a)));
     return [...belum, ...AppData.daftarWishlist.where(_tercapai)];
-  }
-
-  void _bukaTabung(WishlistItem impian) {
-    bukaInputNominal(
-      context,
-      judul: 'Nabung untuk ${impian.nama}',
-      ikon: LucideIcons.piggyBank,
-      onSimpan: (nominal) {
-        int disimpan = AppData.tambahTabunganWishlist(impian, nominal);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '${formatRupiah(disimpan)} ditabung ke ${impian.nama}',
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  // Sheet detail ditutup dulu, baru halaman nominal dibuka dari layar ini.
-  Future<void> _bukaDetail(WishlistItem impian) async {
-    bool? tabung = await showModalBottomSheet<bool>(
-      context: context,
-      useSafeArea: true,
-      isScrollControlled: true,
-      builder: (context) => SheetDetailImpian(impian: impian),
-    );
-    if (tabung == true && mounted) _bukaTabung(impian);
   }
 
   @override
@@ -106,6 +89,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
                   ),
                   _tepi(
                     KartuBagian(
+                      key: _kunciImpianku,
                       judul: const JudulSeksi(judul: 'Impianku'),
                       child: _bangunDaftarImpian(),
                     ),
@@ -168,7 +152,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
       pakaiWarnaStatus: false,
       pakaiCincin: true,
       catatanBawah: catatan,
-      onTekan: () => _bukaDetail(impian),
+      onTekan: () => bukaDetailImpian(context, impian),
     );
   }
 }

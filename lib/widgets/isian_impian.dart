@@ -10,10 +10,10 @@ import 'baris_isian.dart';
 import 'harga_impian.dart';
 import 'halaman_form.dart';
 import 'numpad_simpan.dart';
-import 'dialog_isian_teks.dart';
+import 'halaman_isian_teks.dart';
 import 'halaman_pilih_mata_uang.dart';
 
-// Langkah kedua halaman impian baru: harga valas lewat numpad dan nama lewat dialog teks.
+// Langkah kedua halaman impian baru: harga valas lewat numpad dan nama lewat halaman isian teks.
 class IsianImpian extends StatefulWidget {
   final KategoriItem kategori;
   final VoidCallback onGanti;
@@ -43,7 +43,7 @@ class _IsianImpianState extends State<IsianImpian> {
   }
 
   Future<void> _ubahNama() async {
-    String? hasil = await bukaCatatan(
+    String? hasil = await bukaIsianTeks(
       context,
       _nama,
       judul: 'Nama impian',

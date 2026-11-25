@@ -17,6 +17,8 @@ class AppData {
   static final ValueNotifier<int> tabAktif = ValueNotifier<int>(0);
   // Diisi "Lihat semua" di Beranda, lalu dibaca sekali oleh tab Transaksi saat dibuka.
   static bool gulirKeDaftar = false;
+  // Sama seperti gulirKeDaftar, tapi untuk kartu Impianku di tab Impian.
+  static bool gulirKeImpian = false;
   static DateTime bulanDipilih = DateTime.now();
 
   static int saldoAwal = 2500000;

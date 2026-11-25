@@ -11,6 +11,7 @@ import '../utils/privasi.dart';
 import '../widgets/baris_judul.dart';
 import '../widgets/baris_transaksi.dart';
 import '../widgets/blok_daftar.dart';
+import '../widgets/detail_impian.dart';
 import '../widgets/judul_seksi.dart';
 import '../widgets/kartu_bagian.dart';
 import '../widgets/kartu_impian.dart';
@@ -50,6 +51,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     AppData.bulanDipilih = DateTime.now();
     AppData.gulirKeDaftar = true;
     AppData.tabAktif.value = 1;
+  }
+
+  // Tab Impian dibuka lalu langsung digulir ke kartu Impianku, sama seperti Lihat semua transaksi.
+  void _lihatSemuaImpian() {
+    AppData.gulirKeImpian = true;
+    AppData.tabAktif.value = 2;
   }
 
   void _buka(Widget halaman) =>
@@ -102,11 +109,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           if (impian != null)
             _kartu(
-              KartuImpian(impian: impian),
+              // Hanya isi kartu yang bisa diketuk, jadi "Lihat semua" tetap punya aksi sendiri.
+              InkWell(
+                onTap: () => bukaDetailImpian(context, impian),
+                child: KartuImpian(impian: impian),
+              ),
               judul: JudulSeksi(
                 judul: 'Impian terdekat',
                 aksi: 'Lihat semua',
-                onAksi: () => AppData.tabAktif.value = 2,
+                onAksi: _lihatSemuaImpian,
               ),
             ),
           BlokDaftar(
