@@ -27,7 +27,7 @@ class SheetDetailTransaksi extends StatelessWidget {
 
   String get _tipe {
     if (transaksi.isPemasukan) return 'Pemasukan';
-    if (transaksi.isTransfer) return 'Transfer';
+    if (transaksi.isTransfer) return 'Pindah';
     return 'Pengeluaran';
   }
 
@@ -96,7 +96,7 @@ class SheetDetailTransaksi extends StatelessWidget {
             ] else ...[
               _bangunBaris('Kategori', transaksi.kategori),
               const Divider(height: 1),
-              _bangunBaris('Sumber dana', transaksi.sumberDana),
+              _bangunBaris('Dompet', transaksi.sumberDana),
             ],
             const Divider(height: 1),
             _bangunBaris('Tipe', _tipe),

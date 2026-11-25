@@ -40,10 +40,10 @@ class AppData {
   }
 
   static final List<String> daftarSumberDana = [
-    'Kantong Utama',
+    'Utama',
     'Rekening Bank',
-    'Saku QRIS',
-    'Dompet Tunai',
+    'E-Wallet',
+    'Tunai',
     'Tabungan',
   ];
 
@@ -287,7 +287,7 @@ class AppData {
   ];
 
   // Nama ini dipakai sistem (budget, transfer, pelunasan utang), jadi tidak boleh jadi nama kategori.
-  static final List<String> namaKhusus = ['Tabungan', 'Transfer', 'Pelunasan'];
+  static final List<String> namaKhusus = ['Tabungan', 'Pindah', 'Pelunasan'];
 
   static final List<CatatanTransaksi> daftarTransaksi = [
     CatatanTransaksi(
@@ -296,7 +296,7 @@ class AppData {
       nominal: 35000,
       ikon: LucideIcons.coffee,
       tanggal: _bulanIni(0),
-      sumberDana: 'Saku QRIS',
+      sumberDana: 'E-Wallet',
     ),
     CatatanTransaksi(
       kategori: 'Bensin',
@@ -335,27 +335,27 @@ class AppData {
       nominal: 28000,
       ikon: LucideIcons.utensils,
       tanggal: _bulanIni(3),
-      sumberDana: 'Dompet Tunai',
+      sumberDana: 'Tunai',
     ),
     CatatanTransaksi(
-      kategori: 'Transfer',
-      catatan: 'Isi Saldo Saku QRIS',
+      kategori: 'Pindah',
+      catatan: 'Isi Saldo E-Wallet',
       nominal: 500000,
       ikon: LucideIcons.arrowLeftRight,
       tanggal: _bulanIni(4),
       isTransfer: true,
       sumberDana: 'Rekening Bank',
-      sumberTujuan: 'Saku QRIS',
+      sumberTujuan: 'E-Wallet',
     ),
     CatatanTransaksi(
-      kategori: 'Transfer',
+      kategori: 'Pindah',
       catatan: 'Tarik Tunai',
       nominal: 300000,
       ikon: LucideIcons.arrowLeftRight,
       tanggal: _bulanIni(4),
       isTransfer: true,
       sumberDana: 'Rekening Bank',
-      sumberTujuan: 'Dompet Tunai',
+      sumberTujuan: 'Tunai',
     ),
     CatatanTransaksi(
       kategori: 'Tagihan',
@@ -371,7 +371,7 @@ class AppData {
       nominal: 120000,
       ikon: LucideIcons.receiptText,
       tanggal: _bulanIni(6),
-      sumberDana: 'Saku QRIS',
+      sumberDana: 'E-Wallet',
     ),
     CatatanTransaksi(
       kategori: 'Bensin',
@@ -379,10 +379,10 @@ class AppData {
       nominal: 50000,
       ikon: LucideIcons.fuel,
       tanggal: _bulanIni(8),
-      sumberDana: 'Dompet Tunai',
+      sumberDana: 'Tunai',
     ),
     CatatanTransaksi(
-      kategori: 'Transfer',
+      kategori: 'Pindah',
       catatan: 'Nabung untuk Mouse Logitech M331',
       nominal: 391350,
       ikon: LucideIcons.arrowLeftRight,
@@ -392,13 +392,13 @@ class AppData {
       sumberTujuan: 'Tabungan',
     ),
     CatatanTransaksi(
-      kategori: 'Transfer',
+      kategori: 'Pindah',
       catatan: 'Tabungan Bulanan',
       nominal: 500000,
       ikon: LucideIcons.arrowLeftRight,
       tanggal: _bulanIni(10),
       isTransfer: true,
-      sumberDana: 'Kantong Utama',
+      sumberDana: 'Utama',
       sumberTujuan: 'Tabungan',
     ),
     CatatanTransaksi(
@@ -418,7 +418,7 @@ class AppData {
       tanggal: _bulanIni(14),
     ),
     CatatanTransaksi(
-      kategori: 'Transfer',
+      kategori: 'Pindah',
       catatan: 'Nabung untuk Mechanical Keyboard Keychron Q1',
       nominal: 1200000,
       ikon: LucideIcons.arrowLeftRight,
@@ -433,7 +433,7 @@ class AppData {
       nominal: 60000,
       ikon: LucideIcons.clapperboard,
       tanggal: _bulanLalu(24),
-      sumberDana: 'Saku QRIS',
+      sumberDana: 'E-Wallet',
     ),
     CatatanTransaksi(
       kategori: 'Bensin',
@@ -441,7 +441,7 @@ class AppData {
       nominal: 100000,
       ikon: LucideIcons.fuel,
       tanggal: _bulanLalu(18),
-      sumberDana: 'Dompet Tunai',
+      sumberDana: 'Tunai',
     ),
     CatatanTransaksi(
       kategori: 'Makan',
@@ -468,7 +468,7 @@ class AppData {
       sumberDana: 'Rekening Bank',
     ),
     CatatanTransaksi(
-      kategori: 'Transfer',
+      kategori: 'Pindah',
       catatan: 'Nabung untuk Tiket Konser Luar Negeri',
       nominal: 1500000,
       ikon: LucideIcons.arrowLeftRight,
@@ -478,7 +478,7 @@ class AppData {
       sumberTujuan: 'Tabungan',
     ),
     CatatanTransaksi(
-      kategori: 'Transfer',
+      kategori: 'Pindah',
       catatan: 'Nabung untuk Sony PlayStation 5 Slim',
       nominal: 1500000,
       ikon: LucideIcons.arrowLeftRight,
@@ -677,13 +677,13 @@ class AppData {
     item.terkumpulIdr += disimpan;
     tambahTransaksi(
       CatatanTransaksi(
-        kategori: 'Transfer',
+        kategori: 'Pindah',
         catatan: 'Nabung untuk ${item.nama}',
         nominal: disimpan,
         ikon: LucideIcons.arrowLeftRight,
         tanggal: DateTime.now(),
         isTransfer: true,
-        sumberDana: 'Kantong Utama',
+        sumberDana: 'Utama',
         sumberTujuan: 'Tabungan',
       ),
     );
@@ -806,7 +806,7 @@ class AppData {
         ikon: LucideIcons.handCoins,
         tanggal: DateTime.now(),
         isPemasukan: piutang,
-        sumberDana: 'Kantong Utama',
+        sumberDana: 'Utama',
       ),
     );
   }
@@ -1016,7 +1016,7 @@ class AppData {
 
   // Transfer mengurangi dompet asal dan menambah dompet tujuan, jadi total semua dompet tetap sama.
   static int saldoSumber(String sumber) {
-    int saldo = sumber == 'Kantong Utama' ? saldoAwal : 0;
+    int saldo = sumber == 'Utama' ? saldoAwal : 0;
     for (var t in daftarTransaksi) {
       if (t.isTransfer && t.sumberTujuan == sumber) saldo += t.nominal;
       if (t.sumberDana != sumber) continue;

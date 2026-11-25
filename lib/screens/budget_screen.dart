@@ -39,7 +39,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
               _tepi(KartuBagian(child: _bangunAnggaran())),
               _tepi(
                 KartuBagian(
-                  judul: const JudulSeksi(judul: 'Per kategori'),
+                  judul: const JudulSeksi(judul: 'Kantong alokasi'),
                   child: _bangunDaftar(),
                 ),
               ),
@@ -53,7 +53,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
           child: Padding(
             padding: const EdgeInsets.all(JarakApp.tepiHalaman),
             child: TombolUtama(
-              teks: 'Tambah kategori anggaran',
+              teks: 'Tambah kantong',
               onTekan: () => bukaTambahBudget(context),
             ),
           ),
@@ -120,7 +120,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
     if (daftar.isEmpty) {
       return const TampilanKosong(
         ikon: LucideIcons.wallet,
-        judul: 'Belum ada kategori anggaran',
+        judul: 'Belum ada kantong',
         kalimat: 'Tambahkan lewat tombol di bawah.',
       );
     }
@@ -153,7 +153,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
       nominalAwal: budget.limit,
       onSimpan: (limit) => AppData.ubahLimitBudget(budget, limit),
       onHapus: () => _hapusBudget(budget),
-      labelHapus: 'Hapus anggaran',
+      labelHapus: 'Hapus kantong',
     );
   }
 
@@ -161,7 +161,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
     bool? hapus = await showDialog<bool>(
       context: context,
       builder: (context) =>
-          DialogKonfirmasiHapus(judul: 'Hapus anggaran ${budget.kategori}?'),
+          DialogKonfirmasiHapus(judul: 'Hapus kantong ${budget.kategori}?'),
     );
     if (hapus != true) return false;
     AppData.hapusBudget(budget);

@@ -6,12 +6,12 @@ import 'tombol_pill.dart';
 
 // Kolom cari dan filter tipe di tab Transaksi. Nilainya disimpan oleh halaman.
 class PencarianTransaksi extends StatelessWidget {
-  // Urutan ini dipakai halaman: 0 Semua, 1 Pengeluaran, 2 Pemasukan, 3 Transfer.
+  // Urutan ini dipakai halaman: 0 Semua, 1 Pengeluaran, 2 Pemasukan, 3 Pindah.
   static const List<String> pilihanFilter = [
     'Semua',
     'Pengeluaran',
     'Pemasukan',
-    'Transfer',
+    'Pindah',
   ];
 
   final int filter;

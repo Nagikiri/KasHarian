@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../theme/app_theme.dart';
 import 'tombol_pill.dart';
 
+// Chip dibagi rata selebar baris, jadi tidak perlu digeser dan semua label terbaca.
 class TemplateNominal extends StatelessWidget {
   final void Function(int tambahan) onTambah;
   final VoidCallback onReset;
@@ -19,20 +21,38 @@ class TemplateNominal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          for (int i = 0; i < daftarNilai.length; i++) ...[
-            TombolPill(
+    return Row(
+      children: [
+        for (int i = 0; i < daftarNilai.length; i++) ...[
+          Expanded(
+            child: TombolPill(
               teks: daftarLabel[i],
               kecil: true,
+              rapat: true,
               onTekan: () => onTambah(daftarNilai[i]),
             ),
-            const SizedBox(width: JarakApp.j8),
-          ],
-          TombolPill(teks: 'Kosongkan', kecil: true, onTekan: onReset),
+          ),
+          const SizedBox(width: JarakApp.j4),
         ],
+        Expanded(child: _bangunHapus()),
+      ],
+    );
+  }
+
+  Widget _bangunHapus() {
+    return Tooltip(
+      message: 'Hapus nominal',
+      child: Material(
+        color: WarnaApp.latarSeksi,
+        borderRadius: BorderRadius.circular(RadiusApp.pill),
+        child: InkWell(
+          onTap: onReset,
+          borderRadius: BorderRadius.circular(RadiusApp.pill),
+          child: const SizedBox(
+            height: 28,
+            child: Icon(LucideIcons.x, size: 16, color: WarnaApp.teksUtama),
+          ),
+        ),
       ),
     );
   }

@@ -40,12 +40,8 @@ class KartuDompet extends StatelessWidget {
                     : LucideIcons.wallet,
               ),
               const SizedBox(height: JarakApp.j8),
-              Text(
-                nama,
-                style: TeksApp.tombolKecil,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
+              // Nama boleh turun baris supaya tidak terpotong di layar sempit.
+              Text(nama, style: TeksApp.tombolKecil),
               const SizedBox(height: JarakApp.j4),
               Text(rupiahTampil(saldo), style: TeksApp.kecil),
             ],

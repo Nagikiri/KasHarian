@@ -20,7 +20,7 @@ class CatatanTransaksi {
     required this.tanggal,
     this.isPemasukan = false,
     this.isTransfer = false,
-    this.sumberDana = 'Kantong Utama',
+    this.sumberDana = 'Utama',
     this.sumberTujuan,
   });
 }

@@ -33,15 +33,15 @@ class TambahTransaksiScreen extends StatefulWidget {
 }
 
 class _TambahTransaksiScreenState extends State<TambahTransaksiScreen> {
-  static const List<String> _jenis = ['pengeluaran', 'pemasukan', 'transfer'];
+  static const List<String> _jenis = ['pengeluaran', 'pemasukan', 'dipindah'];
 
-  // 0 = Pengeluaran, 1 = Pemasukan, 2 = Transfer, sama dengan urutan PilihanSegmen.
+  // 0 = Pengeluaran, 1 = Pemasukan, 2 = Pindah, sama dengan urutan PilihanSegmen.
   int _tipe = 0;
   KategoriItem? _kategori;
   int _nominal = 0;
   DateTime _tanggal = DateTime.now();
   // Untuk transfer, _sumber adalah dompet "Dari" dan _tujuan dompet "Ke".
-  String _sumber = 'Kantong Utama';
+  String _sumber = 'Utama';
   String _tujuan = 'Tabungan';
   String _catatan = '';
   List<BagianTeman> _daftarTeman = [];
@@ -83,7 +83,7 @@ class _TambahTransaksiScreenState extends State<TambahTransaksiScreen> {
       _pilihKategoriAwal();
       // Dompet yang dipilih sebelumnya bisa sama dengan tujuan bawaan transfer.
       if (_sumber == _tujuan) {
-        _tujuan = _sumber == 'Tabungan' ? 'Kantong Utama' : 'Tabungan';
+        _tujuan = _sumber == 'Tabungan' ? 'Utama' : 'Tabungan';
       }
     });
   }
@@ -108,7 +108,7 @@ class _TambahTransaksiScreenState extends State<TambahTransaksiScreen> {
     String? hasil = await bukaSumberDana(
       context,
       tujuan ? _tujuan : _sumber,
-      judul: !_transfer ? 'Sumber dana' : (tujuan ? 'Ke' : 'Dari'),
+      judul: !_transfer ? 'Pilih dompet' : (tujuan ? 'Ke' : 'Dari'),
       kecuali: !_transfer ? null : (tujuan ? _sumber : _tujuan),
     );
     if (hasil == null) return;
@@ -147,7 +147,7 @@ class _TambahTransaksiScreenState extends State<TambahTransaksiScreen> {
   }
 
   void _simpan() {
-    String nama = _transfer ? 'Transfer' : _kategori!.nama;
+    String nama = _transfer ? 'Pindah' : _kategori!.nama;
     String bawaan = _transfer ? '$_sumber → $_tujuan' : nama;
     String catatan = _catatan.isEmpty ? bawaan : _catatan;
     CatatanTransaksi baru = CatatanTransaksi(
@@ -228,7 +228,7 @@ class _TambahTransaksiScreenState extends State<TambahTransaksiScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         PilihanSegmen(
-          pilihan: const ['Pengeluaran', 'Pemasukan', 'Transfer'],
+          pilihan: const ['Pengeluaran', 'Pemasukan', 'Pindah'],
           indeksAktif: _tipe,
           onPilih: _gantiTipe,
         ),

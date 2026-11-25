@@ -11,6 +11,8 @@ class TombolPill extends StatelessWidget {
   final bool ikonDiKanan;
   // Latar primer untuk satu aksi utama, misalnya tombol di TampilanKosong.
   final bool penuh;
+  // Padding samping kecil untuk pill yang dibagi rata, supaya label muat di layar 360 dp.
+  final bool rapat;
 
   const TombolPill({
     super.key,
@@ -21,6 +23,7 @@ class TombolPill extends StatelessWidget {
     this.kecil = false,
     this.ikonDiKanan = false,
     this.penuh = false,
+    this.rapat = false,
   });
 
   @override
@@ -44,16 +47,20 @@ class TombolPill extends StatelessWidget {
         child: Container(
           height: kecil ? 28 : 36,
           padding: EdgeInsets.symmetric(
-            horizontal: kecil ? JarakApp.j12 : JarakApp.j16,
+            horizontal: rapat
+                ? JarakApp.j4
+                : (kecil ? JarakApp.j12 : JarakApp.j16),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
+            // Rata tengah saat pill dilebarkan, misalnya di TemplateNominal.
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (gambarIkon != null && !ikonDiKanan) ...[
                 gambarIkon,
                 const SizedBox(width: JarakApp.j4),
               ],
-              Text(teks, style: TeksApp.tombolKecil.copyWith(color: warnaTeks)),
+              _bangunTeks(warnaTeks),
               if (gambarIkon != null && ikonDiKanan) ...[
                 const SizedBox(width: JarakApp.j4),
                 gambarIkon,
@@ -62,6 +69,18 @@ class TombolPill extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _bangunTeks(Color warna) {
+    Widget teksPill = Text(
+      teks,
+      style: TeksApp.tombolKecil.copyWith(color: warna),
+    );
+    if (!rapat) return teksPill;
+    // Pengaman kalau ukuran huruf HP diperbesar: teks mengecil, tidak terpotong.
+    return Flexible(
+      child: FittedBox(fit: BoxFit.scaleDown, child: teksPill),
     );
   }
 }

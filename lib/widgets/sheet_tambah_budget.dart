@@ -86,7 +86,7 @@ class _SheetTambahBudgetState extends State<SheetTambahBudget> {
             children: [
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: JarakApp.tepiHalaman),
-                child: HeaderSheet(judul: 'Tambah anggaran'),
+                child: HeaderSheet(judul: 'Tambah kantong'),
               ),
               if (pilihan.isEmpty)
                 const Padding(
@@ -97,7 +97,7 @@ class _SheetTambahBudgetState extends State<SheetTambahBudget> {
                     0,
                   ),
                   child: Text(
-                    'Semua kategori sudah punya anggaran',
+                    'Semua kategori sudah punya kantong',
                     style: TeksApp.kecil,
                   ),
                 ),

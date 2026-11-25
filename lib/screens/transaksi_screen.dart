@@ -204,13 +204,13 @@ class _TransaksiScreenState extends State<TransaksiScreen> {
       daftar: [for (var b in AppData.daftarBudget) _bangunKartu(b)],
       kosong: TampilanKosong(
         ikon: LucideIcons.wallet,
-        judul: 'Belum ada kategori anggaran',
+        judul: 'Belum ada kantong',
         kalimat:
             'Atur batas belanja per kategori supaya pengeluaran terpantau.',
-        labelTombol: 'Tambah kategori',
+        labelTombol: 'Tambah kantong',
         onTekan: () => bukaTambahBudget(context),
       ),
-      labelTambah: 'Tambah kategori',
+      labelTambah: 'Tambah kantong',
       onTambah: () => bukaTambahBudget(context),
     );
   }

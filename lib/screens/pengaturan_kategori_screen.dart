@@ -44,7 +44,7 @@ class _PengaturanKategoriScreenState extends State<PengaturanKategoriScreen> {
       context: context,
       builder: (context) => DialogKonfirmasiHapus(
         judul: 'Hapus kategori ini?',
-        pesan: punyaBudget ? 'Anggaran kategori ini ikut dihapus.' : null,
+        pesan: punyaBudget ? 'Kantong kategori ini ikut dihapus.' : null,
       ),
     );
     if (hapus != true) return;

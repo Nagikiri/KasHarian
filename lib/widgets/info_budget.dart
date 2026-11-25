@@ -45,13 +45,13 @@ class InfoBudget extends StatelessWidget {
     // Limit 0 tidak bisa dibagi, jadi dianggap sudah penuh.
     double persen = budget.limit > 0 ? terpakai / budget.limit : 1;
 
-    String teks = 'Anggaran $kategori: sisa ${rupiahTampil(sisa)}';
+    String teks = 'Kantong $kategori: sisa ${rupiahTampil(sisa)}';
     Color warna = WarnaApp.teksRedup;
     if (sisa < 0) {
-      teks = 'Melebihi anggaran $kategori ${rupiahTampil(-sisa)}';
+      teks = 'Melebihi kantong $kategori ${rupiahTampil(-sisa)}';
       warna = WarnaApp.bahaya;
     } else if (persen >= 0.8) {
-      teks = 'Anggaran $kategori tinggal ${rupiahTampil(sisa)}';
+      teks = 'Kantong $kategori tinggal ${rupiahTampil(sisa)}';
       warna = WarnaApp.peringatan;
     }
 

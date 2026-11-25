@@ -23,9 +23,11 @@ class HargaImpian extends StatelessWidget {
 
   bool get _rupiah => kode == 'IDR';
 
-  List<String> _labelTemplate(List<int> template) {
-    if (_rupiah) return ['+100rb', '+500rb', '+1jt', '+5jt'];
-    return [for (int n in template) '+${formatTitik(n)}'];
+  // Label disingkat (rb, jt) supaya empat chip muat dibagi rata di layar 360 dp.
+  String _labelTemplate(int n) {
+    if (n >= 1000000) return '+${n ~/ 1000000}jt';
+    if (n >= 1000) return '+${n ~/ 1000}rb';
+    return '+$n';
   }
 
   String get _teksSetara {
@@ -57,7 +59,7 @@ class HargaImpian extends StatelessWidget {
         const SizedBox(height: JarakApp.j12),
         TemplateNominal(
           daftarNilai: template,
-          daftarLabel: _labelTemplate(template),
+          daftarLabel: [for (int n in template) _labelTemplate(n)],
           onTambah: onTambah,
           onReset: onKosongkan,
         ),
