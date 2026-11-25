@@ -14,11 +14,12 @@ import '../widgets/baris_sumber_dana.dart';
 import '../widgets/info_budget.dart';
 import '../widgets/kalender.dart';
 import '../widgets/baris_dompet.dart';
+import '../widgets/halaman_form.dart';
 import '../widgets/numpad_simpan.dart';
 import '../widgets/pilihan_segmen.dart';
-import '../widgets/sheet_bagi_teman.dart';
-import '../widgets/sheet_catatan.dart';
-import '../widgets/sheet_pilih_kategori.dart';
+import '../widgets/halaman_bagi_teman.dart';
+import '../widgets/dialog_isian_teks.dart';
+import '../widgets/halaman_pilih_kategori.dart';
 import '../widgets/sheet_sumber_dana.dart';
 import '../widgets/tampilan_nominal.dart';
 import '../widgets/template_nominal.dart';
@@ -99,7 +100,7 @@ class _TambahTransaksiScreenState extends State<TambahTransaksiScreen> {
     if (!mounted) return;
     setState(() {
       if (hasil != null) _kategori = hasil;
-      // Kategori terpilih bisa saja dihapus lewat "Atur" di dalam sheet.
+      // Kategori terpilih bisa saja dihapus lewat "Atur" di halaman pilih kategori.
       if (!AppData.daftarKategori.contains(_kategori)) _pilihKategoriAwal();
     });
   }
@@ -137,11 +138,10 @@ class _TambahTransaksiScreenState extends State<TambahTransaksiScreen> {
   }
 
   Future<void> _bukaBagiTeman() async {
-    List<BagianTeman>? hasil = await showModalBottomSheet<List<BagianTeman>>(
-      context: context,
-      useSafeArea: true,
-      isScrollControlled: true,
-      builder: (context) => SheetBagiTeman(total: _nominal, awal: _daftarTeman),
+    List<BagianTeman>? hasil = await bukaBagiTeman(
+      context,
+      total: _nominal,
+      awal: _daftarTeman,
     );
     if (hasil != null) setState(() => _daftarTeman = hasil);
   }
@@ -184,41 +184,19 @@ class _TambahTransaksiScreenState extends State<TambahTransaksiScreen> {
     bool bisaSimpan =
         _nominal > 0 && !_bagianMelebihi && (_transfer || _kategori != null);
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(LucideIcons.x, size: 20, color: WarnaApp.teksUtama),
-          onPressed: () => Navigator.pop(context),
+    return HalamanForm(
+      judul: _modeUbah ? 'Ubah Transaksi' : 'Catat Transaksi',
+      isi: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(
+          horizontal: JarakApp.tepiHalaman,
+          vertical: JarakApp.j8,
         ),
-        title: Text(_modeUbah ? 'Ubah Transaksi' : 'Catat Transaksi'),
+        child: _bangunIsian(),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(
-                horizontal: JarakApp.tepiHalaman,
-                vertical: JarakApp.j8,
-              ),
-              child: _bangunIsian(),
-            ),
-          ),
-          const Divider(height: 1),
-          SafeArea(
-            top: false,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: JarakApp.tepiHalaman,
-                vertical: JarakApp.j8,
-              ),
-              child: NumpadSimpan(
-                onAngka: (a) => _ubahNominal(tambahDigit(_nominal, a)),
-                onHapus: () => _ubahNominal(hapusDigit(_nominal)),
-                onSimpan: bisaSimpan ? _simpan : null,
-              ),
-            ),
-          ),
-        ],
+      bawah: NumpadSimpan(
+        onAngka: (a) => _ubahNominal(tambahDigit(_nominal, a)),
+        onHapus: () => _ubahNominal(hapusDigit(_nominal)),
+        onSimpan: bisaSimpan ? _simpan : null,
       ),
     );
   }

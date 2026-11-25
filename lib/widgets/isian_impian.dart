@@ -8,12 +8,12 @@ import '../theme/app_theme.dart';
 import '../utils/nominal.dart';
 import 'baris_isian.dart';
 import 'harga_impian.dart';
-import 'header_sheet.dart';
+import 'halaman_form.dart';
 import 'numpad_simpan.dart';
-import 'sheet_catatan.dart';
-import 'sheet_pilih_mata_uang.dart';
+import 'dialog_isian_teks.dart';
+import 'halaman_pilih_mata_uang.dart';
 
-// Langkah kedua sheet impian baru: harga valas lewat numpad dan nama lewat sheet teks.
+// Langkah kedua halaman impian baru: harga valas lewat numpad dan nama lewat dialog teks.
 class IsianImpian extends StatefulWidget {
   final KategoriItem kategori;
   final VoidCallback onGanti;
@@ -70,58 +70,52 @@ class _IsianImpianState extends State<IsianImpian> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        JarakApp.tepiHalaman,
-        JarakApp.j8,
-        JarakApp.tepiHalaman,
-        JarakApp.j16,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          HeaderSheet(
-            judul: widget.kategori.nama,
-            ikon: widget.kategori.ikon,
-            ujung: TextButton(
-              onPressed: widget.onGanti,
-              child: Text(
-                'Ganti',
-                style: TeksApp.tombolKecil.copyWith(color: WarnaApp.primer),
-              ),
+    return HalamanForm(
+      judul: widget.kategori.nama,
+      ikon: widget.kategori.ikon,
+      aksi: [
+        TextButton(
+          onPressed: widget.onGanti,
+          child: Text(
+            'Ganti',
+            style: TeksApp.tombolKecil.copyWith(color: WarnaApp.primer),
+          ),
+        ),
+      ],
+      isi: SingleChildScrollView(
+        padding: const EdgeInsets.all(JarakApp.tepiHalaman),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            BarisIsian(
+              ikon: LucideIcons.coins,
+              label: 'Mata uang',
+              nilai: '$_kode · ${AppData.cariMataUang(_kode).nama}',
+              onTekan: _pilihMataUang,
             ),
-          ),
-          const SizedBox(height: JarakApp.j16),
-          BarisIsian(
-            ikon: LucideIcons.coins,
-            label: 'Mata uang',
-            nilai: '$_kode · ${AppData.cariMataUang(_kode).nama}',
-            onTekan: _pilihMataUang,
-          ),
-          const SizedBox(height: JarakApp.j8),
-          HargaImpian(
-            kode: _kode,
-            harga: _harga,
-            onTambah: (n) => setState(() => _harga = tambahNominal(_harga, n)),
-            onKosongkan: () => setState(() => _harga = 0),
-          ),
-          const SizedBox(height: JarakApp.j8),
-          BarisIsian(
-            ikon: LucideIcons.pencilLine,
-            label: 'Nama impian',
-            nilai: _nama.isEmpty ? 'Belum diisi' : _nama,
-            warnaNilai: _nama.isEmpty ? WarnaApp.teksRedup : null,
-            onTekan: _ubahNama,
-          ),
-          const Spacer(),
-          NumpadSimpan(
-            onAngka: (a) => setState(() => _harga = tambahDigit(_harga, a)),
-            onHapus: () => setState(() => _harga = hapusDigit(_harga)),
-            onSimpan: _nama.isNotEmpty && _harga > 0 && _adaKurs
-                ? _simpan
-                : null,
-          ),
-        ],
+            const SizedBox(height: JarakApp.j8),
+            HargaImpian(
+              kode: _kode,
+              harga: _harga,
+              onTambah: (n) =>
+                  setState(() => _harga = tambahNominal(_harga, n)),
+              onKosongkan: () => setState(() => _harga = 0),
+            ),
+            const SizedBox(height: JarakApp.j8),
+            BarisIsian(
+              ikon: LucideIcons.pencilLine,
+              label: 'Nama impian',
+              nilai: _nama.isEmpty ? 'Belum diisi' : _nama,
+              warnaNilai: _nama.isEmpty ? WarnaApp.teksRedup : null,
+              onTekan: _ubahNama,
+            ),
+          ],
+        ),
+      ),
+      bawah: NumpadSimpan(
+        onAngka: (a) => setState(() => _harga = tambahDigit(_harga, a)),
+        onHapus: () => setState(() => _harga = hapusDigit(_harga)),
+        onSimpan: _nama.isNotEmpty && _harga > 0 && _adaKurs ? _simpan : null,
       ),
     );
   }

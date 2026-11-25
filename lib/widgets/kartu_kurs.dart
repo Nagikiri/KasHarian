@@ -7,7 +7,7 @@ import '../theme/app_theme.dart';
 import 'baris_info_kurs.dart';
 import 'judul_seksi.dart';
 import 'lingkaran_simbol.dart';
-import 'sheet_pilih_mata_uang.dart';
+import 'halaman_pilih_mata_uang.dart';
 
 // Isi kartu Kurs di Beranda. Pembungkus putihnya (KartuBagian) dipasang oleh halaman.
 class KartuKurs extends StatelessWidget {

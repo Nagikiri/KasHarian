@@ -1,21 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../main.dart';
 import '../models/app_data.dart';
 import '../models/utang.dart';
 import '../theme/app_theme.dart';
-import '../utils/format.dart';
 import '../utils/privasi.dart';
 import '../widgets/app_bar_turunan.dart';
-import '../widgets/baris_isian.dart';
 import '../widgets/baris_utang.dart';
 import '../widgets/blok_daftar.dart';
 import '../widgets/kartu_bagian.dart';
 import '../widgets/kolom_angka.dart';
 import '../widgets/pilihan_segmen.dart';
-import '../widgets/sheet_input_nominal.dart';
 import '../widgets/tampilan_kosong.dart';
 import '../widgets/tombol_utama.dart';
+import 'catat_utang_screen.dart';
 
 class UtangScreen extends StatefulWidget {
   const UtangScreen({super.key});
@@ -145,86 +144,6 @@ class _UtangScreenState extends State<UtangScreen> {
   }
 
   void _bukaFormUtang() {
-    // Isian disimpan di variabel biasa, jadi tidak perlu TextEditingController.
-    int jenis = 0;
-    String nama = '';
-    int nominal = 0;
-    String keterangan = '';
-
-    showModalBottomSheet(
-      context: context,
-      useSafeArea: true,
-      isScrollControlled: true,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setSheet) {
-          bool bisaSimpan = nama.trim().isNotEmpty && nominal > 0;
-          return SafeArea(
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(
-                JarakApp.tepiHalaman,
-                JarakApp.j24,
-                JarakApp.tepiHalaman,
-                JarakApp.j24 + MediaQuery.of(context).viewInsets.bottom,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Text('Catat Utang', style: TeksApp.judulSeksi),
-                  const SizedBox(height: JarakApp.j16),
-                  PilihanSegmen(
-                    pilihan: const ['Utang', 'Piutang'],
-                    indeksAktif: jenis,
-                    onPilih: (i) => setSheet(() => jenis = i),
-                  ),
-                  const SizedBox(height: JarakApp.j12),
-                  TextField(
-                    decoration: const InputDecoration(hintText: 'Nama'),
-                    onChanged: (v) => setSheet(() => nama = v),
-                  ),
-                  const SizedBox(height: JarakApp.j12),
-                  TextField(
-                    decoration: const InputDecoration(hintText: 'Keterangan'),
-                    onChanged: (v) => keterangan = v,
-                  ),
-                  const SizedBox(height: JarakApp.j4),
-                  BarisIsian(
-                    ikon: LucideIcons.banknote,
-                    label: 'Nominal',
-                    nilai: nominal > 0 ? formatRupiah(nominal) : 'Isi nominal',
-                    warnaNilai: nominal > 0 ? null : WarnaApp.teksRedup,
-                    onTekan: () => bukaInputNominal(
-                      context,
-                      judul: jenis == 0 ? 'Nominal utang' : 'Nominal piutang',
-                      ikon: LucideIcons.handCoins,
-                      nominalAwal: nominal,
-                      onSimpan: (n) => setSheet(() => nominal = n),
-                    ),
-                  ),
-                  const SizedBox(height: JarakApp.j16),
-                  TombolUtama(
-                    teks: 'Simpan',
-                    onTekan: bisaSimpan
-                        ? () {
-                            AppData.tambahUtang(
-                              UtangItem(
-                                jenis: jenis == 0 ? 'Utang' : 'Piutang',
-                                nama: nama.trim(),
-                                nominal: nominal,
-                                keterangan: keterangan.trim(),
-                                tanggal: DateTime.now(),
-                              ),
-                            );
-                            Navigator.pop(context);
-                          }
-                        : null,
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
+    Navigator.push(context, buatTransisiHalaman(const CatatUtangScreen()));
   }
 }

@@ -7,7 +7,7 @@ import '../theme/app_theme.dart';
 import 'baris_mata_uang.dart';
 import 'tampilan_kosong.dart';
 
-// Isi sheet pemilih mata uang: hasil pencarian, dengan bagian Favorit di atas kalau perlu.
+// Isi halaman pemilih mata uang: hasil pencarian, dengan bagian Favorit di atas kalau perlu.
 class DaftarMataUang extends StatelessWidget {
   final String kataKunci;
   final bool banyak;

@@ -4,7 +4,7 @@ import '../theme/app_theme.dart';
 import 'numpad.dart';
 import 'tombol_utama.dart';
 
-// Numpad dengan tombol simpan di bawahnya, dipakai di Catat Transaksi dan sheet input nominal.
+// Numpad dengan tombol simpan di bawahnya, dipakai di Catat Transaksi, input nominal, dan impian baru.
 class NumpadSimpan extends StatelessWidget {
   final void Function(String angka) onAngka;
   final VoidCallback onHapus;

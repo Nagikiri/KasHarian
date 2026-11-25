@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../main.dart';
 import '../models/app_data.dart';
 import '../models/mata_uang.dart';
 import '../theme/app_theme.dart';
 import 'daftar_mata_uang.dart';
-import 'header_sheet.dart';
+import 'halaman_form.dart';
 import 'tombol_utama.dart';
 
 // Satu pilihan, dipakai Hitung kurs dan form Impian. Mengembalikan kode, atau null kalau ditutup.
@@ -13,33 +14,34 @@ Future<String?> bukaPilihMataUang(
   BuildContext context,
   String terpilih, {
   bool denganRupiah = false,
-}) {
-  return showModalBottomSheet<String>(
-    context: context,
-    useSafeArea: true,
-    isScrollControlled: true,
-    builder: (context) =>
-        SheetPilihMataUang(terpilih: [terpilih], denganRupiah: denganRupiah),
+}) async {
+  // Disimpan ke var dulu karena buatTransisiHalaman tidak membawa tipe hasil.
+  var hasil = await Navigator.push(
+    context,
+    buatTransisiHalaman(
+      HalamanPilihMataUang(terpilih: [terpilih], denganRupiah: denganRupiah),
+    ),
   );
+  return hasil;
 }
 
 // Pilih banyak untuk kartu Kurs di Beranda. Mengembalikan daftar kode yang dicentang.
-Future<List<String>?> bukaAturFavorit(BuildContext context) {
-  return showModalBottomSheet<List<String>>(
-    context: context,
-    useSafeArea: true,
-    isScrollControlled: true,
-    builder: (context) =>
-        SheetPilihMataUang(terpilih: AppData.mataUangFavorit, banyak: true),
+Future<List<String>?> bukaAturFavorit(BuildContext context) async {
+  var hasil = await Navigator.push(
+    context,
+    buatTransisiHalaman(
+      HalamanPilihMataUang(terpilih: AppData.mataUangFavorit, banyak: true),
+    ),
   );
+  return hasil;
 }
 
-class SheetPilihMataUang extends StatefulWidget {
+class HalamanPilihMataUang extends StatefulWidget {
   final List<String> terpilih;
   final bool banyak;
   final bool denganRupiah;
 
-  const SheetPilihMataUang({
+  const HalamanPilihMataUang({
     super.key,
     required this.terpilih,
     this.banyak = false,
@@ -47,10 +49,10 @@ class SheetPilihMataUang extends StatefulWidget {
   });
 
   @override
-  State<SheetPilihMataUang> createState() => _SheetPilihMataUangState();
+  State<HalamanPilihMataUang> createState() => _HalamanPilihMataUangState();
 }
 
-class _SheetPilihMataUangState extends State<SheetPilihMataUang> {
+class _HalamanPilihMataUangState extends State<HalamanPilihMataUang> {
   static const int _batasFavorit = 4;
   late final List<String> _pilihan = List.of(widget.terpilih);
   String _kataKunci = '';
@@ -75,27 +77,25 @@ class _SheetPilihMataUangState extends State<SheetPilihMataUang> {
 
   @override
   Widget build(BuildContext context) {
-    // Ruang keyboard dikurangi supaya daftar dan tombol Simpan tidak tertutup.
-    double keyboard = MediaQuery.viewInsetsOf(context).bottom;
-    return SizedBox(
-      height: MediaQuery.sizeOf(context).height * 0.9,
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(
+    return HalamanForm(
+      judul: 'Pilih mata uang',
+      isi: Padding(
+        padding: const EdgeInsets.fromLTRB(
           JarakApp.tepiHalaman,
           JarakApp.j8,
           JarakApp.tepiHalaman,
-          JarakApp.j16 + keyboard,
+          0,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const HeaderSheet(judul: 'Pilih mata uang'),
-            if (widget.banyak)
+            if (widget.banyak) ...[
               const Text(
                 'Pilih 1 sampai 4 mata uang untuk kartu Kurs di Beranda.',
                 style: TeksApp.kecil,
               ),
-            const SizedBox(height: JarakApp.j12),
+              const SizedBox(height: JarakApp.j12),
+            ],
             TextField(
               onChanged: (v) => setState(() => _kataKunci = v),
               decoration: const InputDecoration(
@@ -116,16 +116,15 @@ class _SheetPilihMataUangState extends State<SheetPilihMataUang> {
                 aksi: _aksi,
               ),
             ),
-            if (widget.banyak) ...[
-              const SizedBox(height: JarakApp.j12),
-              TombolUtama(
-                teks: 'Simpan',
-                onTekan: _pilihan.isEmpty ? null : _simpan,
-              ),
-            ],
           ],
         ),
       ),
+      bawah: widget.banyak
+          ? TombolUtama(
+              teks: 'Simpan',
+              onTekan: _pilihan.isEmpty ? null : _simpan,
+            )
+          : null,
     );
   }
 }

@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../main.dart';
 import '../models/app_data.dart';
 import '../models/budget.dart';
 import '../theme/app_theme.dart';
 import '../utils/privasi.dart';
 import '../widgets/app_bar_turunan.dart';
 import '../widgets/baris_budget.dart';
-import '../widgets/dialog_konfirmasi_hapus.dart';
 import '../widgets/judul_seksi.dart';
 import '../widgets/kartu_bagian.dart';
 import '../widgets/kolom_angka.dart';
-import '../widgets/sheet_input_nominal.dart';
-import '../widgets/sheet_tambah_budget.dart';
+import '../widgets/halaman_input_nominal.dart';
+import '../widgets/halaman_tambah_kantong.dart';
 import '../widgets/tampilan_kosong.dart';
 import '../widgets/tombol_pill.dart';
 import '../widgets/tombol_utama.dart';
+import 'detail_kantong_screen.dart';
 
 class BudgetScreen extends StatefulWidget {
   const BudgetScreen({super.key});
@@ -129,7 +130,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
       children: [
         for (int i = 0; i < daftar.length; i++) ...[
           if (i > 0) const Divider(height: 1),
-          BarisBudget(budget: daftar[i], onTekan: () => _ubahLimit(daftar[i])),
+          BarisBudget(budget: daftar[i], onTekan: () => _bukaDetail(daftar[i])),
         ],
       ],
     );
@@ -145,26 +146,12 @@ class _BudgetScreenState extends State<BudgetScreen> {
     );
   }
 
-  void _ubahLimit(BudgetItem budget) {
-    bukaInputNominal(
+  void _bukaDetail(BudgetItem budget) {
+    Navigator.push(
       context,
-      judul: 'Limit ${budget.kategori} per bulan',
-      ikon: AppData.ikonKategori(budget.kategori),
-      nominalAwal: budget.limit,
-      onSimpan: (limit) => AppData.ubahLimitBudget(budget, limit),
-      onHapus: () => _hapusBudget(budget),
-      labelHapus: 'Hapus kantong',
+      buatTransisiHalaman(
+        DetailKantongScreen(budget: budget, bulan: DateTime.now()),
+      ),
     );
-  }
-
-  Future<bool> _hapusBudget(BudgetItem budget) async {
-    bool? hapus = await showDialog<bool>(
-      context: context,
-      builder: (context) =>
-          DialogKonfirmasiHapus(judul: 'Hapus kantong ${budget.kategori}?'),
-    );
-    if (hapus != true) return false;
-    AppData.hapusBudget(budget);
-    return true;
   }
 }

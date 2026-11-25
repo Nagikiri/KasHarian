@@ -6,7 +6,7 @@ import '../models/mata_uang.dart';
 import '../theme/app_theme.dart';
 import 'lingkaran_simbol.dart';
 
-// Satu baris di sheet pemilih mata uang. onTekan null berarti baris tidak bisa dipilih.
+// Satu baris di halaman pemilih mata uang. onTekan null berarti baris tidak bisa dipilih.
 class BarisMataUang extends StatelessWidget {
   final MataUang mataUang;
   final bool terpilih;

@@ -8,7 +8,7 @@ import '../utils/format_ribuan.dart';
 import 'baris_info_kurs.dart';
 import 'judul_seksi.dart';
 import 'kotak_kurs.dart';
-import 'sheet_pilih_mata_uang.dart';
+import 'halaman_pilih_mata_uang.dart';
 import 'template_kurs.dart';
 
 // Hitung kurs di tab Impian. Pengambilan kurs tetap diatur halaman lewat onPerbarui.

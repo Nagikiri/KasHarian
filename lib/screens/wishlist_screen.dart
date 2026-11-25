@@ -13,8 +13,8 @@ import '../widgets/kartu_bagian.dart';
 import '../widgets/kartu_hitung_kurs.dart';
 import '../widgets/kartu_progress.dart';
 import '../widgets/sheet_detail_impian.dart';
-import '../widgets/sheet_impian_baru.dart';
-import '../widgets/sheet_input_nominal.dart';
+import '../widgets/halaman_impian_baru.dart';
+import '../widgets/halaman_input_nominal.dart';
 import '../widgets/tampilan_kosong.dart';
 
 class WishlistScreen extends StatefulWidget {
@@ -71,7 +71,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
     );
   }
 
-  // Sheet detail ditutup dulu, baru sheet nominal dibuka dari layar ini.
+  // Sheet detail ditutup dulu, baru halaman nominal dibuka dari layar ini.
   Future<void> _bukaDetail(WishlistItem impian) async {
     bool? tabung = await showModalBottomSheet<bool>(
       context: context,

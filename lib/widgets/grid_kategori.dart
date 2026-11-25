@@ -10,7 +10,6 @@ class GridKategori extends StatelessWidget {
   final KategoriItem? terpilih;
   final void Function(KategoriItem kategori) onPilih;
   final VoidCallback? onAtur;
-  final bool shrinkWrap;
 
   const GridKategori({
     super.key,
@@ -18,13 +17,11 @@ class GridKategori extends StatelessWidget {
     required this.terpilih,
     required this.onPilih,
     this.onAtur,
-    this.shrinkWrap = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return GridView.builder(
-      shrinkWrap: shrinkWrap,
       padding: const EdgeInsets.symmetric(
         horizontal: JarakApp.tepiHalaman,
         vertical: JarakApp.j12,

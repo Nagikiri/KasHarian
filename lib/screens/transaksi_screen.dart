@@ -20,9 +20,10 @@ import '../widgets/kartu_kantong.dart';
 import '../widgets/navigasi_bulan.dart';
 import '../widgets/pencarian_transaksi.dart';
 import '../widgets/sheet_detail_transaksi.dart';
-import '../widgets/sheet_tambah_budget.dart';
+import '../widgets/halaman_tambah_kantong.dart';
 import '../widgets/tampilan_kosong.dart';
 import 'budget_screen.dart';
+import 'detail_kantong_screen.dart';
 
 class TransaksiScreen extends StatefulWidget {
   const TransaksiScreen({super.key});
@@ -218,7 +219,12 @@ class _TransaksiScreenState extends State<TransaksiScreen> {
   Widget _bangunKartu(BudgetItem b) => KartuKantong(
     budget: b,
     bulan: AppData.bulanDipilih,
-    onTekan: _bukaBudget,
+    onTekan: () => Navigator.push(
+      context,
+      buatTransisiHalaman(
+        DetailKantongScreen(budget: b, bulan: AppData.bulanDipilih),
+      ),
+    ),
   );
 
   // Pencarian, daftar, dan tombol bulan berada dalam satu blok karena saling terkait.

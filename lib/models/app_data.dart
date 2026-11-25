@@ -1029,17 +1029,44 @@ class AppData {
     return saldo;
   }
 
-  // Budget 'Tabungan' dihitung dari transfer ke dompet Tabungan, kategori lain dari pengeluaran.
-  static int terpakaiBudget(String kategori, DateTime bulan) {
-    int total = 0;
+  // Kantong 'Tabungan' diisi pemindahan ke dompet Tabungan, kantong lain diisi pengeluaran. Terbaru di atas.
+  static List<CatatanTransaksi> transaksiKantong(
+    String kategori,
+    DateTime bulan,
+  ) {
+    List<CatatanTransaksi> hasil = [];
     for (var t in daftarTransaksi) {
       if (!_bulanSama(t.tanggal, bulan)) continue;
       bool cocok = kategori == 'Tabungan'
           ? t.isTransfer && t.sumberTujuan == 'Tabungan'
           : !t.isPemasukan && !t.isTransfer && t.kategori == kategori;
-      if (cocok) total += t.nominal;
+      if (cocok) hasil.add(t);
+    }
+    hasil.sort((a, b) => b.tanggal.compareTo(a.tanggal));
+    return hasil;
+  }
+
+  static int terpakaiBudget(String kategori, DateTime bulan) {
+    int total = 0;
+    for (var t in transaksiKantong(kategori, bulan)) {
+      total += t.nominal;
     }
     return total;
+  }
+
+  // Sisa kantong dibagi hari tersisa termasuk hari ini. null kalau bukan bulan berjalan atau sisanya habis.
+  static int? jatahPerHari(
+    BudgetItem budget,
+    DateTime bulan,
+    DateTime hariIni,
+  ) {
+    if (!_bulanSama(bulan, hariIni)) return null;
+    int sisa = budget.limit - terpakaiBudget(budget.kategori, bulan);
+    if (sisa <= 0) return null;
+    // Hari ke-0 bulan berikutnya = hari terakhir bulan ini.
+    int hariTerakhir = DateTime(hariIni.year, hariIni.month + 1, 0).day;
+    int hariTersisa = hariTerakhir - hariIni.day + 1;
+    return sisa ~/ hariTersisa;
   }
 
   // Uang yang ditabung juga diambil dari anggaran bulanan.
