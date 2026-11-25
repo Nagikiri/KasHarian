@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'models/app_data.dart';
+import 'services/db_service.dart';
 import 'theme/app_theme.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/transaksi_screen.dart';
@@ -11,9 +12,16 @@ import 'screens/ringkasan_screen.dart';
 import 'screens/tambah_transaksi_screen.dart';
 import 'widgets/nav_bawah.dart';
 
-void main() {
+Future<void> main() async {
+  // Wajib dipanggil sebelum memakai plugin (sqflite) yang dijalankan sebelum runApp.
+  WidgetsFlutterBinding.ensureInitialized();
   // Ikon status bar dan tombol HP dibuat gelap supaya terlihat di atas latar putih.
   SystemChrome.setSystemUIOverlayStyle(gayaStatusGelap);
+  // Langkah 1: buka database. Saat pertama kali, tabel dibuat lalu diisi data contoh.
+  await DbService.buka();
+  // Langkah 2: salin isi database ke list AppData, karena semua layar membaca dari AppData.
+  await AppData.muat();
+  // Langkah 3: tampilkan aplikasi. Data sudah siap, jadi tidak perlu layar loading.
   runApp(const MyApp());
 }
 

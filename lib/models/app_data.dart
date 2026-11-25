@@ -1,11 +1,16 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../services/api_service.dart';
+import '../services/db_service.dart';
 import '../utils/format.dart';
 import '../utils/periode.dart';
 import 'bagian_teman.dart';
 import 'budget.dart';
+import 'data_contoh.dart';
+import 'dompet.dart';
 import 'kategori.dart';
 import 'mata_uang.dart';
 import 'pesan_ai.dart';
@@ -22,216 +27,21 @@ class AppData {
   static bool gulirKeImpian = false;
   static DateTime bulanDipilih = DateTime.now();
 
-  static int saldoAwal = 2500000;
   static int anggaranBulanan = 5000000;
 
-  // Kalau app dibuka di awal bulan, tanggal mundur bisa jatuh ke bulan lalu, jadi ditahan di tanggal 1.
-  static DateTime _bulanIni(int mundurHari) {
-    DateTime sekarang = DateTime.now();
-    DateTime t = sekarang.subtract(Duration(days: mundurHari));
-    if (t.month != sekarang.month) {
-      return DateTime(sekarang.year, sekarang.month, 1);
-    }
-    return t;
-  }
+  static final List<Dompet> daftarDompet = contohDompet();
 
-  static DateTime _bulanLalu(int tanggal) => _mundurBulan(1, tanggal);
-
-  static DateTime _mundurBulan(int jumlahBulan, int tanggal) {
-    DateTime sekarang = DateTime.now();
-    return DateTime(sekarang.year, sekarang.month - jumlahBulan, tanggal);
-  }
-
-  static final List<String> daftarSumberDana = [
-    'Utama',
-    'Rekening Bank',
-    'E-Wallet',
-    'Tunai',
-    'Tabungan',
+  static List<String> get daftarSumberDana => [
+    for (var d in daftarDompet) d.nama,
   ];
 
-  static final List<KategoriItem> daftarKategori = [
-    KategoriItem(nama: 'Makan', ikon: LucideIcons.utensils, indeksWarna: 5),
-    KategoriItem(nama: 'Jajan', ikon: LucideIcons.cookie, indeksWarna: 3),
-    KategoriItem(nama: 'Kopi', ikon: LucideIcons.coffee, indeksWarna: 1),
-    KategoriItem(
-      nama: 'Belanja Harian',
-      ikon: LucideIcons.shoppingCart,
-      indeksWarna: 4,
-    ),
-    KategoriItem(
-      nama: 'Belanja',
-      ikon: LucideIcons.shoppingBag,
-      indeksWarna: 6,
-    ),
-    KategoriItem(nama: 'Transportasi', ikon: LucideIcons.bus, indeksWarna: 0),
-    KategoriItem(nama: 'Bensin', ikon: LucideIcons.fuel, indeksWarna: 2),
-    KategoriItem(nama: 'Ojek Online', ikon: LucideIcons.bike, indeksWarna: 3),
-    KategoriItem(
-      nama: 'Parkir',
-      ikon: LucideIcons.circleParking,
-      indeksWarna: 6,
-    ),
-    KategoriItem(
-      nama: 'Tagihan',
-      ikon: LucideIcons.receiptText,
-      indeksWarna: 4,
-    ),
-    KategoriItem(nama: 'Listrik', ikon: LucideIcons.zap, indeksWarna: 1),
-    KategoriItem(nama: 'Air', ikon: LucideIcons.droplet, indeksWarna: 2),
-    KategoriItem(nama: 'Internet', ikon: LucideIcons.wifi, indeksWarna: 5),
-    KategoriItem(
-      nama: 'Pulsa & Data',
-      ikon: LucideIcons.smartphone,
-      indeksWarna: 0,
-    ),
-    KategoriItem(nama: 'Rumah', ikon: LucideIcons.house, indeksWarna: 3),
-    KategoriItem(
-      nama: 'Kos & Sewa',
-      ikon: LucideIcons.keyRound,
-      indeksWarna: 1,
-    ),
-    KategoriItem(
-      nama: 'Kesehatan',
-      ikon: LucideIcons.stethoscope,
-      indeksWarna: 2,
-    ),
-    KategoriItem(nama: 'Obat', ikon: LucideIcons.pill, indeksWarna: 5),
-    KategoriItem(nama: 'Olahraga', ikon: LucideIcons.dumbbell, indeksWarna: 0),
-    KategoriItem(
-      nama: 'Perawatan Diri',
-      ikon: LucideIcons.sparkles,
-      indeksWarna: 6,
-    ),
-    KategoriItem(nama: 'Pakaian', ikon: LucideIcons.shirt, indeksWarna: 4),
-    KategoriItem(
-      nama: 'Pendidikan',
-      ikon: LucideIcons.bookOpen,
-      indeksWarna: 2,
-    ),
-    KategoriItem(
-      nama: 'Kursus',
-      ikon: LucideIcons.graduationCap,
-      indeksWarna: 3,
-    ),
-    KategoriItem(
-      nama: 'Hiburan',
-      ikon: LucideIcons.clapperboard,
-      indeksWarna: 3,
-    ),
-    KategoriItem(nama: 'Gim', ikon: LucideIcons.gamepad2, indeksWarna: 4),
-    KategoriItem(nama: 'Langganan', ikon: LucideIcons.tv, indeksWarna: 5),
-    KategoriItem(nama: 'Liburan', ikon: LucideIcons.plane, indeksWarna: 0),
-    KategoriItem(nama: 'Hadiah', ikon: LucideIcons.gift, indeksWarna: 6),
-    KategoriItem(
-      nama: 'Donasi',
-      ikon: LucideIcons.heartHandshake,
-      indeksWarna: 2,
-    ),
-    KategoriItem(
-      nama: 'Kondangan',
-      ikon: LucideIcons.partyPopper,
-      indeksWarna: 1,
-    ),
-    KategoriItem(
-      nama: 'Hewan Peliharaan',
-      ikon: LucideIcons.pawPrint,
-      indeksWarna: 3,
-    ),
-    KategoriItem(nama: 'Anak', ikon: LucideIcons.baby, indeksWarna: 5),
-    KategoriItem(
-      nama: 'Elektronik',
-      ikon: LucideIcons.monitorSmartphone,
-      indeksWarna: 4,
-    ),
-    KategoriItem(nama: 'Servis', ikon: LucideIcons.wrench, indeksWarna: 1),
-    KategoriItem(nama: 'Pajak', ikon: LucideIcons.landmark, indeksWarna: 5),
-    KategoriItem(
-      nama: 'Asuransi',
-      ikon: LucideIcons.shieldCheck,
-      indeksWarna: 2,
-    ),
-    KategoriItem(nama: 'Lainnya', ikon: LucideIcons.ellipsis, indeksWarna: 7),
-    KategoriItem(
-      nama: 'Gaji',
-      ikon: LucideIcons.banknote,
-      isPemasukan: true,
-      indeksWarna: 0,
-    ),
-    KategoriItem(
-      nama: 'Kerja Lepas',
-      ikon: LucideIcons.laptop,
-      isPemasukan: true,
-      indeksWarna: 2,
-    ),
-    KategoriItem(
-      nama: 'Bonus',
-      ikon: LucideIcons.award,
-      isPemasukan: true,
-      indeksWarna: 1,
-    ),
-    KategoriItem(
-      nama: 'Uang Saku',
-      ikon: LucideIcons.wallet,
-      isPemasukan: true,
-      indeksWarna: 5,
-    ),
-    KategoriItem(
-      nama: 'Penjualan',
-      ikon: LucideIcons.store,
-      isPemasukan: true,
-      indeksWarna: 3,
-    ),
-    KategoriItem(
-      nama: 'Investasi',
-      ikon: LucideIcons.trendingUp,
-      isPemasukan: true,
-      indeksWarna: 4,
-    ),
-    KategoriItem(
-      nama: 'Bunga',
-      ikon: LucideIcons.percent,
-      isPemasukan: true,
-      indeksWarna: 6,
-    ),
-    KategoriItem(
-      nama: 'Pengembalian Dana',
-      ikon: LucideIcons.rotateCcw,
-      isPemasukan: true,
-      indeksWarna: 2,
-    ),
-    KategoriItem(
-      nama: 'Hadiah',
-      ikon: LucideIcons.gift,
-      isPemasukan: true,
-      indeksWarna: 6,
-    ),
-    KategoriItem(
-      nama: 'Lainnya',
-      ikon: LucideIcons.ellipsis,
-      isPemasukan: true,
-      indeksWarna: 7,
-    ),
-  ];
+  static final List<KategoriItem> daftarKategori = contohKategori();
 
-  static final List<IconData> opsiIkonKategori = [
-    LucideIcons.utensils,
-    LucideIcons.coffee,
-    LucideIcons.shoppingCart,
-    LucideIcons.bus,
-    LucideIcons.fuel,
-    LucideIcons.receiptText,
-    LucideIcons.zap,
-    LucideIcons.wifi,
-    LucideIcons.house,
-    LucideIcons.stethoscope,
-    LucideIcons.dumbbell,
-    LucideIcons.shirt,
-    LucideIcons.bookOpen,
-    LucideIcons.gamepad2,
-    LucideIcons.gift,
-    LucideIcons.pawPrint,
-  ];
+  // Diambil dari daftarIkonKategori supaya ikon pilihan pasti punya nomor urut di database.
+  static final List<IconData> opsiIkonKategori = daftarIkonKategori.sublist(
+    0,
+    16,
+  );
 
   // Ikon impian mengikuti kategorinya, jadi tidak dipilih sendiri.
   static final List<KategoriItem> kategoriImpian = [
@@ -292,275 +102,13 @@ class AppData {
   // Nama ini dipakai sistem (budget, transfer, pelunasan utang), jadi tidak boleh jadi nama kategori.
   static final List<String> namaKhusus = ['Tabungan', 'Pindah', 'Pelunasan'];
 
-  static final List<CatatanTransaksi> daftarTransaksi = [
-    CatatanTransaksi(
-      kategori: 'Kopi',
-      catatan: 'Kopi Kenangan & Roti',
-      nominal: 35000,
-      ikon: LucideIcons.coffee,
-      tanggal: _bulanIni(0),
-      sumberDana: 'E-Wallet',
-    ),
-    CatatanTransaksi(
-      kategori: 'Bensin',
-      catatan: 'Pertamax Full Tank',
-      nominal: 100000,
-      ikon: LucideIcons.fuel,
-      tanggal: _bulanIni(0),
-      sumberDana: 'Rekening Bank',
-    ),
-    CatatanTransaksi(
-      kategori: 'Belanja',
-      catatan: 'Kebutuhan Harian Kos',
-      nominal: 136000,
-      ikon: LucideIcons.shoppingBag,
-      tanggal: _bulanIni(0),
-    ),
-    CatatanTransaksi(
-      kategori: 'Kerja Lepas',
-      catatan: 'Proyek Desain Web',
-      nominal: 750000,
-      ikon: LucideIcons.laptop,
-      tanggal: _bulanIni(1),
-      isPemasukan: true,
-      sumberDana: 'Rekening Bank',
-    ),
-    CatatanTransaksi(
-      kategori: 'Makan',
-      catatan: 'Makan Malam Bersama',
-      nominal: 45000,
-      ikon: LucideIcons.utensils,
-      tanggal: _bulanIni(1),
-    ),
-    CatatanTransaksi(
-      kategori: 'Makan',
-      catatan: 'Nasi Padang',
-      nominal: 28000,
-      ikon: LucideIcons.utensils,
-      tanggal: _bulanIni(3),
-      sumberDana: 'Tunai',
-    ),
-    CatatanTransaksi(
-      kategori: 'Pindah',
-      catatan: 'Isi Saldo E-Wallet',
-      nominal: 500000,
-      ikon: LucideIcons.arrowLeftRight,
-      tanggal: _bulanIni(4),
-      isTransfer: true,
-      sumberDana: 'Rekening Bank',
-      sumberTujuan: 'E-Wallet',
-    ),
-    CatatanTransaksi(
-      kategori: 'Pindah',
-      catatan: 'Tarik Tunai',
-      nominal: 300000,
-      ikon: LucideIcons.arrowLeftRight,
-      tanggal: _bulanIni(4),
-      isTransfer: true,
-      sumberDana: 'Rekening Bank',
-      sumberTujuan: 'Tunai',
-    ),
-    CatatanTransaksi(
-      kategori: 'Tagihan',
-      catatan: 'Token Listrik',
-      nominal: 350000,
-      ikon: LucideIcons.receiptText,
-      tanggal: _bulanIni(5),
-      sumberDana: 'Rekening Bank',
-    ),
-    CatatanTransaksi(
-      kategori: 'Tagihan',
-      catatan: 'Paket Internet',
-      nominal: 120000,
-      ikon: LucideIcons.receiptText,
-      tanggal: _bulanIni(6),
-      sumberDana: 'E-Wallet',
-    ),
-    CatatanTransaksi(
-      kategori: 'Bensin',
-      catatan: 'Pertalite',
-      nominal: 50000,
-      ikon: LucideIcons.fuel,
-      tanggal: _bulanIni(8),
-      sumberDana: 'Tunai',
-    ),
-    CatatanTransaksi(
-      kategori: 'Pindah',
-      catatan: 'Nabung untuk Mouse Logitech M331',
-      nominal: 391350,
-      ikon: LucideIcons.arrowLeftRight,
-      tanggal: _bulanIni(9),
-      isTransfer: true,
-      sumberDana: 'Rekening Bank',
-      sumberTujuan: 'Tabungan',
-    ),
-    CatatanTransaksi(
-      kategori: 'Pindah',
-      catatan: 'Tabungan Bulanan',
-      nominal: 500000,
-      ikon: LucideIcons.arrowLeftRight,
-      tanggal: _bulanIni(10),
-      isTransfer: true,
-      sumberDana: 'Utama',
-      sumberTujuan: 'Tabungan',
-    ),
-    CatatanTransaksi(
-      kategori: 'Gaji',
-      catatan: 'Gaji Bulanan',
-      nominal: 4500000,
-      ikon: LucideIcons.banknote,
-      tanggal: _bulanIni(12),
-      isPemasukan: true,
-      sumberDana: 'Rekening Bank',
-    ),
-    CatatanTransaksi(
-      kategori: 'Makan',
-      catatan: 'Makan Siang Kampus',
-      nominal: 62000,
-      ikon: LucideIcons.utensils,
-      tanggal: _bulanIni(14),
-    ),
-    CatatanTransaksi(
-      kategori: 'Pindah',
-      catatan: 'Nabung untuk Mechanical Keyboard Keychron Q1',
-      nominal: 1200000,
-      ikon: LucideIcons.arrowLeftRight,
-      tanggal: _bulanLalu(20),
-      isTransfer: true,
-      sumberDana: 'Rekening Bank',
-      sumberTujuan: 'Tabungan',
-    ),
-    CatatanTransaksi(
-      kategori: 'Hiburan',
-      catatan: 'Nonton Bioskop',
-      nominal: 60000,
-      ikon: LucideIcons.clapperboard,
-      tanggal: _bulanLalu(24),
-      sumberDana: 'E-Wallet',
-    ),
-    CatatanTransaksi(
-      kategori: 'Bensin',
-      catatan: 'Pertamax',
-      nominal: 100000,
-      ikon: LucideIcons.fuel,
-      tanggal: _bulanLalu(18),
-      sumberDana: 'Tunai',
-    ),
-    CatatanTransaksi(
-      kategori: 'Makan',
-      catatan: 'Makan Bersama Keluarga',
-      nominal: 75000,
-      ikon: LucideIcons.utensils,
-      tanggal: _bulanLalu(12),
-    ),
-    CatatanTransaksi(
-      kategori: 'Tagihan',
-      catatan: 'Bayar Kos',
-      nominal: 450000,
-      ikon: LucideIcons.receiptText,
-      tanggal: _bulanLalu(5),
-      sumberDana: 'Rekening Bank',
-    ),
-    CatatanTransaksi(
-      kategori: 'Gaji',
-      catatan: 'Gaji Bulanan',
-      nominal: 4500000,
-      ikon: LucideIcons.banknote,
-      tanggal: _bulanLalu(1),
-      isPemasukan: true,
-      sumberDana: 'Rekening Bank',
-    ),
-    CatatanTransaksi(
-      kategori: 'Pindah',
-      catatan: 'Nabung untuk Tiket Konser Luar Negeri',
-      nominal: 1500000,
-      ikon: LucideIcons.arrowLeftRight,
-      tanggal: _mundurBulan(2, 15),
-      isTransfer: true,
-      sumberDana: 'Rekening Bank',
-      sumberTujuan: 'Tabungan',
-    ),
-    CatatanTransaksi(
-      kategori: 'Pindah',
-      catatan: 'Nabung untuk Sony PlayStation 5 Slim',
-      nominal: 1500000,
-      ikon: LucideIcons.arrowLeftRight,
-      tanggal: _mundurBulan(3, 15),
-      isTransfer: true,
-      sumberDana: 'Rekening Bank',
-      sumberTujuan: 'Tabungan',
-    ),
-  ];
+  static final List<CatatanTransaksi> daftarTransaksi = contohTransaksi();
 
-  static final List<WishlistItem> daftarWishlist = [
-    WishlistItem(
-      nama: 'Sony PlayStation 5 Slim',
-      kategori: 'Gim & Hobi',
-      mataUang: 'USD',
-      hargaAsing: 499,
-      targetIdr: 7811346,
-      terkumpulIdr: 1500000,
-      ikon: LucideIcons.gamepad2,
-    ),
-    WishlistItem(
-      nama: 'Tiket Konser Luar Negeri',
-      kategori: 'Konser & Acara',
-      mataUang: 'JPY',
-      hargaAsing: 35000,
-      targetIdr: 3640000,
-      terkumpulIdr: 1500000,
-      ikon: LucideIcons.ticket,
-    ),
-    WishlistItem(
-      nama: 'Mechanical Keyboard Keychron Q1',
-      kategori: 'Komputer & Aksesori',
-      mataUang: 'USD',
-      hargaAsing: 190,
-      targetIdr: 2974260,
-      terkumpulIdr: 1200000,
-      ikon: LucideIcons.laptop,
-    ),
-    WishlistItem(
-      nama: 'Mouse Logitech M331',
-      kategori: 'Komputer & Aksesori',
-      mataUang: 'USD',
-      hargaAsing: 25,
-      targetIdr: 391350,
-      terkumpulIdr: 391350,
-      ikon: LucideIcons.laptop,
-    ),
-  ];
+  static final List<WishlistItem> daftarWishlist = contohWishlist();
 
-  static final List<BudgetItem> daftarBudget = [
-    BudgetItem(kategori: 'Makan', limit: 1400000),
-    BudgetItem(kategori: 'Bensin', limit: 400000),
-    BudgetItem(kategori: 'Tagihan', limit: 1200000),
-    BudgetItem(kategori: 'Tabungan', limit: 2000000),
-  ];
+  static final List<BudgetItem> daftarBudget = contohBudget();
 
-  static final List<UtangItem> daftarUtang = [
-    UtangItem(
-      jenis: 'Piutang',
-      nama: 'Budi',
-      nominal: 50000,
-      keterangan: 'Nalangin makan siang',
-      tanggal: _bulanIni(2),
-    ),
-    UtangItem(
-      jenis: 'Piutang',
-      nama: 'Rian',
-      nominal: 85000,
-      keterangan: 'Tiket bioskop',
-      tanggal: _bulanIni(4),
-    ),
-    UtangItem(
-      jenis: 'Utang',
-      nama: 'Dimas',
-      nominal: 120000,
-      keterangan: 'Patungan kafe',
-      tanggal: _bulanIni(6),
-    ),
-  ];
+  static final List<UtangItem> daftarUtang = contohUtang();
 
   // Kurs cadangan hanya untuk empat mata uang lama. Yang lain menunggu API berhasil.
   static const Map<String, double> kursCadangan = {
@@ -606,7 +154,7 @@ class AppData {
     simbol: 'Rp',
   );
 
-  // Belum disimpan permanen. Kembali ke bawaan setiap aplikasi dibuka sampai ada sqflite.
+  // Bawaan sebelum pengguna memilih sendiri. Pilihannya disimpan di tabel pengaturan.
   static List<String> mataUangFavorit = ['USD', 'SGD', 'JPY'];
 
   // Diawali kurs cadangan, lalu ditimpa hasil API saat berhasil.
@@ -616,7 +164,6 @@ class AppData {
   // Tetap true walau refresh berikutnya gagal, supaya tahu kursKeIdr berisi hasil API.
   static bool kursPernahLive = false;
 
-  // Belum disimpan permanen sampai ada sqflite.
   static final List<PesanAi> percakapanAi = [];
   // Hanya pertanyaan siap pakai, tanpa ketik bebas, supaya kuota Gemini hemat.
   static const List<String> daftarPertanyaanAi = [
@@ -625,9 +172,65 @@ class AppData {
     'Cukup sampai akhir bulan?',
   ];
 
-  static void tambahTransaksi(CatatanTransaksi item) {
+  // Dipanggil sekali di main(): isi database disalin ke list, jadi tampilan tetap membaca AppData.
+  static Future<void> muat() async {
+    daftarDompet.clear();
+    for (var m in await DbService.ambilSemua('dompet')) {
+      daftarDompet.add(Dompet.fromMap(m));
+    }
+    daftarKategori.clear();
+    for (var m in await DbService.ambilSemua('kategori')) {
+      daftarKategori.add(KategoriItem.fromMap(m));
+    }
+    daftarBudget.clear();
+    for (var m in await DbService.ambilSemua('kantong')) {
+      daftarBudget.add(BudgetItem.fromMap(m));
+    }
+    // Tiga list ini menaruh data baru di depan, jadi id terbesar dimuat lebih dulu.
+    daftarTransaksi.clear();
+    for (var m in await DbService.ambilSemua('transaksi', terbaruDulu: true)) {
+      daftarTransaksi.add(CatatanTransaksi.fromMap(m));
+    }
+    daftarWishlist.clear();
+    for (var m in await DbService.ambilSemua('impian', terbaruDulu: true)) {
+      daftarWishlist.add(WishlistItem.fromMap(m, ikonImpian(m['kategori'])));
+    }
+    daftarUtang.clear();
+    for (var m in await DbService.ambilSemua('utang', terbaruDulu: true)) {
+      daftarUtang.add(UtangItem.fromMap(m));
+    }
+    percakapanAi.clear();
+    for (var m in await DbService.ambilSemua('pesan_ai')) {
+      percakapanAi.add(PesanAi.fromMap(m));
+    }
+    await _muatPengaturan();
+    refreshNotifier.value++;
+  }
+
+  // Kunci yang belum pernah disimpan dilewati, jadi nilai bawaan di atas tetap dipakai.
+  static Future<void> _muatPengaturan() async {
+    Map<String, String> pengaturan = await DbService.ambilPengaturan();
+    String? anggaran = pengaturan['anggaran_bulanan'];
+    if (anggaran != null) anggaranBulanan = int.parse(anggaran);
+    String? favorit = pengaturan['mata_uang_favorit'];
+    if (favorit != null) mataUangFavorit = favorit.split(',');
+    String? kurs = pengaturan['kurs_ke_idr'];
+    String? waktuKurs = pengaturan['kurs_diperbarui'];
+    if (kurs != null && waktuKurs != null) {
+      // Kurs terakhir dari API, supaya tetap tampil saat offline.
+      Map<String, dynamic> tersimpan = jsonDecode(kurs);
+      tersimpan.forEach((kode, nilai) {
+        kursKeIdr[kode] = (nilai as num).toDouble();
+      });
+      kursDiperbarui = DateTime.parse(waktuKurs);
+      kursPernahLive = true;
+    }
+  }
+
+  static Future<void> tambahTransaksi(CatatanTransaksi item) async {
     daftarTransaksi.insert(0, item);
     refreshNotifier.value++;
+    item.id = await DbService.tambah('transaksi', item.toMap());
   }
 
   // tipe: 0 = Pengeluaran, 1 = Pemasukan, sama dengan urutan PilihanSegmen.
@@ -651,30 +254,45 @@ class AppData {
     return daftar.take(jumlah).toList();
   }
 
-  static void tambahKategori(KategoriItem item) {
+  static Future<void> tambahKategori(KategoriItem item) async {
     daftarKategori.add(item);
     refreshNotifier.value++;
+    item.id = await DbService.tambah('kategori', item.toMap());
   }
 
-  static void ubahTransaksi(CatatanTransaksi lama, CatatanTransaksi baru) {
+  static Future<void> ubahTransaksi(
+    CatatanTransaksi lama,
+    CatatanTransaksi baru,
+  ) async {
     int posisi = daftarTransaksi.indexOf(lama);
     if (posisi == -1) return;
+    // Objek baru dibuat di layar tanpa id, jadi id lama dipindahkan supaya baris yang sama yang diubah.
+    baru.id = lama.id;
     daftarTransaksi[posisi] = baru;
     refreshNotifier.value++;
+    await DbService.ubah('transaksi', baru.toMap());
   }
 
   // Budget ikut dihapus supaya tidak ada budget tanpa kategori. Budget hanya ada untuk pengeluaran.
-  static void hapusKategori(KategoriItem item) {
+  static Future<void> hapusKategori(KategoriItem item) async {
     daftarKategori.remove(item);
-    if (!item.isPemasukan) {
-      daftarBudget.removeWhere((b) => b.kategori == item.nama);
+    List<BudgetItem> ikutDihapus = item.isPemasukan
+        ? []
+        : daftarBudget.where((b) => b.kategori == item.nama).toList();
+    for (var b in ikutDihapus) {
+      daftarBudget.remove(b);
     }
     refreshNotifier.value++;
+    await DbService.hapus('kategori', item.id);
+    for (var b in ikutDihapus) {
+      await DbService.hapus('kantong', b.id);
+    }
   }
 
-  static void tambahWishlist(WishlistItem item) {
+  static Future<void> tambahWishlist(WishlistItem item) async {
     daftarWishlist.insert(0, item);
     refreshNotifier.value++;
+    item.id = await DbService.tambah('impian', item.toMap());
   }
 
   // Uang tabungan dipindah ke dompet Tabungan supaya ikut terhitung di budget Tabungan.
@@ -694,12 +312,15 @@ class AppData {
         sumberTujuan: 'Tabungan',
       ),
     );
+    // Tidak ditunggu karena layar butuh nilai disimpan sekarang. Urutan tulis tetap dijaga sqflite.
+    DbService.ubah('impian', item.toMap());
     return disimpan;
   }
 
-  static void hapusWishlist(WishlistItem item) {
+  static Future<void> hapusWishlist(WishlistItem item) async {
     daftarWishlist.remove(item);
     refreshNotifier.value++;
+    await DbService.hapus('impian', item.id);
   }
 
   static MataUang cariMataUang(String kode) {
@@ -712,9 +333,10 @@ class AppData {
     return (kursKeIdr[kode] ?? 0) > 0;
   }
 
-  static void simpanFavorit(List<String> daftar) {
+  static Future<void> simpanFavorit(List<String> daftar) async {
     mataUangFavorit = daftar;
     refreshNotifier.value++;
+    await DbService.simpanPengaturan('mata_uang_favorit', daftar.join(','));
   }
 
   // IDR tidak ada di kursKeIdr supaya perbaruiKurs dan konverter tidak ikut berubah.
@@ -763,6 +385,14 @@ class AppData {
       kursLive = false;
     }
     refreshNotifier.value++;
+    // Hanya kurs dari API yang disimpan. Kurs cadangan tidak perlu disimpan karena sudah ada di kode.
+    if (kursLive) {
+      await DbService.simpanPengaturan('kurs_ke_idr', jsonEncode(kursKeIdr));
+      await DbService.simpanPengaturan(
+        'kurs_diperbarui',
+        kursDiperbarui!.toIso8601String(),
+      );
+    }
   }
 
   // Satu baris info kurs untuk Beranda dan Hitung kurs. Atribusi ada di BarisInfoKurs.
@@ -775,9 +405,10 @@ class AppData {
     return 'Kurs cadangan · gagal memperbarui';
   }
 
-  static void tambahUtang(UtangItem item) {
+  static Future<void> tambahUtang(UtangItem item) async {
     daftarUtang.insert(0, item);
     refreshNotifier.value++;
+    item.id = await DbService.tambah('utang', item.toMap());
   }
 
   // Bagian setiap teman dari pengeluaran bersama dicatat sebagai piutang.
@@ -800,10 +431,11 @@ class AppData {
   }
 
   // Pelunasan dicatat sebagai transaksi supaya saldo ikut berubah.
-  static void lunasiUtang(UtangItem item) {
+  static Future<void> lunasiUtang(UtangItem item) async {
     item.lunas = true;
     bool piutang = item.jenis == 'Piutang';
-    tambahTransaksi(
+    // tambahTransaksi menyegarkan tampilan sebelum menunggu database, jadi status lunas langsung terlihat.
+    await tambahTransaksi(
       CatatanTransaksi(
         kategori: 'Pelunasan',
         catatan: piutang
@@ -816,6 +448,7 @@ class AppData {
         sumberDana: 'Utama',
       ),
     );
+    await DbService.ubah('utang', item.toMap());
   }
 
   // Hasil 0 berarti budget 'Tabungan' belum ada, jadi estimasi tidak bisa dihitung.
@@ -893,10 +526,17 @@ class AppData {
       );
     }
     String jawaban = await mintaSaranAi(bulan, pertanyaan);
-    percakapanAi.add(
-      PesanAi(dariPengguna: false, teks: jawaban, waktu: DateTime.now()),
+    PesanAi tanya = percakapanAi.last;
+    PesanAi balasan = PesanAi(
+      dariPengguna: false,
+      teks: jawaban,
+      waktu: DateTime.now(),
     );
+    percakapanAi.add(balasan);
     refreshNotifier.value++;
+    // Pertanyaan baru disimpan setelah dijawab, supaya percakapan tersimpan tidak berakhir dengan pertanyaan tanpa jawaban.
+    tanya.id = await DbService.tambah('pesan_ai', tanya.toMap());
+    balasan.id = await DbService.tambah('pesan_ai', balasan.toMap());
   }
 
   // Isinya akan diganti panggilan Gemini dengan rekapUntukAi(bulan) sebagai bahan.
@@ -1111,7 +751,10 @@ class AppData {
 
   // Saldo dihitung dari semua bulan, bukan hanya bulan berjalan.
   static int get saldoTersedia {
-    int saldo = saldoAwal;
+    int saldo = 0;
+    for (var d in daftarDompet) {
+      saldo += d.saldoAwal;
+    }
     for (var t in daftarTransaksi) {
       if (t.isPemasukan) {
         saldo += t.nominal;
@@ -1124,7 +767,10 @@ class AppData {
 
   // Transfer mengurangi dompet asal dan menambah dompet tujuan, jadi total semua dompet tetap sama.
   static int saldoSumber(String sumber) {
-    int saldo = sumber == 'Utama' ? saldoAwal : 0;
+    int saldo = 0;
+    for (var d in daftarDompet) {
+      if (d.nama == sumber) saldo = d.saldoAwal;
+    }
     for (var t in daftarTransaksi) {
       if (t.isTransfer && t.sumberTujuan == sumber) saldo += t.nominal;
       if (t.sumberDana != sumber) continue;
@@ -1239,6 +885,14 @@ class AppData {
     return 7;
   }
 
+  // Ikon impian tidak disimpan di database karena selalu mengikuti kategorinya.
+  static IconData ikonImpian(String nama) {
+    for (var k in kategoriImpian) {
+      if (k.nama == nama) return k.ikon;
+    }
+    return LucideIcons.star;
+  }
+
   // Kategori baru mendapat warna bergiliran 0 sampai 6. Indeks 7 khusus 'Lainnya'.
   static int indeksWarnaBerikutnya(bool pemasukan) {
     return kategoriTipe(pemasukan ? 1 : 0).length % 7;
@@ -1254,28 +908,33 @@ class AppData {
     return LucideIcons.wallet;
   }
 
-  static void hapusTransaksi(CatatanTransaksi item) {
+  static Future<void> hapusTransaksi(CatatanTransaksi item) async {
     daftarTransaksi.remove(item);
     refreshNotifier.value++;
+    await DbService.hapus('transaksi', item.id);
   }
 
-  static void ubahAnggaran(int nominal) {
+  static Future<void> ubahAnggaran(int nominal) async {
     anggaranBulanan = nominal;
     refreshNotifier.value++;
+    await DbService.simpanPengaturan('anggaran_bulanan', '$nominal');
   }
 
-  static void tambahBudget(BudgetItem item) {
+  static Future<void> tambahBudget(BudgetItem item) async {
     daftarBudget.add(item);
     refreshNotifier.value++;
+    item.id = await DbService.tambah('kantong', item.toMap());
   }
 
-  static void ubahLimitBudget(BudgetItem item, int limit) {
+  static Future<void> ubahLimitBudget(BudgetItem item, int limit) async {
     item.limit = limit;
     refreshNotifier.value++;
+    await DbService.ubah('kantong', item.toMap());
   }
 
-  static void hapusBudget(BudgetItem item) {
+  static Future<void> hapusBudget(BudgetItem item) async {
     daftarBudget.remove(item);
     refreshNotifier.value++;
+    await DbService.hapus('kantong', item.id);
   }
 }

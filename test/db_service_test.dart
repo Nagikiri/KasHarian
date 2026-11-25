@@ -1,0 +1,183 @@
+import 'dart:convert';
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:kasharian/models/app_data.dart';
+import 'package:kasharian/models/budget.dart';
+import 'package:kasharian/models/data_contoh.dart';
+import 'package:kasharian/models/kategori.dart';
+import 'package:kasharian/models/transaksi.dart';
+import 'package:kasharian/services/db_service.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+
+void main() {
+  // sqflite asli hanya jalan di HP. Di laptop, test memakai sqflite_common_ffi.
+  setUpAll(() {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+  });
+
+  // Setiap test mendapat database baru di memori, jadi tidak ada sisa dari test lain.
+  setUp(() async {
+    await DbService.buka(lokasi: inMemoryDatabasePath);
+    await AppData.muat();
+  });
+
+  tearDown(() => DbService.tutup());
+
+  test('database baru berisi data contoh dengan urutan yang sama', () async {
+    expect(AppData.daftarDompet.map((d) => d.nama), [
+      'Utama',
+      'Rekening Bank',
+      'E-Wallet',
+      'Tunai',
+      'Tabungan',
+    ]);
+    expect(AppData.saldoSumber('Utama'), isNot(0));
+    expect(
+      AppData.daftarKategori.map((k) => k.nama),
+      contohKategori().map((k) => k.nama),
+    );
+    expect(
+      AppData.daftarTransaksi.map((t) => t.catatan),
+      contohTransaksi().map((t) => t.catatan),
+    );
+    expect(
+      AppData.daftarWishlist.map((w) => w.nama),
+      contohWishlist().map((w) => w.nama),
+    );
+    expect(
+      AppData.daftarUtang.map((u) => u.nama),
+      contohUtang().map((u) => u.nama),
+    );
+    expect(
+      AppData.daftarBudget.map((b) => b.kategori),
+      contohBudget().map((b) => b.kategori),
+    );
+    expect(AppData.daftarTransaksi.every((t) => t.id != null), isTrue);
+  });
+
+  test('tambah, ubah, dan hapus transaksi tersimpan', () async {
+    int jumlahAwal = AppData.daftarTransaksi.length;
+    CatatanTransaksi baru = CatatanTransaksi(
+      kategori: 'Kopi',
+      catatan: 'Kopi susu',
+      nominal: 25000,
+      ikon: LucideIcons.coffee,
+      tanggal: DateTime.now(),
+    );
+    await AppData.tambahTransaksi(baru);
+    expect(baru.id, isNotNull);
+
+    await AppData.muat();
+    expect(AppData.daftarTransaksi.length, jumlahAwal + 1);
+    CatatanTransaksi tersimpan = AppData.daftarTransaksi.first;
+    expect(tersimpan.catatan, 'Kopi susu');
+
+    await AppData.ubahTransaksi(
+      tersimpan,
+      CatatanTransaksi(
+        kategori: 'Kopi',
+        catatan: 'Kopi hitam',
+        nominal: 18000,
+        ikon: LucideIcons.coffee,
+        tanggal: tersimpan.tanggal,
+      ),
+    );
+    await AppData.muat();
+    expect(AppData.daftarTransaksi.length, jumlahAwal + 1);
+    expect(AppData.daftarTransaksi.first.catatan, 'Kopi hitam');
+    expect(AppData.daftarTransaksi.first.nominal, 18000);
+
+    await AppData.hapusTransaksi(AppData.daftarTransaksi.first);
+    await AppData.muat();
+    expect(AppData.daftarTransaksi.length, jumlahAwal);
+  });
+
+  test(
+    'hapus kategori ikut menghapus kantongnya, ikon transaksi tetap',
+    () async {
+      KategoriItem kucing = KategoriItem(
+        nama: 'Kucing',
+        ikon: LucideIcons.pawPrint,
+        indeksWarna: 3,
+      );
+      await AppData.tambahKategori(kucing);
+      await AppData.tambahBudget(BudgetItem(kategori: 'Kucing', limit: 200000));
+      await AppData.tambahTransaksi(
+        CatatanTransaksi(
+          kategori: 'Kucing',
+          catatan: 'Pasir kucing',
+          nominal: 60000,
+          ikon: LucideIcons.pawPrint,
+          tanggal: DateTime.now(),
+        ),
+      );
+
+      await AppData.hapusKategori(kucing);
+      await AppData.muat();
+      expect(AppData.daftarKategori.any((k) => k.nama == 'Kucing'), isFalse);
+      expect(AppData.daftarBudget.any((b) => b.kategori == 'Kucing'), isFalse);
+      expect(AppData.daftarTransaksi.first.catatan, 'Pasir kucing');
+      expect(AppData.daftarTransaksi.first.ikon, LucideIcons.pawPrint);
+    },
+  );
+
+  test('lunasi utang dan tabung impian menulis ke dua tabel', () async {
+    int jumlahTransaksi = AppData.daftarTransaksi.length;
+    String namaUtang = AppData.daftarUtang.first.nama;
+    await AppData.lunasiUtang(AppData.daftarUtang.first);
+
+    String namaImpian = AppData.daftarWishlist.first.nama;
+    int terkumpulAwal = AppData.daftarWishlist.first.terkumpulIdr;
+    AppData.tambahTabunganWishlist(AppData.daftarWishlist.first, 100000);
+
+    await AppData.muat();
+    expect(AppData.daftarUtang.first.nama, namaUtang);
+    expect(AppData.daftarUtang.first.lunas, isTrue);
+    expect(AppData.daftarWishlist.first.nama, namaImpian);
+    expect(AppData.daftarWishlist.first.terkumpulIdr, terkumpulAwal + 100000);
+    expect(AppData.daftarTransaksi.length, jumlahTransaksi + 2);
+    expect(AppData.daftarTransaksi[0].catatan, 'Nabung untuk $namaImpian');
+    expect(AppData.daftarTransaksi[1].kategori, 'Pelunasan');
+  });
+
+  test('anggaran, favorit, dan kurs terakhir tersimpan', () async {
+    await AppData.ubahAnggaran(7000000);
+    await AppData.simpanFavorit(['EUR', 'KRW']);
+    DateTime waktuKurs = DateTime(2026, 11, 20, 8, 30);
+    await DbService.simpanPengaturan('kurs_ke_idr', jsonEncode({'KRW': 11.5}));
+    await DbService.simpanPengaturan(
+      'kurs_diperbarui',
+      waktuKurs.toIso8601String(),
+    );
+    AppData.anggaranBulanan = 0;
+    AppData.mataUangFavorit = [];
+
+    await AppData.muat();
+    expect(AppData.anggaranBulanan, 7000000);
+    expect(AppData.mataUangFavorit, ['EUR', 'KRW']);
+    expect(AppData.kursKeIdr['KRW'], 11.5);
+    expect(AppData.kursDiperbarui, waktuKurs);
+    expect(AppData.kursPernahLive, isTrue);
+    expect(AppData.kursLive, isFalse);
+  });
+
+  test('pertanyaan Bendahara disimpan hanya setelah dijawab', () async {
+    DateTime bulan = DateTime.now();
+    await expectLater(
+      AppData.tanyaBendahara('Pertanyaan lain', bulan),
+      throwsArgumentError,
+    );
+    await AppData.muat();
+    expect(AppData.percakapanAi, isEmpty);
+
+    String pertanyaan = AppData.daftarPertanyaanAi[0];
+    await AppData.tanyaBendahara(pertanyaan, bulan);
+    await AppData.muat();
+    expect(AppData.percakapanAi.length, 2);
+    expect(AppData.percakapanAi[0].dariPengguna, isTrue);
+    expect(AppData.percakapanAi[0].teks, pertanyaan);
+    expect(AppData.percakapanAi[1].dariPengguna, isFalse);
+  });
+}
