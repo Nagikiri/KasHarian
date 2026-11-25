@@ -8,6 +8,7 @@ import 'bagian_teman.dart';
 import 'budget.dart';
 import 'kategori.dart';
 import 'mata_uang.dart';
+import 'pesan_ai.dart';
 import 'transaksi.dart';
 import 'utang.dart';
 import 'wishlist.dart';
@@ -615,10 +616,14 @@ class AppData {
   // Tetap true walau refresh berikutnya gagal, supaya tahu kursKeIdr berisi hasil API.
   static bool kursPernahLive = false;
 
-  static const String contohSaranAi =
-      'Pengeluaran terbesarmu bulan ini ada di Tagihan, jadi coba cek lagi paket internet yang mungkin bisa diganti lebih murah. '
-      'Uang jajan kopi dan makan di luar juga lumayan, kalau dikurangi sedikit tiap minggu sisanya bisa langsung masuk ke tabungan PlayStation 5 Slim. '
-      'Targetnya sudah lewat setengah jalan, tinggal konsisten beberapa bulan lagi.';
+  // Belum disimpan permanen sampai ada sqflite.
+  static final List<PesanAi> percakapanAi = [];
+  // Hanya pertanyaan siap pakai, tanpa ketik bebas, supaya kuota Gemini hemat.
+  static const List<String> daftarPertanyaanAi = [
+    'Ringkas bulan ini',
+    'Di mana bisa hemat?',
+    'Cukup sampai akhir bulan?',
+  ];
 
   static void tambahTransaksi(CatatanTransaksi item) {
     daftarTransaksi.insert(0, item);
@@ -869,10 +874,111 @@ class AppData {
     return hasil;
   }
 
+  static String? get saranTerakhir {
+    for (var pesan in percakapanAi.reversed) {
+      if (!pesan.dariPengguna) return pesan.teks;
+    }
+    return null;
+  }
+
+  static Future<void> tanyaBendahara(String pertanyaan, DateTime bulan) async {
+    // Saat "Coba lagi", pertanyaan yang belum terjawab tidak ditulis dua kali.
+    bool belumDijawab =
+        percakapanAi.isNotEmpty &&
+        percakapanAi.last.dariPengguna &&
+        percakapanAi.last.teks == pertanyaan;
+    if (!belumDijawab) {
+      percakapanAi.add(
+        PesanAi(dariPengguna: true, teks: pertanyaan, waktu: DateTime.now()),
+      );
+    }
+    String jawaban = await mintaSaranAi(bulan, pertanyaan);
+    percakapanAi.add(
+      PesanAi(dariPengguna: false, teks: jawaban, waktu: DateTime.now()),
+    );
+    refreshNotifier.value++;
+  }
+
   // Isinya akan diganti panggilan Gemini dengan rekapUntukAi(bulan) sebagai bahan.
-  static Future<String> mintaSaranAi(DateTime bulan) async {
+  static Future<String> mintaSaranAi(DateTime bulan, String pertanyaan) async {
     await Future.delayed(const Duration(milliseconds: 1500));
-    return contohSaranAi;
+    DateTime awal = DateTime(bulan.year, bulan.month);
+    DateTime akhir = DateTime(bulan.year, bulan.month + 1);
+    String teksBulan = '${namaBulanPanjang[bulan.month - 1]} ${bulan.year}';
+    if (pertanyaan == daftarPertanyaanAi[0]) {
+      return _jawabRingkas(awal, akhir, teksBulan);
+    }
+    if (pertanyaan == daftarPertanyaanAi[1]) {
+      return _jawabHemat(awal, akhir, teksBulan);
+    }
+    if (pertanyaan == daftarPertanyaanAi[2]) {
+      return _jawabCukup(bulan, teksBulan);
+    }
+    throw ArgumentError('Pertanyaan tidak dikenal: $pertanyaan');
+  }
+
+  // Angka jawaban dummy diambil dari sumber yang sama dengan rekapUntukAi.
+  static String _jawabRingkas(DateTime awal, DateTime akhir, String teksBulan) {
+    int masuk = pemasukanAntara(awal, akhir);
+    int keluar = pengeluaranAntara(awal, akhir);
+    int selisih = masuk - keluar;
+    String hasil =
+        'Di $teksBulan kamu mencatat pemasukan ${formatRupiah(masuk)} '
+        'dan pengeluaran ${formatRupiah(keluar)}. ';
+    hasil += selisih < 0
+        ? 'Pengeluaranmu lebih besar ${formatRupiah(-selisih)} dari pemasukan.'
+        : 'Masih ada selisih ${formatRupiah(selisih)} yang bisa ditabung.';
+    var perKategori = pengeluaranPerKategori(awal, akhir);
+    if (perKategori.isNotEmpty) {
+      var terbesar = perKategori.entries.first;
+      hasil +=
+          ' Pengeluaran terbesar ada di ${terbesar.key}, '
+          'yaitu ${formatRupiah(terbesar.value)}.';
+    }
+    return hasil;
+  }
+
+  static String _jawabHemat(DateTime awal, DateTime akhir, String teksBulan) {
+    var teratas = pengeluaranPerKategori(awal, akhir).entries.take(2).toList();
+    if (teratas.isEmpty) {
+      return 'Belum ada pengeluaran yang tercatat di $teksBulan, '
+          'jadi belum ada yang bisa dihemat.';
+    }
+    int jumlah = 0;
+    List<String> bagian = [];
+    for (var k in teratas) {
+      jumlah += k.value;
+      bagian.add('${k.key} (${formatRupiah(k.value)})');
+    }
+    String hasil =
+        'Coba mulai dari ${bagian.join(' dan ')}. Kalau dikurangi 10%, '
+        'kamu bisa menyisihkan sekitar ${formatRupiah(jumlah ~/ 10)}.';
+    WishlistItem? impian = impianTerdekat();
+    if (impian != null) {
+      hasil += ' Uang itu bisa langsung masuk ke tabungan ${impian.nama}.';
+    }
+    return hasil;
+  }
+
+  static String _jawabCukup(DateTime bulan, String teksBulan) {
+    int sisa = anggaranBulanan - terpakaiAnggaran(bulan);
+    if (sisa < 0) {
+      return 'Anggaran $teksBulan sudah lebih ${formatRupiah(-sisa)}. '
+          'Tahan dulu pengeluaran yang tidak wajib sampai bulan depan.';
+    }
+    DateTime hariIni = DateTime.now();
+    bool bulanBerjalan =
+        bulan.year == hariIni.year && bulan.month == hariIni.month;
+    if (!bulanBerjalan) {
+      return 'Di $teksBulan anggaranmu bersisa ${formatRupiah(sisa)}, '
+          'jadi bulan itu cukup sampai akhir.';
+    }
+    // Hari ini ikut dihitung sebagai hari tersisa.
+    int hariTerakhir = DateTime(bulan.year, bulan.month + 1, 0).day;
+    int hariTersisa = hariTerakhir - hariIni.day + 1;
+    return 'Sisa anggaranmu ${formatRupiah(sisa)} untuk $hariTersisa hari lagi. '
+        'Cukup asal belanja paling banyak '
+        '${formatRupiah(sisa ~/ hariTersisa)} per hari.';
   }
 
   static int totalBelumLunas(String jenis) {

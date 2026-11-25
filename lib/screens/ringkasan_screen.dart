@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../main.dart';
 import '../models/app_data.dart';
 import '../theme/app_theme.dart';
-import '../utils/format.dart';
 import '../utils/privasi.dart';
 import '../utils/periode.dart';
 import '../widgets/baris_periode.dart';
@@ -17,11 +15,11 @@ import '../widgets/header_rentang.dart';
 import '../widgets/judul_seksi.dart';
 import '../widgets/kalender.dart';
 import '../widgets/kartu_bagian.dart';
-import '../widgets/kartu_navigasi.dart';
+import '../widgets/kartu_bendahara.dart';
 import '../widgets/kolom_angka.dart';
 import '../widgets/pilihan_segmen.dart';
 import '../widgets/ringkasan_anggaran.dart';
-import '../widgets/sheet_saran_ai.dart';
+import 'bendahara_screen.dart';
 import 'budget_screen.dart';
 
 class RingkasanScreen extends StatefulWidget {
@@ -202,7 +200,7 @@ class _RingkasanScreenState extends State<RingkasanScreen> {
                 ),
               ),
             ),
-          // Kartu hijau muda ini sudah berupa kartu, jadi tidak dibungkus kartu putih.
+          // KartuBendahara sudah berisi KartuBagian, jadi cukup diberi jarak tepi.
           _tepi(_bangunBendahara()),
           const SizedBox(height: JarakApp.j24),
         ],
@@ -255,12 +253,12 @@ class _RingkasanScreenState extends State<RingkasanScreen> {
             _akhirRentang.day - 1,
           )
         : _acuan;
-    String teksBulan = '${namaBulanPanjang[bulan.month - 1]} ${bulan.year}';
-    return KartuNavigasi(
-      ikon: LucideIcons.bot,
-      judul: 'Minta saran Bendahara AI',
-      info: 'Analisis catatan $teksBulan',
-      onTekan: () => bukaSaranAi(context, bulan),
+    return KartuBendahara(
+      bulan: bulan,
+      onMintaSaran: () => Navigator.push(
+        context,
+        buatTransisiHalaman(BendaharaScreen(bulan: bulan)),
+      ),
     );
   }
 }

@@ -11,8 +11,6 @@ class KartuNavigasi extends StatelessWidget {
   final VoidCallback onTekan;
   final double? persen;
   final Color? warnaInfo;
-  // true di Beranda: kartu putih berbayangan di atas latar abu, seperti KartuBagian.
-  final bool putih;
 
   const KartuNavigasi({
     super.key,
@@ -22,29 +20,22 @@ class KartuNavigasi extends StatelessWidget {
     required this.onTekan,
     this.persen,
     this.warnaInfo,
-    this.putih = false,
   });
 
   @override
   Widget build(BuildContext context) {
     BorderRadius sudut = BorderRadius.circular(RadiusApp.kartu);
-    Widget kartu = _bangunKartu(sudut);
-    if (!putih) return kartu;
+    // Kartu putih berbayangan di atas latar abu, seperti KartuBagian.
     return DecoratedBox(
       decoration: BoxDecoration(borderRadius: sudut, boxShadow: bayanganKartu),
-      child: kartu,
+      child: _bangunKartu(sudut),
     );
   }
 
   Widget _bangunKartu(BorderRadius sudut) {
     return Material(
-      color: putih ? WarnaApp.latar : WarnaApp.aksenLembut,
-      shape: RoundedRectangleBorder(
-        borderRadius: sudut,
-        side: putih
-            ? BorderSide.none
-            : const BorderSide(color: WarnaApp.garisAksen),
-      ),
+      color: WarnaApp.latar,
+      borderRadius: sudut,
       child: InkWell(
         onTap: onTekan,
         borderRadius: sudut,

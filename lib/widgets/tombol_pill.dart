@@ -4,7 +4,8 @@ import '../theme/app_theme.dart';
 
 class TombolPill extends StatelessWidget {
   final String teks;
-  final VoidCallback onTekan;
+  // null = nonaktif, misalnya chip pertanyaan saat Bendahara AI sedang menjawab.
+  final VoidCallback? onTekan;
   final IconData? ikon;
   final bool terpilih;
   final bool kecil;
@@ -34,6 +35,7 @@ class TombolPill extends StatelessWidget {
       warnaTeks = WarnaApp.diAtasPrimer;
       warnaLatar = WarnaApp.primer;
     }
+    if (onTekan == null) warnaTeks = WarnaApp.teksNonaktif;
     Widget? gambarIkon = ikon == null
         ? null
         : Icon(ikon, size: 16, color: warnaTeks);
