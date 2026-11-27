@@ -27,7 +27,15 @@ class AppData {
   static bool gulirKeImpian = false;
   static DateTime bulanDipilih = DateTime.now();
 
-  static int anggaranBulanan = 5000000;
+  // Harus sama dengan version di pubspec.yaml (bagian sebelum tanda +).
+  static const String versiAplikasi = '1.0.0';
+
+  static const int anggaranBawaan = 5000000;
+  static int anggaranBulanan = anggaranBawaan;
+
+  // Pengaturan privasi. false berarti tombol mata hanya menyembunyikan nominal di Beranda.
+  static bool sembunyiSemuaHalaman = false;
+  static bool sembunyikanSaatDibuka = false;
 
   static final List<Dompet> daftarDompet = contohDompet();
 
@@ -35,7 +43,7 @@ class AppData {
     for (var d in daftarDompet) d.nama,
   ];
 
-  static final List<KategoriItem> daftarKategori = contohKategori();
+  static final List<KategoriItem> daftarKategori = kategoriBawaan();
 
   // Diambil dari daftarIkonKategori supaya ikon pilihan pasti punya nomor urut di database.
   static final List<IconData> opsiIkonKategori = daftarIkonKategori.sublist(
@@ -155,7 +163,8 @@ class AppData {
   );
 
   // Bawaan sebelum pengguna memilih sendiri. Pilihannya disimpan di tabel pengaturan.
-  static List<String> mataUangFavorit = ['USD', 'SGD', 'JPY'];
+  static const List<String> favoritBawaan = ['USD', 'SGD', 'JPY'];
+  static List<String> mataUangFavorit = List.of(favoritBawaan);
 
   // Diawali kurs cadangan, lalu ditimpa hasil API saat berhasil.
   static final Map<String, double> kursKeIdr = Map.of(kursCadangan);
@@ -214,6 +223,8 @@ class AppData {
     if (anggaran != null) anggaranBulanan = int.parse(anggaran);
     String? favorit = pengaturan['mata_uang_favorit'];
     if (favorit != null) mataUangFavorit = favorit.split(',');
+    sembunyiSemuaHalaman = pengaturan['cakupan_sembunyi'] == 'semua';
+    sembunyikanSaatDibuka = pengaturan['sembunyikan_saat_dibuka'] == '1';
     String? kurs = pengaturan['kurs_ke_idr'];
     String? waktuKurs = pengaturan['kurs_diperbarui'];
     if (kurs != null && waktuKurs != null) {
@@ -337,6 +348,32 @@ class AppData {
     mataUangFavorit = daftar;
     refreshNotifier.value++;
     await DbService.simpanPengaturan('mata_uang_favorit', daftar.join(','));
+  }
+
+  static Future<void> ubahCakupanSembunyi(bool semuaHalaman) async {
+    sembunyiSemuaHalaman = semuaHalaman;
+    refreshNotifier.value++;
+    await DbService.simpanPengaturan(
+      'cakupan_sembunyi',
+      semuaHalaman ? 'semua' : 'beranda',
+    );
+  }
+
+  static Future<void> ubahSembunyikanSaatDibuka(bool aktif) async {
+    sembunyikanSaatDibuka = aktif;
+    refreshNotifier.value++;
+    await DbService.simpanPengaturan(
+      'sembunyikan_saat_dibuka',
+      aktif ? '1' : '0',
+    );
+  }
+
+  // Berbeda dari pola tulis biasa: database dikosongkan dulu, lalu dimuat ulang supaya id bawaan baru ikut terbaca.
+  static Future<void> hapusSemuaData() async {
+    await DbService.kosongkan();
+    anggaranBulanan = anggaranBawaan;
+    mataUangFavorit = List.of(favoritBawaan);
+    await muat();
   }
 
   // IDR tidak ada di kursKeIdr supaya perbaruiKurs dan konverter tidak ikut berubah.

@@ -27,10 +27,10 @@ DateTime _mundurBulan(int jumlahBulan, int tanggal) {
   return DateTime(sekarang.year, sekarang.month - jumlahBulan, tanggal);
 }
 
-// Saldo awal hanya di dompet Utama.
-List<Dompet> contohDompet() {
+// Bawaan dipakai juga saat "Hapus semua data", jadi saldo awal semua dompet 0.
+List<Dompet> dompetBawaan() {
   return [
-    Dompet(nama: 'Utama', ikon: LucideIcons.wallet, saldoAwal: 2500000),
+    Dompet(nama: 'Utama', ikon: LucideIcons.wallet),
     Dompet(nama: 'Rekening Bank', ikon: LucideIcons.landmark),
     Dompet(nama: 'E-Wallet', ikon: LucideIcons.smartphone),
     Dompet(nama: 'Tunai', ikon: LucideIcons.banknote),
@@ -38,7 +38,15 @@ List<Dompet> contohDompet() {
   ];
 }
 
-List<KategoriItem> contohKategori() {
+// Data contoh hanya memberi saldo awal di dompet Utama.
+List<Dompet> contohDompet() {
+  List<Dompet> daftar = dompetBawaan();
+  daftar.first.saldoAwal = 2500000;
+  return daftar;
+}
+
+// Kategori bawaan dipakai saat database dibuat dan saat "Hapus semua data".
+List<KategoriItem> kategoriBawaan() {
   return [
     KategoriItem(nama: 'Makan', ikon: LucideIcons.utensils, indeksWarna: 5),
     KategoriItem(nama: 'Jajan', ikon: LucideIcons.cookie, indeksWarna: 3),

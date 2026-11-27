@@ -5,8 +5,15 @@ import '../theme/app_theme.dart';
 class TombolUtama extends StatelessWidget {
   final String teks;
   final VoidCallback? onTekan;
+  // Diganti bahaya untuk tindakan yang tidak bisa dibatalkan.
+  final Color warna;
 
-  const TombolUtama({super.key, required this.teks, required this.onTekan});
+  const TombolUtama({
+    super.key,
+    required this.teks,
+    required this.onTekan,
+    this.warna = WarnaApp.primer,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +23,7 @@ class TombolUtama extends StatelessWidget {
       child: FilledButton(
         onPressed: onTekan,
         style: FilledButton.styleFrom(
-          backgroundColor: WarnaApp.primer,
+          backgroundColor: warna,
           foregroundColor: WarnaApp.diAtasPrimer,
           disabledBackgroundColor: WarnaApp.garis,
           disabledForegroundColor: WarnaApp.teksKedua,

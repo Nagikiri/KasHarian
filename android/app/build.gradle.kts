@@ -33,7 +33,7 @@ android {
         versionName = flutter.versionName
     }
 
-    // Tanda tangan release key.properties
+    // Release key.properties
     signingConfigs {
         create("release") {
             keyAlias = keystoreProperties.getProperty("keyAlias")

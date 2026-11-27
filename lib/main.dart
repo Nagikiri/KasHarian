@@ -5,6 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'models/app_data.dart';
 import 'services/db_service.dart';
 import 'theme/app_theme.dart';
+import 'utils/privasi.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/transaksi_screen.dart';
 import 'screens/wishlist_screen.dart';
@@ -21,6 +22,8 @@ Future<void> main() async {
   await DbService.buka();
   // Langkah 2: salin isi database ke list AppData, karena semua layar membaca dari AppData.
   await AppData.muat();
+  // Dibaca setelah muat() karena pilihannya tersimpan di tabel pengaturan.
+  if (AppData.sembunyikanSaatDibuka) sembunyikanNominal.value = true;
   // Langkah 3: tampilkan aplikasi. Data sudah siap, jadi tidak perlu layar loading.
   runApp(const MyApp());
 }

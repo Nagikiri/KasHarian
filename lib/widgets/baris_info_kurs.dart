@@ -5,6 +5,18 @@ import '../models/app_data.dart';
 import '../theme/app_theme.dart';
 import 'dialog_info.dart';
 
+// Dipakai ikon info di sini dan baris "Sumber data kurs" di Pengaturan.
+void bukaSumberKurs(BuildContext context) {
+  showDialog<void>(
+    context: context,
+    builder: (context) => const DialogInfo(
+      ikon: LucideIcons.info,
+      judul: 'Sumber data kurs',
+      pesan: 'Rates By Exchange Rate API',
+    ),
+  );
+}
+
 // Baris bawah yang sama persis di kartu Kurs Beranda dan Hitung kurs.
 class BarisInfoKurs extends StatelessWidget {
   final bool sedangMemuat;
@@ -15,17 +27,6 @@ class BarisInfoKurs extends StatelessWidget {
     required this.sedangMemuat,
     required this.onPerbarui,
   });
-
-  void _bukaSumber(BuildContext context) {
-    showDialog<void>(
-      context: context,
-      builder: (context) => const DialogInfo(
-        ikon: LucideIcons.info,
-        judul: 'Sumber data kurs',
-        pesan: 'Rates By Exchange Rate API',
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +43,7 @@ class BarisInfoKurs extends StatelessWidget {
         ),
         const SizedBox(width: JarakApp.j12),
         GestureDetector(
-          onTap: () => _bukaSumber(context),
+          onTap: () => bukaSumberKurs(context),
           child: const Icon(
             LucideIcons.info,
             size: 18,

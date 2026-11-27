@@ -7,7 +7,7 @@ import '../utils/format.dart';
 import '../utils/privasi.dart';
 import 'ikon_cincin.dart';
 
-// Versi baris untuk "Impian terdekat" di Beranda. Impian yang sudah tercapai tidak tampil di sana.
+// Versi baris untuk "Impian terdekat" di Beranda, jadi nominalnya memakai aturan sembunyi Beranda.
 class KartuImpian extends StatelessWidget {
   final WishlistItem impian;
 
@@ -47,7 +47,7 @@ class KartuImpian extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: JarakApp.j4),
-              Text(rupiahTampil(impian.targetIdr), style: TeksApp.angka),
+              Text(rupiahBeranda(impian.targetIdr), style: TeksApp.angka),
               if (impian.mataUang != 'IDR')
                 Text(
                   _valas(impian.mataUang, impian.hargaAsing),
@@ -55,7 +55,7 @@ class KartuImpian extends StatelessWidget {
                 ),
               const SizedBox(height: JarakApp.j8),
               Text(
-                '${rupiahTampil(impian.terkumpulIdr)} terkumpul',
+                '${rupiahBeranda(impian.terkumpulIdr)} terkumpul',
                 style: TeksApp.isi.copyWith(color: WarnaApp.teksUtama),
               ),
               // Estimasi 0 berarti budget 'Tabungan' belum ada.

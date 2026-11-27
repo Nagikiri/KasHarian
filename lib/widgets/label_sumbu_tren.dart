@@ -15,7 +15,7 @@ class LabelSumbuTren extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Label 0 dikosongkan supaya dasar grafik tidak ramai. Saat nominal disembunyikan, semua dikosongkan.
-    bool kosong = posisi == 0 || sembunyikanNominal.value;
+    bool kosong = posisi == 0 || nominalTersembunyi();
     return SideTitleWidget(
       meta: meta,
       space: JarakApp.j8,

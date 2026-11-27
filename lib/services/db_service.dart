@@ -106,7 +106,7 @@ class DbService {
     for (var d in contohDompet()) {
       await db.insert('dompet', d.toMap());
     }
-    for (var k in contohKategori()) {
+    for (var k in kategoriBawaan()) {
       await db.insert('kategori', k.toMap());
     }
     for (var b in contohBudget()) {
@@ -122,6 +122,44 @@ class DbService {
     for (var u in contohUtang().reversed) {
       await db.insert('utang', u.toMap());
     }
+  }
+
+  // Kurs terakhir dan pengaturan privasi tidak ikut dihapus.
+  static const List<String> _kunciTetap = [
+    'kurs_ke_idr',
+    'kurs_diperbarui',
+    'cakupan_sembunyi',
+    'sembunyikan_saat_dibuka',
+  ];
+
+  // Dipakai "Hapus semua data". transaction: kalau satu langkah gagal, tidak ada yang terhapus.
+  static Future<void> kosongkan() async {
+    Database? db = _db;
+    if (db == null) return;
+    await db.transaction((txn) async {
+      for (String tabel in [
+        'transaksi',
+        'kategori',
+        'kantong',
+        'utang',
+        'impian',
+        'dompet',
+        'pesan_ai',
+      ]) {
+        await txn.delete(tabel);
+      }
+      await txn.delete(
+        'pengaturan',
+        where: 'kunci NOT IN (?, ?, ?, ?)',
+        whereArgs: _kunciTetap,
+      );
+      for (var d in dompetBawaan()) {
+        await txn.insert('dompet', d.toMap());
+      }
+      for (var k in kategoriBawaan()) {
+        await txn.insert('kategori', k.toMap());
+      }
+    });
   }
 
   // Mengembalikan id baru dari AUTOINCREMENT, atau null kalau database belum dibuka.

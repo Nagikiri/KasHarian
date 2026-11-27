@@ -37,7 +37,7 @@ void main() {
     expect(AppData.saldoSumber('Utama'), isNot(0));
     expect(
       AppData.daftarKategori.map((k) => k.nama),
-      contohKategori().map((k) => k.nama),
+      kategoriBawaan().map((k) => k.nama),
     );
     expect(
       AppData.daftarTransaksi.map((t) => t.catatan),
@@ -225,5 +225,63 @@ void main() {
     expect(AppData.percakapanAi[0].dariPengguna, isTrue);
     expect(AppData.percakapanAi[0].teks, pertanyaan);
     expect(AppData.percakapanAi[1].dariPengguna, isFalse);
+  });
+
+  test('hapus semua data menyisakan bawaan dan kurs terakhir', () async {
+    DateTime waktuKurs = DateTime(2026, 11, 20, 8);
+    await DbService.simpanPengaturan('kurs_ke_idr', jsonEncode({'KRW': 11.5}));
+    await DbService.simpanPengaturan(
+      'kurs_diperbarui',
+      waktuKurs.toIso8601String(),
+    );
+    await AppData.ubahAnggaran(7000000);
+    await AppData.simpanFavorit(['EUR']);
+    await AppData.ubahCakupanSembunyi(true);
+
+    await AppData.hapusSemuaData();
+    expect(AppData.daftarTransaksi, isEmpty);
+    expect(AppData.daftarBudget, isEmpty);
+    expect(AppData.daftarUtang, isEmpty);
+    expect(AppData.daftarWishlist, isEmpty);
+    expect(AppData.percakapanAi, isEmpty);
+    expect(
+      AppData.daftarKategori.map((k) => k.nama),
+      kategoriBawaan().map((k) => k.nama),
+    );
+    expect(
+      AppData.daftarDompet.map((d) => d.nama),
+      dompetBawaan().map((d) => d.nama),
+    );
+    expect(AppData.daftarDompet.every((d) => d.saldoAwal == 0), isTrue);
+    expect(AppData.daftarDompet.every((d) => d.id != null), isTrue);
+
+    // Nilai di memori dikosongkan dulu, supaya yang diperiksa benar-benar isi database.
+    AppData.kursDiperbarui = null;
+    AppData.sembunyiSemuaHalaman = false;
+    await AppData.muat();
+    expect(AppData.anggaranBulanan, AppData.anggaranBawaan);
+    expect(AppData.mataUangFavorit, AppData.favoritBawaan);
+    expect(AppData.kursDiperbarui, waktuKurs);
+    expect(AppData.kursKeIdr['KRW'], 11.5);
+    expect(AppData.sembunyiSemuaHalaman, isTrue);
+  });
+
+  test('cakupan sembunyi dan sakelar tersimpan setelah muat', () async {
+    expect(AppData.sembunyiSemuaHalaman, isFalse);
+    expect(AppData.sembunyikanSaatDibuka, isFalse);
+    await AppData.ubahCakupanSembunyi(true);
+    await AppData.ubahSembunyikanSaatDibuka(true);
+    AppData.sembunyiSemuaHalaman = false;
+    AppData.sembunyikanSaatDibuka = false;
+
+    await AppData.muat();
+    expect(AppData.sembunyiSemuaHalaman, isTrue);
+    expect(AppData.sembunyikanSaatDibuka, isTrue);
+
+    await AppData.ubahCakupanSembunyi(false);
+    await AppData.ubahSembunyikanSaatDibuka(false);
+    await AppData.muat();
+    expect(AppData.sembunyiSemuaHalaman, isFalse);
+    expect(AppData.sembunyikanSaatDibuka, isFalse);
   });
 }

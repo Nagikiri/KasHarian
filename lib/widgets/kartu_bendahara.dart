@@ -32,7 +32,8 @@ class KartuBendahara extends StatelessWidget {
           // Didengarkan langsung supaya kotak ikut berubah saat tombol mata ditekan.
           ValueListenableBuilder<bool>(
             valueListenable: sembunyikanNominal,
-            builder: (context, sembunyi, child) => _bangunKotakSaran(sembunyi),
+            builder: (context, sembunyi, child) =>
+                _bangunKotakSaran(nominalTersembunyi()),
           ),
           const SizedBox(height: JarakApp.j12),
           TombolUtama(teks: 'Minta saran', onTekan: onMintaSaran),

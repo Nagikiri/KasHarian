@@ -22,6 +22,7 @@ import '../widgets/sheet_detail_transaksi.dart';
 import '../widgets/tampilan_kosong.dart';
 import 'budget_screen.dart';
 import 'dompet_screen.dart';
+import 'pengaturan_screen.dart';
 import 'utang_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -89,16 +90,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Sisi kanan disiapkan untuk ikon Pengaturan nanti.
           BarisJudul(
             judul: 'KasHarian',
             keterangan: formatTanggal(DateTime.now()),
+            ujung: IconButton(
+              tooltip: 'Pengaturan',
+              visualDensity: VisualDensity.compact,
+              icon: const Icon(
+                LucideIcons.settings,
+                size: 20,
+                color: WarnaApp.teksUtama,
+              ),
+              onPressed: () => _buka(const PengaturanScreen()),
+            ),
           ),
           _tepi(
             KartuSaldo(
-              saldo: rupiahTampil(AppData.saldoTersedia),
-              pemasukan: rupiahTampil(AppData.totalPemasukan),
-              pengeluaran: rupiahTampil(AppData.totalPengeluaran),
+              saldo: rupiahBeranda(AppData.saldoTersedia),
+              pemasukan: rupiahBeranda(AppData.totalPemasukan),
+              pengeluaran: rupiahBeranda(AppData.totalPengeluaran),
               disembunyikan: sembunyikanNominal.value,
               onMata: () =>
                   sembunyikanNominal.value = !sembunyikanNominal.value,
@@ -167,8 +177,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ikon: LucideIcons.wallet,
               judul: 'Anggaran',
               info: sisa < 0
-                  ? 'Lebih ${rupiahTampil(-sisa)}'
-                  : 'Sisa ${rupiahTampil(sisa)}',
+                  ? 'Lebih ${rupiahBeranda(-sisa)}'
+                  : 'Sisa ${rupiahBeranda(sisa)}',
               warnaInfo: sisa < 0 ? WarnaApp.bahaya : null,
               persen: anggaran > 0 ? terpakai / anggaran : 0,
               onTekan: () => _buka(const BudgetScreen()),
@@ -216,6 +226,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           if (i > 0) const Divider(height: 1),
           BarisTransaksi(
             transaksi: daftar[i],
+            diBeranda: true,
             onTekan: () => bukaDetailTransaksi(context, daftar[i]),
           ),
         ],

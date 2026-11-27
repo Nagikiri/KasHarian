@@ -118,7 +118,7 @@ void main() {
   });
 
   test('semua ikon data contoh dan ikon khusus punya nomor urut', () {
-    for (var k in contohKategori()) {
+    for (var k in kategoriBawaan()) {
       expect(indeksIkon(k.ikon), isNot(-1), reason: k.nama);
     }
     for (var t in contohTransaksi()) {

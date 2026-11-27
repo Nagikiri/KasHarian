@@ -11,23 +11,29 @@ class BarisTransaksi extends StatelessWidget {
   final VoidCallback? onTekan;
   // false kalau daftarnya sudah dikelompokkan per tanggal, supaya tanggal tidak tertulis dua kali.
   final bool tampilkanTanggal;
+  // true untuk Transaksi terbaru, karena Beranda selalu ikut tombol mata.
+  final bool diBeranda;
 
   const BarisTransaksi({
     super.key,
     required this.transaksi,
     this.onTekan,
     this.tampilkanTanggal = true,
+    this.diBeranda = false,
   });
 
   // Transfer hanya memindahkan uang antar-kantong, jadi tanpa tanda + atau -.
-  static String teksNominal(CatatanTransaksi t) {
+  static String teksNominal(CatatanTransaksi t, {bool diBeranda = false}) {
     String tanda = '';
     if (t.isPemasukan) {
       tanda = '+';
     } else if (!t.isTransfer) {
       tanda = '-';
     }
-    return '$tanda${rupiahTampil(t.nominal)}';
+    String nominal = diBeranda
+        ? rupiahBeranda(t.nominal)
+        : rupiahTampil(t.nominal);
+    return '$tanda$nominal';
   }
 
   // Merah hanya untuk peringatan, jadi uang keluar biasa cukup teksUtama dengan tanda -.
@@ -78,7 +84,7 @@ class BarisTransaksi extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                teksNominal(transaksi),
+                teksNominal(transaksi, diBeranda: diBeranda),
                 style: TeksApp.angka.copyWith(color: warnaNominal(transaksi)),
               ),
               if (tampilkanTanggal) ...[

@@ -62,7 +62,7 @@ class SheetDetailImpian extends StatelessWidget {
             if (impian.mataUang != 'IDR') ...[
               _bangunBaris(
                 'Harga valas',
-                sembunyikanNominal.value
+                nominalTersembunyi()
                     ? '${impian.mataUang} ••••••'
                     : '${impian.mataUang} ${formatTitik(impian.hargaAsing)}',
               ),

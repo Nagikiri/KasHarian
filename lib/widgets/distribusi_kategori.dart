@@ -96,7 +96,7 @@ class DistribusiKategori extends StatelessWidget {
             persen: perKategori[daftarNama[i]]! / total,
             warna: warnaKategori(daftarNama[i]),
             // Selisih tidak ditampilkan kalau periode lalu kosong (semua "baru") atau nominal disembunyikan.
-            selisih: totalLalu > 0 && !sembunyikanNominal.value
+            selisih: totalLalu > 0 && !nominalTersembunyi()
                 ? teksSelisih(perKategori[daftarNama[i]]!, lalu[daftarNama[i]])
                 : null,
           ),
