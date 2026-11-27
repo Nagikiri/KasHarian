@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -18,6 +19,11 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Ikon status bar dan tombol HP dibuat gelap supaya terlihat di atas latar putih.
   SystemChrome.setSystemUIOverlayStyle(gayaStatusGelap);
+  // Lisensi OFL font wajib ikut disertakan, jadi didaftarkan supaya tampil di halaman lisensi.
+  LicenseRegistry.addLicense(() async* {
+    String teks = await rootBundle.loadString('assets/font/OFL.txt');
+    yield LicenseEntryWithLineBreaks(['Plus Jakarta Sans'], teks);
+  });
   // Langkah 1: buka database. Saat pertama kali, tabel dibuat lalu diisi data contoh.
   await DbService.buka();
   // Langkah 2: salin isi database ke list AppData, karena semua layar membaca dari AppData.

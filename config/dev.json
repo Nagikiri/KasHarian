@@ -1,0 +1,5 @@
+{
+  "ENV": "dev",
+  "DB_NAME": "kasharian_dev.db",
+  "DATA_CONTOH": true
+}

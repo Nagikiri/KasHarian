@@ -58,6 +58,23 @@ void main() {
     expect(AppData.daftarTransaksi.every((t) => t.id != null), isTrue);
   });
 
+  // Seperti flavor prod (DATA_CONTOH false): hanya kategori bawaan dan 5 dompet bersaldo 0.
+  test('database baru tanpa data contoh hanya berisi bawaan', () async {
+    await DbService.tutup();
+    await DbService.buka(lokasi: inMemoryDatabasePath, dataContoh: false);
+    await AppData.muat();
+    expect(AppData.daftarTransaksi, isEmpty);
+    expect(AppData.daftarBudget, isEmpty);
+    expect(AppData.daftarUtang, isEmpty);
+    expect(AppData.daftarWishlist, isEmpty);
+    expect(
+      AppData.daftarKategori.map((k) => k.nama),
+      kategoriBawaan().map((k) => k.nama),
+    );
+    expect(AppData.daftarDompet.length, 5);
+    expect(AppData.daftarDompet.every((d) => d.saldoAwal == 0), isTrue);
+  });
+
   test('tambah, ubah, dan hapus transaksi tersimpan', () async {
     int jumlahAwal = AppData.daftarTransaksi.length;
     CatatanTransaksi baru = CatatanTransaksi(

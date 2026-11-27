@@ -64,6 +64,13 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
+  # Flavor yang dipakai kalau flutter run atau flutter build tanpa --flavor.
+  default-flavor: dev
+
+  # Lisensi font, dibaca di main() untuk halaman lisensi.
+  assets:
+    - assets/font/OFL.txt
+
   fonts:
     - family: PlusJakartaSans
       fonts:

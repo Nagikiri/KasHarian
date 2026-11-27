@@ -1,7 +1,9 @@
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
+import '../config/app_config.dart';
 import '../models/data_contoh.dart';
+import '../models/dompet.dart';
 
 // Satu-satunya tempat SQL di aplikasi. AppData memanggil method di sini setiap kali data berubah.
 class DbService {
@@ -9,10 +11,18 @@ class DbService {
   static Database? _db;
 
   // Dipanggil sekali di main() sebelum runApp. Test mengisi lokasi dengan database di memori.
-  static Future<void> buka({String? lokasi}) async {
-    lokasi ??= join(await getDatabasesPath(), 'kasharian.db');
+  // dataContoh bisa diisi test, karena nilai AppConfig tetap selama aplikasi berjalan.
+  static Future<void> buka({
+    String? lokasi,
+    bool dataContoh = AppConfig.dataContoh,
+  }) async {
+    lokasi ??= join(await getDatabasesPath(), AppConfig.dbName);
     // onCreate hanya berjalan saat file database belum ada, yaitu saat aplikasi pertama kali dibuka.
-    _db = await openDatabase(lokasi, version: 1, onCreate: _buatTabel);
+    _db = await openDatabase(
+      lokasi,
+      version: 1,
+      onCreate: (db, versi) => _buatTabel(db, dataContoh),
+    );
   }
 
   static Future<void> tutup() async {
@@ -20,7 +30,7 @@ class DbService {
     _db = null;
   }
 
-  static Future<void> _buatTabel(Database db, int versi) async {
+  static Future<void> _buatTabel(Database db, bool dataContoh) async {
     // Tanggal disimpan sebagai teks ISO 8601, bool sebagai 0/1, ikon sebagai nomor urut di daftarIkonKategori.
     await db.execute('''
       CREATE TABLE transaksi (
@@ -98,17 +108,26 @@ class DbService {
         nilai TEXT NOT NULL
       )
     ''');
-    await _isiContoh(db);
+    // Prod hanya mendapat isi bawaan. Dev mendapat saldo contoh dan data contoh lain.
+    await _isiBawaan(db, dataContoh ? contohDompet() : dompetBawaan());
+    if (dataContoh) await _isiContoh(db);
   }
 
-  // Data contoh hanya masuk di sini, yaitu saat database pertama kali dibuat.
-  static Future<void> _isiContoh(Database db) async {
-    for (var d in contohDompet()) {
+  // DatabaseExecutor bisa berupa database atau transaction, jadi dipakai juga oleh kosongkan().
+  static Future<void> _isiBawaan(
+    DatabaseExecutor db,
+    List<Dompet> daftarDompet,
+  ) async {
+    for (var d in daftarDompet) {
       await db.insert('dompet', d.toMap());
     }
     for (var k in kategoriBawaan()) {
       await db.insert('kategori', k.toMap());
     }
+  }
+
+  // Data contoh hanya masuk di sini, yaitu saat database pertama kali dibuat.
+  static Future<void> _isiContoh(Database db) async {
     for (var b in contohBudget()) {
       await db.insert('kantong', b.toMap());
     }
@@ -153,12 +172,7 @@ class DbService {
         where: 'kunci NOT IN (?, ?, ?, ?)',
         whereArgs: _kunciTetap,
       );
-      for (var d in dompetBawaan()) {
-        await txn.insert('dompet', d.toMap());
-      }
-      for (var k in kategoriBawaan()) {
-        await txn.insert('kategori', k.toMap());
-      }
+      await _isiBawaan(txn, dompetBawaan());
     });
   }
 

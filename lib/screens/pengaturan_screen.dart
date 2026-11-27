@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../config/app_config.dart';
 import '../main.dart';
 import '../models/app_data.dart';
 import '../theme/app_theme.dart';
@@ -128,16 +129,20 @@ class PengaturanScreen extends StatelessWidget {
   }
 
   List<Widget> _bangunTentang(BuildContext context) {
+    // Penanda dev supaya aplikasi dev dan prod di HP yang sama mudah dibedakan.
+    String versi = AppConfig.isDev
+        ? '${AppData.versiAplikasi} (dev)'
+        : AppData.versiAplikasi;
     return [
       // Halaman lisensi dibuka dari baris Versi, jadi tidak perlu baris sendiri.
       BarisPengaturan(
         ikon: LucideIcons.info,
         judul: 'Versi',
-        nilai: AppData.versiAplikasi,
+        nilai: versi,
         onTekan: () => showLicensePage(
           context: context,
           applicationName: 'KasHarian',
-          applicationVersion: AppData.versiAplikasi,
+          applicationVersion: versi,
         ),
       ),
       BarisPengaturan(

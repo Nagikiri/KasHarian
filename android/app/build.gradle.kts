@@ -43,9 +43,31 @@ android {
         }
     }
 
+    // Signing release berlaku untuk kedua flavor (devRelease dan prodRelease).
     buildTypes {
         release {
             signingConfig = signingConfigs.getByName("release")
+        }
+    }
+
+    // AGP 9 mematikan resValue secara bawaan, padahal app_name di bawah memakainya.
+    buildFeatures {
+        resValues = true
+    }
+
+    // Dev dan prod bisa terpasang bersamaan di satu HP karena applicationId berbeda.
+    flavorDimensions += "env"
+    productFlavors {
+        create("dev") {
+            dimension = "env"
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
+            // Nama di bawah ikon aplikasi, dipakai AndroidManifest lewat @string/app_name.
+            resValue("string", "app_name", "KasHarian Dev")
+        }
+        create("prod") {
+            dimension = "env"
+            resValue("string", "app_name", "KasHarian")
         }
     }
 }
